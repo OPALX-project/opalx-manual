@@ -2,10 +2,18 @@
 
 require "open3"
 require "pathname"
+require "yaml"
 
 root = Pathname.new(__dir__).parent
-pdf = root / "_site/OPALX-Documentation.pdf"
-abort "error: rendered PDF is missing: #{pdf}" unless pdf.file?
+config = YAML.safe_load(File.read(root / "_quarto.yml"), permitted_classes: [], aliases: false)
+book_title = config.dig("book", "title") || "OPALX Documentation"
+pdf_basename = book_title.strip.gsub(/[^0-9A-Za-z]+/, "-").gsub(/\A-|-\z/, "") + ".pdf"
+pdf = root / "_site" / pdf_basename
+unless pdf.file?
+  found = Dir[root.join("_site", "*.pdf")].map { |path| File.basename(path) }.sort
+  detail = found.empty? ? "no PDFs found in _site" : "found: #{found.join(', ')}"
+  abort "error: rendered PDF is missing: #{pdf} (#{detail})"
+end
 
 text, text_error, text_status = Open3.capture3("pdftotext", "-layout", pdf.to_s, "-")
 abort "error: pdftotext failed: #{text_error}" unless text_status.success?
