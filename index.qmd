@@ -1,5 +1,5 @@
 ---
-title: "OPALX Documentation"
+title: "OPALX Universe"
 description: "The unified entry point for OPALX users, physics researchers, and developers."
 audience: user
 status: current
