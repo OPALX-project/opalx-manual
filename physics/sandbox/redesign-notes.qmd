@@ -9,7 +9,7 @@ This is where work in progress is shown to the comunity.
 
 ### Comments to the proposels of Jon/Chris
 
-[Download Jon's OPAL element layout proposal](./notes/Proposal-Jon-OpalElementLayout.pdf).
+[Jon's OPAL element layout proposal](../../resources/reports/2026/opal-element-layout-proposal.qmd).
 
 
 #### **OpalElemen vs. Element / ElemenBase**
