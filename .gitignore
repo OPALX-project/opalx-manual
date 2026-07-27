@@ -15,6 +15,7 @@
 !physics/field-solver/figures/current-space-charge-class-diagram.tex
 !*.tikz.tex
 *.toc
+*.pdf
 
 
 **/*.quarto_ipynb
