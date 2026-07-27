@@ -65,6 +65,7 @@ book:
         - physics/decay-processes/index.qmd
         - physics/spin-tracking/index.qmd
         - physics/gamma-gamma/index.qmd
+        - physics/sandbox/index.qmd
     - part: "Reference"
       chapters:
         - reference/commands.qmd
