@@ -19,6 +19,7 @@
 
 
 **/*.quarto_ipynb
+**/*_files/figure-latex/mermaid-figure-*.png
 
 /_*.local
 
