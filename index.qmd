@@ -12,7 +12,7 @@ format:
 title-block-style: none
 ---
 
-### Main Developers and Partner Institutions {.unnumbered}
+### Main Developers & Institutions {.unnumbered}
 
 Andreas Adelmann (PSI); Pedro Calvo (CIEMAT); Achim Gsell (PSI); Sriramkrishnan
 Muralikrishnan (JSC); Philippe Piot (NIU); Chris Rogers (RAL); Mohsen Sadr
