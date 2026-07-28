@@ -8,7 +8,7 @@ filters:
   - filters/version-block-labels.lua
 
 book:
-  title: "OPALX Universe"
+  title: "The OPALX Universe"
   subtitle: "User guide, physics manual, reference, and developer handbook"
   sidebar:
     collapse-level: 1

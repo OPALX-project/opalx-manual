@@ -1,5 +1,5 @@
 ---
-title: "OPALX Documentation"
+title: "OPALX Universe"
 description: "The unified entry point for OPALX users, physics researchers, and developers."
 audience: user
 status: current
@@ -12,7 +12,7 @@ format:
 title-block-style: none
 ---
 
-### Main Developers and Partner Institutions {.unnumbered}
+### Main Developers & Institutions {.unnumbered}
 
 Andreas Adelmann (PSI); Pedro Calvo (CIEMAT); Achim Gsell (PSI); Sriramkrishnan
 Muralikrishnan (JSC); Philippe Piot (NIU); Chris Rogers (RAL); Mohsen Sadr
