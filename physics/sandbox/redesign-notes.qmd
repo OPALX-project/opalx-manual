@@ -9,7 +9,7 @@ This is where work in progress is shown to the comunity.
 
 ### Comments to the proposels of Jon/Chris
 
-[Jon's OPAL element layout proposal](../../resources/reports/2026/opal-element-layout-proposal.qmd).
+[Jon's OPAL element layout proposal](/resources/reports/2026/opal-element-layout-proposal.qmd).
 
 
 #### **OpalElemen vs. Element / ElemenBase**
@@ -391,5 +391,4 @@ step is to turn the port/placement vocabulary into the actual layout API so
 that straight elements, analytic bends, curved multipoles, nested lines,
 misalignments, and field-local charts all participate through one coherent
 interface.
-
 
