@@ -3,7 +3,7 @@ title: "Build Configuration"
 description: "Complete reference for the user-facing OPALX CMake selectors, feature toggles, and dependency controls."
 audience: developer
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-08-06"
 ---
 
 Pass configuration values to CMake with `-D<NAME>=<VALUE>`. For example:
@@ -88,7 +88,7 @@ configure successfully and still fail at link or runtime.
 | Flag | Default | Effect |
 |---|---:|---|
 | `IPPL_GIT_TAG` | `master` | IPPL branch, tag, commit, or release to fetch. A numeric value such as `3.2.0` resolves to `IPPL-3.2.0`. |
-| `Kokkos_VERSION` | `5.1.1` | Kokkos version requested through IPPL. Prefix a tag, branch, or commit with `git.` to request that source revision. |
+| `Kokkos_VERSION` | `5.2.0` | Kokkos version requested through IPPL. Prefix a tag, branch, or commit with `git.` to request that source revision. |
 | `Heffte_VERSION` | `2.4.0` | heFFTe version requested through IPPL when FFT support is enabled. The same `git.<ref>` form selects a source revision. |
 
 Plain Kokkos and heFFTe versions allow a compatible installed package of that
