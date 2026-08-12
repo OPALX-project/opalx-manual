@@ -3,7 +3,7 @@ title: "File Formats"
 description: "Status of OPALX input, field-map, distribution, diagnostic, and statistics formats."
 audience: user
 status: experimental
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-08-12"
 ---
 
 OPALX consumes statement-oriented `.in` files plus model-specific field maps
@@ -16,8 +16,8 @@ The audited formats currently documented are:
 - [`FROMFILE` and `EMITTEDFROMFILE` distribution records](../user-guide/beam-distributions.qmd#fromfile)
 - [`DUMPEMFIELDS` output](../user-guide/diagnostics-output.qmd#dumpemfields-command)
 
-Other output and restart formats remain **planned** until each reader or writer
-has been traced in the current source. A legacy OPAL variant is not an OPALX
+Other output formats remain **planned** until each reader or writer has been
+traced in the current source. A legacy OPAL variant is not an OPALX
 compatibility guarantee.
 
 Each completed format page will specify:
@@ -28,3 +28,71 @@ Each completed format page will specify:
 - Parallel write behavior.
 - Versioning and backward-compatibility policy.
 - A minimal reader and writer example.
+
+## Checkpoint and restart {#checkpoint-restart}
+
+::: {.feature-opalx}
+
+Enable periodic checkpoints in the input file:
+
+```opal
+OPTION, CHECKPOINTFREQ=1000;
+```
+
+After each 1000 completed global tracking steps, OPALX writes
+`<input-basename>_checkpoint.h5`. It first writes a same-directory `.tmp` file
+and replaces the checkpoint only after every MPI rank closes it. Each new
+checkpoint replaces the previous one.
+
+Restart with the same input file and the saved checkpoint:
+
+```sh
+opalx --restart simulation_checkpoint.h5 simulation.in
+```
+
+The input file still defines the beamline, beams, field solver, emission-source
+lists, and complete `TRACK` step-size schedule. OPALX restores the saved
+particle and tracker state instead of sampling the initial distributions. A
+restart may use a different number of MPI ranks; saved global particle tables
+are repartitioned over the ranks in the new run.
+
+The checkpoint contains:
+
+- Format version, completed global step, simulation time, and time step.
+- Current step-size segment and the completed-step offset within it.
+- Every particle container's position, momentum, per-particle time step, ID,
+  bin, charge, mass, species, and optional spin.
+- Per-container path position, reference position and momentum,
+  reference-to-lab transform, and current segment-stop state.
+- Autophased RF-cavity phases.
+
+Checkpoint writing does not depend on phase-space output:
+`ENABLEHDF5=FALSE` and `PSDUMPFREQ=0` do not disable it. On restart, OPALX
+rewinds the original per-container `.stat` files to the saved path positions
+and appends the continuation. Corresponding later `.lbal` rows are also
+removed before appending. Existing phase-space `.h5` files are likewise
+rewound to the saved simulation time and appended under their original names.
+If an original output file is unavailable, OPALX creates it and writes the
+restarted portion. Restart also selects the process-wide `APPEND` output mode,
+which is used by monitor, loss, design-path, and other output writers that
+support continued output.
+
+Current restrictions:
+
+- Time-dependent emission, delayed one-shot sources, and
+  `EMITTEDFROMFILE` cannot yet be restarted because sampler progress and random
+  state are not stored.
+- Stochastic global processes such as `DECAY` cannot yet be restarted because
+  their random-pool state is not stored.
+- Iterative field-solver history is rebuilt after restart. Results remain a
+  valid continuation, but the last bits can differ from an uninterrupted run
+  or when the MPI rank count changes because reduction order and solver initial
+  guesses can change.
+- Checkpoint schema compatibility is explicit: an unsupported format version
+  is rejected instead of being interpreted as a normal diagnostic HDF5 file.
+
+OPALX reports the saved global step and time after a successful restore. A
+checkpoint already at the end of the configured step schedule is accepted as
+a completed run with no remaining integration steps.
+
+:::

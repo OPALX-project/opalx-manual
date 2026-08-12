@@ -3,7 +3,7 @@ title: "Introduction"
 description: "Understand what OPALX is, how it is organized, and where to find maintained project resources."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-08-12"
 ---
 
 OPALX is a modern particle-accelerator simulation program built for portable
@@ -66,6 +66,15 @@ For example:
 ```sh
 opalx inputfile.in --info 1
 ```
+
+Resume a checkpoint with the input file that defines the original run:
+
+```sh
+opalx --restart inputfile_checkpoint.h5 inputfile.in
+```
+
+See [Checkpoint and restart](../../reference/file-formats.qmd#checkpoint-restart)
+for the input option, saved state, and current restrictions.
 
 Input-level output frequencies and diagnostics are controlled through
 [`OPTION`](../options.qmd), diagnostic elements, and
