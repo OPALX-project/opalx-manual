@@ -67,11 +67,15 @@ For example:
 opalx inputfile.in --info 1
 ```
 
-Resume a checkpoint with the input file that defines the original run:
+Resume a checkpoint with the input file that defines the continuation:
 
 ```sh
 opalx --restart inputfile_checkpoint.h5 inputfile.in
 ```
+
+The checkpoint file can also be placed after the input file. If `--restart` is
+used without a filename, OPALX looks for `<input-basename>_restart.h5`, for
+example `inputfile_restart.h5` for `inputfile.in`.
 
 See [Checkpoint and restart](../../reference/file-formats.qmd#checkpoint-restart)
 for the input option, saved state, and current restrictions.

@@ -44,11 +44,26 @@ After each 1000 completed global tracking steps, OPALX writes
 and replaces the checkpoint only after every MPI rank closes it. Each new
 checkpoint replaces the previous one.
 
-Restart with the same input file and the saved checkpoint:
+Restart with the input file that defines the continuation and the saved
+checkpoint:
 
 ```sh
 opalx --restart simulation_checkpoint.h5 simulation.in
 ```
+
+The checkpoint file may be given either before or after the input file. For
+example, the following forms are equivalent:
+
+```sh
+opalx simulation.in --restart simulation_checkpoint.h5
+opalx --restart simulation_checkpoint.h5 simulation.in
+opalx --restart simulation_checkpoint.h5 simulation.in --info 1
+```
+
+If `--restart` is given without a checkpoint filename, OPALX derives the
+checkpoint name from the input filename by removing the extension and appending
+`_restart.h5`. For example, `opalx simulation.in --restart` reads
+`simulation_restart.h5`.
 
 The input file still defines the beamline, beams, field solver, emission-source
 lists, and complete `TRACK` step-size schedule. OPALX restores the saved
@@ -56,10 +71,22 @@ particle and tracker state instead of sampling the initial distributions. A
 restart may use a different number of MPI ranks; saved global particle tables
 are repartitioned over the ranks in the new run.
 
+The completed global tracking step stored in the checkpoint is the authoritative
+restart position. OPALX maps that global step onto the `TRACK` step-size
+schedule in the restart input file and resumes with the corresponding
+completed-step offset inside that segment. This allows a restart input file to
+extend the schedule, for example restarting from a checkpoint written after 15
+completed steps with a continuation input that tracks to 20 steps. The time step
+at the mapped restart position must match the time step stored in the checkpoint;
+otherwise OPALX rejects the restart because the time-step history is
+incompatible.
+
 The checkpoint contains:
 
 - Format version, completed global step, simulation time, and time step.
-- Current step-size segment and the completed-step offset within it.
+- Current step-size segment and the completed-step offset within it for
+  diagnostics and backward compatibility; restart positioning uses the completed
+  global step.
 - Every particle container's position, momentum, per-particle time step, ID,
   bin, charge, mass, species, and optional spin.
 - Per-container path position, reference position and momentum,
