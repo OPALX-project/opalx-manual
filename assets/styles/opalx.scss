@@ -24,6 +24,17 @@ body.quarto-dark {
   box-shadow: 0 8px 24px rgb(15 55 80 / 6%);
 }
 
+.cover-logo {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 1.25rem;
+}
+
+.cover-logo img {
+  width: min(260px, 42vw);
+  height: auto;
+}
+
 .hero {
   margin: 0 0 2rem;
   padding: clamp(2rem, 6vw, 4.5rem);

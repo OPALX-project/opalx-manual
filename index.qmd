@@ -12,6 +12,16 @@ format:
 title-block-style: none
 ---
 
+```{=html}
+<div class="cover-logo"><img src="opalx-logo.png" alt="OPALX"></div>
+```
+
+```{=latex}
+\begin{flushright}
+\includegraphics[width=0.28\textwidth]{opalx-logo.png}
+\end{flushright}
+```
+
 ### Main Developers & Institutions {.unnumbered}
 
 Andreas Adelmann (PSI); Pedro Calvo (CIEMAT); Achim Gsell (PSI); Sriramkrishnan
