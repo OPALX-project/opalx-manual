@@ -24,15 +24,37 @@ body.quarto-dark {
   box-shadow: 0 8px 24px rgb(15 55 80 / 6%);
 }
 
+main#quarto-document-content {
+  position: relative;
+}
+
+#title-block-header.quarto-title-block .title {
+  padding-right: min(290px, 44vw);
+}
+
 .cover-logo {
-  display: flex;
-  justify-content: flex-end;
-  margin: 0 0 1.25rem;
+  position: absolute;
+  top: -5mm;
+  right: 0;
+  margin: 0;
 }
 
 .cover-logo img {
-  width: min(260px, 42vw);
+  width: min(250px, 38vw);
   height: auto;
+}
+
+@media (max-width: 640px) {
+  #title-block-header.quarto-title-block .title {
+    padding-right: 0;
+  }
+
+  .cover-logo {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin: -0.5rem 0 1rem;
+  }
 }
 
 .hero {

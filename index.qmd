@@ -17,9 +17,11 @@ title-block-style: none
 ```
 
 ```{=latex}
+\vspace*{-2.5cm}
 \begin{flushright}
 \includegraphics[width=0.28\textwidth]{opalx-logo.png}
 \end{flushright}
+\vspace*{0.5cm}
 ```
 
 ### Main Developers & Institutions {.unnumbered}
