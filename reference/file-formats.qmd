@@ -3,7 +3,7 @@ title: "File Formats"
 description: "Status of OPALX input, field-map, distribution, diagnostic, and statistics formats."
 audience: user
 status: experimental
-last-reviewed: "2026-08-12"
+last-reviewed: "2026-08-18"
 ---
 
 OPALX consumes statement-oriented `.in` files plus model-specific field maps
@@ -71,22 +71,25 @@ particle and tracker state instead of sampling the initial distributions. A
 restart may use a different number of MPI ranks; saved global particle tables
 are repartitioned over the ranks in the new run.
 
-The completed global tracking step stored in the checkpoint is the authoritative
-restart position. OPALX maps that global step onto the `TRACK` step-size
-schedule in the restart input file and resumes with the corresponding
-completed-step offset inside that segment. This allows a restart input file to
-extend the schedule, for example restarting from a checkpoint written after 15
-completed steps with a continuation input that tracks to 20 steps. The time step
-at the mapped restart position must match the time step stored in the checkpoint;
-otherwise OPALX rejects the restart because the time-step history is
-incompatible.
+The checkpointed step-size segment and completed-step offset within that
+segment are the authoritative restart position. OPALX selects that segment
+directly and executes only the part of its `MAXSTEPS` budget that remains. This
+is distinct from the completed global step: an earlier segment may reach its
+`ZSTOP` without consuming all of its `MAXSTEPS`, so the global step alone
+cannot identify the current segment. The global step remains the cumulative
+counter used for diagnostics and checkpoint frequency.
+
+The restart input must provide a compatible `TRACK` schedule. The saved segment
+must exist, its completed-step offset must be valid for that segment's
+`MAXSTEPS`, and its `DT` must match the time step stored in the checkpoint.
+Changing `MAXSTEPS` in an earlier segment does not remap the checkpoint to a
+different schedule position.
 
 The checkpoint contains:
 
 - Format version, completed global step, simulation time, and time step.
-- Current step-size segment and the completed-step offset within it for
-  diagnostics and backward compatibility; restart positioning uses the completed
-  global step.
+- Current step-size segment and the completed-step offset within it. Restart
+  positioning uses these values directly.
 - Every particle container's position, momentum, per-particle time step, ID,
   bin, charge, mass, species, and optional spin.
 - Per-container path position, reference position and momentum,

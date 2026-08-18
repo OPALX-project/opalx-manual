@@ -3,7 +3,7 @@ title: "Tracking"
 description: "Configure TRACK, RUN, and ENDTRACK for current OPALX or retained legacy OPAL behavior."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-08-18"
 ---
 
 A tracking block selects a lattice and beam, defines its step schedule, starts
@@ -29,7 +29,7 @@ ENDTRACK;
 | `BEAMS` | empty | Ordered beam-name array. A non-empty array takes precedence over `BEAM`. |
 | `SOURCES` | empty | Accepted for compatibility but ignored; sources come from each selected `BEAM`. |
 | `DT` | `{1e-12}` s | Time-step schedule. Use positive values. |
-| `MAXSTEPS` | `{10}` | Maximum-step schedule. Negative values are rejected; values are converted to integers. |
+| `MAXSTEPS` | `{10}` | Per-segment integration-step limits. Negative values are rejected; values are converted to integers. |
 | `ZSTART` | `0` m | Starting reference position. |
 | `ZSTOP` | `{1e6}` m | Stop-position schedule. |
 | `T0` | `0` s | Accepted and stored, but not currently forwarded to `ParallelTracker`; source timing uses `EMISSIONSOURCE.T0`. |
@@ -41,7 +41,33 @@ ENDTRACK;
 
 `DT`, `MAXSTEPS`, and `ZSTOP` may contain different numbers of entries. OPALX
 extends each shorter array by repeating its final value until all three have
-the same length. This defines consecutive tracking segments.
+the same length. After expansion, the values at index $i$ form one tracking
+segment: `DT[i]` is its time step, `MAXSTEPS[i]` is its independent step
+budget, and `ZSTOP[i]` is its path-length target. OPALX orders these segment
+triples by increasing `ZSTOP`.
+
+A segment ends when all active particle containers reach its `ZSTOP` or when
+its own `MAXSTEPS` budget is exhausted, whichever happens first. Unused steps
+are not transferred to the following segment. The maximum number of steps for
+the complete schedule is therefore the sum of the expanded `MAXSTEPS` array;
+the actual number can be smaller when a `ZSTOP` is reached early.
+
+For example:
+
+```opal
+TRACK, LINE=Line1, BEAM=Beam1,
+       DT={1e-11, 2e-12},
+       MAXSTEPS={10, 20},
+       ZSTOP={0.006, 0.05};
+```
+
+The first segment may take at most 10 steps to reach 0.006 m. The second then
+has a new budget of 20 steps to reach 0.05 m, so the complete schedule permits
+at most 30 steps. If the first segment reaches its target after two steps, the
+second starts at global step two and still has its full 20-step budget.
+
+With two-entry `DT` and `ZSTOP` arrays, a scalar `MAXSTEPS=10` is expanded to
+`MAXSTEPS={10, 10}` and permits at most 20 steps in total.
 
 ### Beam selection {#opalx-track-beam-selection}
 
