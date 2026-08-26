@@ -3,7 +3,7 @@ title: "File Formats"
 description: "Status of OPALX input, field-map, distribution, diagnostic, and statistics formats."
 audience: user
 status: experimental
-last-reviewed: "2026-08-18"
+last-reviewed: "2026-08-26"
 ---
 
 OPALX consumes statement-oriented `.in` files plus model-specific field maps
@@ -62,8 +62,8 @@ opalx --restart simulation_checkpoint.h5 simulation.in --info 1
 
 If `--restart` is given without a checkpoint filename, OPALX derives the
 checkpoint name from the input filename by removing the extension and appending
-`_restart.h5`. For example, `opalx simulation.in --restart` reads
-`simulation_restart.h5`.
+`_checkpoint.h5`. For example, `opalx simulation.in --restart` reads
+`simulation_checkpoint.h5`.
 
 The input file still defines the beamline, beams, field solver, emission-source
 lists, and complete `TRACK` step-size schedule. OPALX restores the saved

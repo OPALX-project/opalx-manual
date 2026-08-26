@@ -3,7 +3,7 @@ title: "Introduction"
 description: "Understand what OPALX is, how it is organized, and where to find maintained project resources."
 audience: user
 status: current
-last-reviewed: "2026-08-12"
+last-reviewed: "2026-08-26"
 ---
 
 OPALX is a modern particle-accelerator simulation program built for portable
@@ -74,8 +74,8 @@ opalx --restart inputfile_checkpoint.h5 inputfile.in
 ```
 
 The checkpoint file can also be placed after the input file. If `--restart` is
-used without a filename, OPALX looks for `<input-basename>_restart.h5`, for
-example `inputfile_restart.h5` for `inputfile.in`.
+used without a filename, OPALX looks for `<input-basename>_checkpoint.h5`, for
+example `inputfile_checkpoint.h5` for `inputfile.in`.
 
 See [Checkpoint and restart](../../reference/file-formats.qmd#checkpoint-restart)
 for the input option, saved state, and current restrictions.
