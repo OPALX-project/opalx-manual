@@ -3,7 +3,7 @@ title: "Architecture"
 description: "How parsing, object registration, tracking, IPPL, and Kokkos fit together."
 audience: developer
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-09-05"
 ---
 
 OPALX keeps the statement-driven OPAL object model at its boundary while using
@@ -31,3 +31,21 @@ structures and solvers; Kokkos maps kernels to CPU and GPU backends.
 GPU-callable code must avoid host-only state. In particular, enclosing methods
 used by CUDA device lambdas need public accessibility and all data captured by
 device kernels must have a valid device representation.
+
+## Linear transfer-map calculation
+
+On the linear-map development branch, responsibilities are separated as follows:
+
+| Component | Responsibility |
+|---|---|
+| `Structure/LinearTransferMap.h` | Matrix result, boundary reference states, frames and diagnostics; no tracking logic. |
+| `Algorithms/ExternalFieldRayTracker` | Shared host-side Boris stepping and field-support boundary subdivision for reference and private rays. |
+| `Algorithms/LinearTransferMapBuilder` | Frame transport, reference segmentation, private-ray launches, finite-difference solve and ordered composition. Returns segment owners without attaching results. |
+| `Algorithms/OrbitThreader` | Reference pass, overlap bookkeeping, invoking the builder, attaching results to runtime elements and printing the combined map. |
+
+`Algorithms/LinearTransferMap.h` remains a forwarding include for compatibility.
+The ray calculator uses external-field interfaces, not analytic element maps or
+production particle kernels. The calculation is host-side and replicated on
+MPI ranks; stdout remains rank-zero only. See the
+[physics description](../physics/linear-transfer-maps.qmd) for coordinates,
+boundary tolerance and limitations.

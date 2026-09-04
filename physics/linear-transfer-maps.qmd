@@ -1,0 +1,145 @@
+---
+title: "Numerical linear transfer maps"
+description: "External-field ray maps, overlap composition, and boundary-resolved Boris integration."
+audience: physics
+status: experimental
+last-reviewed: "2026-09-05"
+---
+
+::: {.feature-opalx}
+
+`OPTION, ENABLELINEARTRANSFERMAPS=TRUE` enables numerical linear maps during
+the design-reference OrbitThreader pass. This describes the implementation on
+the `546-add-linear-transfer-matrix-to-each-elemen` development branch.
+No analytic element map is used by the calculator: every matrix is reconstructed
+from external-field tracking, including fields supplied by supported field maps.
+Collective fields are excluded; RF cavities and traveling-wave structures are
+currently rejected. The requested LINE interval, or one RING turn, is threaded
+independently of the production `MAXSTEPS` budget.
+
+## Coordinates and moving frame
+
+The reported coordinates are
+
+$$
+X=(x,x',y,y',\zeta,\delta)^T,\qquad
+x'=\frac{u_x}{u_s},\quad y'=\frac{u_y}{u_s},\quad
+\zeta=-\beta_0c(t-t_0),\quad
+\delta=\frac{|\mathbf u|}{u_0}-1.
+$$
+
+Here $\mathbf u=\mathbf p/(mc)=\vec\beta\gamma$ is OPALX's dimensionless
+mechanical momentum, $u_0=|\mathbf u_0|$, and
+$\beta_0=u_0/\sqrt{1+u_0^2}$. Positions and $\zeta$ are in metres;
+slopes and $\delta$ are dimensionless. Each entrance/exit plane is normal to
+the corresponding reference tangent $\mathbf e_s=\mathbf u_0/u_0$.
+Each ray is recorded at its own crossing time, not at a shared laboratory time.
+
+The transverse frame follows minimum-rotation (Bishop) transport. Between two
+reference tangents, rotate all three axes about
+$\mathbf a\propto\mathbf e_s\times\mathbf e_s'$ through
+
+$$
+\theta=\operatorname{atan2}
+\left(|\mathbf e_s\times\mathbf e_s'|,\mathbf e_s\cdot\mathbf e_s'\right).
+$$
+
+There is no added roll about the tangent. Straight sections therefore retain
+their transverse axes without requiring a nonzero curvature.
+
+## Finite differences and overlaps
+
+For each coordinate $j$, launch two rays with $X_j=\pm\epsilon_j$ and all
+other coordinates zero. The current amplitudes are $10^{-3}$ in each coordinate's
+units. Construct the six columns
+
+$$
+D_{\mathrm{in},j}=\frac{X^+_{\mathrm{in},j}-X^-_{\mathrm{in},j}}{2},\qquad
+D_{\mathrm{out},j}=\frac{X^+_{\mathrm{out},j}-X^-_{\mathrm{out},j}}{2},\qquad
+M D_{\mathrm{in}}=D_{\mathrm{out}}.
+$$
+
+A pivoted inversion of the input differences gives the matrix. Centered
+differences have an $O(\epsilon_j^2)$ truncation error in a differentiable map.
+Reducing `DT` alone cannot remove this error floor.
+
+The reference path is partitioned wherever its active-element set changes.
+Each segment has a unique identifier and is attached to every participating
+runtime element. An element can consequently own several segment maps.
+Private rays always evaluate the fields at their **own** positions:
+
+$$
+\mathbf E(\mathbf r,t)=\sum_{i\in A(\mathbf r)}\mathbf E_i(\mathbf r,t),\qquad
+\mathbf B(\mathbf r,t)=\sum_{i\in A(\mathbf r)}\mathbf B_i(\mathbf r,t).
+$$
+
+The reference segment's owners do not restrict this ray-dependent field set.
+Overlap segments are composed once, and field-free gaps are included:
+
+$$
+M_{\mathrm{total}}=M_N\cdots M_2M_1.
+$$
+
+The combined matrix and diagnostics are printed to stdout. For a periodic
+reference pass this is the one-turn map. Element attachments can be traversed
+with `OpalBeamline::getLinearTransferMapsInReferenceOrder()`; that traversal
+deduplicates shared overlap segments but does not contain unowned field-free
+gaps. The complete product is available from OrbitThreader's combined-map getter.
+
+## Field-support boundary subdivision
+
+Both the map-enabled reference pass and its private rays use the same numerical
+drift--Boris-kick--drift step. Fields are evaluated at the drift midpoint.
+The support set is obtained from each element's `isInside()` query, using that
+element's placement and, for a sector bend, its curved containment chart.
+Support can extend beyond the mechanical body because of fringe fields.
+
+A trial step is accepted if support sets at the start, midpoint and end agree.
+Otherwise its duration is halved; after advancing the first half, the second
+half is recomputed from the resulting state. This continues until a boundary
+straddle satisfies
+
+$$
+c|h|\leq\max\left(10^{-12}c|\Delta t|,
+64\epsilon_{\mathrm{mach}}\max(1\,\mathrm m,|\mathbf r|)\right).
+$$
+
+Here $h$ is the trial duration and $\Delta t$ the requested ray step. The
+floating-point term prevents endless subdivision when position updates become
+unresolvable. Trial steps are also capped at $L_{\min}/(4c)$, where $L_{\min}$
+is the shortest positive longitudinal field-support extent. Thus a regular
+longitudinal crossing cannot jump over a whole thin field region without a
+support sample. The existing input time-step safety check remains active.
+
+Smooth regions retain second-order Boris integration. The boundary operation is
+numerical subdivision, not an exact element map, and it handles each ray's
+crossings independently. Grazing crossings, transverse holes smaller than the
+sampling scale, and discontinuities hidden inside a field table still require
+adequate nominal resolution. This algorithm does not estimate interpolation
+error or guarantee detection of arbitrary geometry at an arbitrarily large `DT`.
+
+## Diagnostics and validation
+
+The calculator reports both
+
+$$
+|\det M-1|,\qquad \max_{ij}|(M^TJM-J)_{ij}|,\qquad
+J=\operatorname{diag}(J_2,J_2,J_2),\quad
+J_2=\begin{pmatrix}0&1\\-1&0\end{pmatrix}.
+$$
+
+Unit determinant is necessary but not sufficient for symplecticity in canonical
+coordinates. Normalizing momentum to $\beta\gamma$ does not by itself make
+mechanical momentum or slopes canonical. These reported coordinates therefore
+make the canonical-$J$ test a diagnostic, not a universal invariant. Field
+interpolation, finite differences and state-dependent subdivision also preclude
+an unconditional symplecticity claim.
+
+The source repository's `sandbox/map-2` cases compare all 36 entries against
+closed-form drift, quadrupole, FODO and DBA matrices. The DBA convergence script
+records stdout with `--info 2`, signed $R_{16}$ and $R_{26}$, determinant and
+canonical-$J$ residuals, and the difference from the finest numerical map.
+That last comparison helps distinguish time discretization from the fixed
+finite-difference floor.
+
+:::

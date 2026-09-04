@@ -59,6 +59,7 @@ book:
         - physics/overview/index.qmd
         - physics/coordinate-systems/index.qmd
         - physics/elements/index.qmd
+        - physics/linear-transfer-maps.qmd
         - physics/collective-effects.qmd
         - physics/field-solver/index.qmd
         - physics/beam-beam/index.qmd
