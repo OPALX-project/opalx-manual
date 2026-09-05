@@ -39,7 +39,7 @@ On the linear-map development branch, responsibilities are separated as follows:
 | Component | Responsibility |
 |---|---|
 | `Structure/LinearTransferMap.h` | Matrix result, boundary reference states, frames and diagnostics; no tracking logic. |
-| `Algorithms/ExternalFieldRayTracker` | Typed numerical-integrator dispatch plus shared host-side field evaluation and support-boundary subdivision for reference and private rays. Currently Boris/LF2 only. |
+| `Algorithms/ExternalFieldRayTracker` | Typed dispatch for Boris/LF2, fixed-step RK4 and fixed-step DOP853; shared host-side field evaluation and stage-aware support subdivision for map reference and private rays. |
 | `Algorithms/LinearTransferMapBuilder` | Explicit `Settings`, frame transport, reference segmentation, private-ray launches, finite-difference/Richardson solve and ordered composition. Returns segment owners without attaching results. |
 | `Algorithms/OrbitThreader` | Reference pass, overlap bookkeeping, invoking the builder, attaching results to runtime elements and printing the combined map. |
 
@@ -55,6 +55,10 @@ The builder does not read global `Options`. `OrbitThreader` copies the option va
 to its reference tracker and the builder's private tracker. Differentiation refinement and
 time integration are independent settings. A future method must be explicitly added to the
 ray integrator's dispatch and tested with both kinds of rays; unknown methods fail early.
+The RK selection is gated to design-reference map computation; disabled-map and
+secondary-species threading remain Boris. `RungeKuttaTableau.h` contains the RK
+coefficients, without changing TRACK's production steppers. DOP853 currently uses
+only its eighth-order integration formula, not an adaptive solver or dense output.
 
 For the [closed-orbit proposal](https://github.com/OPALX-project/OPALX/issues/544#issuecomment-5523893372),
 the numerical builder and ray tracker are reusable without creating a particle bunch or

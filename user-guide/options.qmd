@@ -88,14 +88,17 @@ OPTION, ENABLELINEARTRANSFERMAPS=TRUE,
 | `ENABLELINEARTRANSFERMAPS` | `FALSE` | Calculate and attach external-field maps during the design-reference OrbitThreader pass. Print the complete LINE or one-turn RING map and diagnostics. |
 | `LINEARTRANSFERMAPRICHARDSON` | `0` | Integer refinement level from `0` through `4`. Zero retains centered differences. Level 1 gives formally fourth-order differentiation, level 2 sixth-order, and so on, assuming a sufficiently smooth map. |
 | `LINEARTRANSFERMAPSTEPS` | Six values of `1e-3` | Starting amplitudes in `(x,x',y,y',zeta,delta)` order. Exactly six finite positive values; the delta amplitude must be less than 1. Position/zeta amplitudes are in metres; slopes/delta are dimensionless. |
-| `LINEARTRANSFERMAPINTEGRATOR` | `BORIS` | Numerical stepping for both the map-enabled reference orbit and perturbed rays. `LF2` is an alias for the same Boris pusher. Other methods are rejected, not silently substituted. |
+| `LINEARTRANSFERMAPINTEGRATOR` | `BORIS` | Map reference and perturbed-ray stepping: `BORIS` (alias `LF2`), fixed-step `RK4`, or fixed-step `DOP853` (eighth-order formula). Unknown methods are rejected. No effect on particle TRACK, disabled-map or secondary-species threading. |
 
 Richardson level $L$ uses $L+1$ centered maps with amplitudes reduced successively by two,
 costing $12(L+1)$ private rays per segment. The four-level limit bounds this at 60 rays.
 Higher levels do not guarantee a better answer: integration error, field interpolation,
-boundary resolution and subtraction noise remain. The ray integrator still has second-order
-accuracy in smooth fields; Richardson here changes differentiation order, not time-integration
-order. These controls do not select the production-particle integrator.
+boundary resolution and subtraction noise remain. Smooth-field time-integration orders are
+2 for Boris, 4 for RK4 and 8 for DOP853; Richardson changes differentiation order only.
+DOP853 here has no adaptive error controller or dense output: `DT` is the nominal
+step for all three methods, subdivided at field-support transitions. These controls
+do not select the production-particle integrator. Higher order is more expensive per
+step and does not guarantee a symplectic map or better accuracy for nonsmooth fields.
 
 The effective settings are printed before the combined matrix. Each element-owned segment map
 also records the starting/finest amplitudes, refinement level, integrator, and last refinement

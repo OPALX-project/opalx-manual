@@ -286,8 +286,8 @@ to one tracker step.
 
 ### `EMITTEDFROMFILE` {#emittedfromfile}
 
-`EMITTEDFROMFILE` reads old-OPAL emitted records and releases them according to
-their file times.
+`EMITTEDFROMFILE` reads either legacy old-OPAL emitted records or explicit
+spacetime records and releases them at per-record birth times.
 
 | Use | Parameters |
 |---|---|
@@ -297,8 +297,9 @@ their file times.
 | Source | `R0*`, `P0*`, `T0`; `EMISSIONMODEL=NONE` only |
 | Beam | Omit `PC`, `ENERGY`, and `GAMMA` |
 
-Rows are positional: `x px y py t pz [bin]`. The positive-integer `bin` column
-is optional. A file may use a leading count and header, or a comment header.
+Legacy rows are positional: `x px y py t pz [bin]`. The positive-integer `bin`
+column is optional. A legacy file may use a leading count and header, or a
+comment header.
 
 ```text
 3
@@ -323,6 +324,33 @@ $$
 An enabled flat-top window may replace the inferred span, but it must cover the
 latest selected file time. Positions and momenta receive the source offsets;
 the file momenta remain absolute.
+
+For event-generator input, use an explicit named header containing
+`x y z px py pz birth_time`:
+
+```text
+2
+x y z px py pz birth_time
+1e-6 2e-6 -3e-4 0.1 -0.2 0.3 -4e-12
+-1e-6 1e-6 2e-4 -0.1 0.2 -0.3 3e-12
+```
+
+Columns in this format are mapped by name. Positions are metre offsets from
+the emission source `R0`, momenta are absolute normalized values
+$p/(mc)$ plus any source `P0` offset, and `birth_time` is a second offset from
+the source `T0`:
+
+$$
+t_{\mathrm{birth}}=\mathrm{T0}+t_{\mathrm{file}},\qquad
+\mathbf R_{\mathrm{birth}}=\mathbf R_0+(x,y,z).
+$$
+
+For compatibility with early prototype files, `t` is accepted as an alias for
+`birth_time` only when the named header also contains `z`. Explicit records are
+not negated or recentered, and flat-top window parameters do not override their
+birth times. `EMISSIONSTEPS` controls only the preferred tracker step during
+the span; a particle born inside a step receives the remaining fractional
+step.
 
 {{< pagebreak >}}
 

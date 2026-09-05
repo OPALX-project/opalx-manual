@@ -128,16 +128,17 @@ gaps. The complete product is available from OrbitThreader's combined-map getter
 
 ## Field-support boundary subdivision
 
-Both the map-enabled reference pass and its private rays use the same numerical
-drift--Boris-kick--drift step. Fields are evaluated at the drift midpoint.
-`LINEARTRANSFERMAPINTEGRATOR="BORIS"` selects this method; `"LF2"` is an alias. Other
-methods are currently rejected. The integration selection is independent of
-Richardson levels and does not change the production-particle integrator.
+Both the map-enabled reference pass and its private rays use the selected numerical
+integrator. `LINEARTRANSFERMAPINTEGRATOR="BORIS"` (default, alias `"LF2"`) uses
+drift--Boris-kick--drift, evaluating fields at the drift midpoint. `"RK4"` and
+`"DOP853"` select the fixed-step Runge–Kutta methods described below. The selection
+is independent of Richardson levels. It does not change the production-particle
+integrator, map-disabled threading, or secondary-species threading.
 The support set is obtained from each element's `isInside()` query, using that
 element's placement and, for a sector bend, its curved containment chart.
 Support can extend beyond the mechanical body because of fringe fields.
 
-A trial step is accepted if support sets at the start, midpoint and end agree.
+A Boris trial step is accepted if support sets at the start, midpoint and end agree.
 Otherwise its duration is halved; after advancing the first half, the second
 half is recomputed from the resulting state. This continues until a boundary
 straddle satisfies
@@ -154,16 +155,71 @@ is the shortest positive longitudinal field-support extent. Thus a regular
 longitudinal crossing cannot jump over a whole thin field region without a
 support sample. The existing input time-step safety check remains active.
 
-Smooth regions retain second-order Boris integration. The boundary operation is
+Smooth regions retain the selected integrator's order. The boundary operation is
 numerical subdivision, not an exact element map, and it handles each ray's
 crossings independently. Grazing crossings, transverse holes smaller than the
 sampling scale, and discontinuities hidden inside a field table still require
-adequate nominal resolution. This algorithm does not estimate interpolation
+adequate nominal resolution. For RK methods, all field-evaluation stages, including
+the independently integrated diagnostic midpoint, must have the same support set
+as the start and end; otherwise the trial is subdivided using the same tolerance.
+This also applies to map-enabled RK pre-roll. This algorithm does not estimate interpolation
 error or guarantee detection of arbitrary geometry at an arbitrarily large `DT`.
+
+## Map-only Runge–Kutta integration
+
+RK4 and DOP853 integrate the relativistic Lorentz equations and signed path length:
+
+$$
+\begin{aligned}
+\dot{\mathbf r}&=c\mathbf u/\gamma, &
+\dot{\mathbf u}&=\frac{qc}{\mathcal E_0}
+  \left(\mathbf E+\frac{c}{\gamma}\mathbf u\times\mathbf B\right),\\
+\dot s&=c|\mathbf u|/\gamma, & \gamma&=\sqrt{1+|\mathbf u|^2}.
+\end{aligned}
+$$
+
+Here $\mathbf u=\boldsymbol\beta\gamma$, $\mathbf r$ and $s$ are in metres,
+$t$ in seconds, $\mathbf E$ in V/m, and $\mathbf B$ in tesla.
+$\mathcal E_0=mc^2$ is the numerical rest energy in eV and $q$ is the signed
+charge in elementary-charge units, matching OPALX's Boris convention.
+
+For $\mathbf y=(\mathbf r,\mathbf u,s)$ and signed duration $h$:
+
+$$
+k_i=h f\!\left(t_0+c_i h,\mathbf y_0+\sum_{j<i}a_{ij}k_j\right),
+\qquad \mathbf y_1=\mathbf y_0+\sum_i b_i k_i.
+$$
+
+Every stage evaluates the summed external fields at its own position, momentum
+and time. Classical RK4 uses four stages and has smooth global order four.
+DOP853 uses the twelve-stage, eighth-order integration formula from
+[Hairer and Wanner's implementation](https://www.unige.ch/~hairer/prog/nonstiff/dop853.f),
+with coefficients recorded in `Algorithms/RungeKuttaTableau.h`.
+
+**Both selections use fixed nominal `DT` with support-boundary subdivision.**
+DOP853's embedded fifth-/third-order estimators, adaptive error controller,
+stiffness detection and dense output are not implemented here. This makes `DT`
+directly comparable across the convergence study; selecting DOP853 does not
+request an automatically controlled error tolerance.
+
+An independent half-duration solve supplies a same-order diagnostic midpoint;
+the accepted endpoint still comes from the full-duration solve, not two half
+steps. Including the midpoint field sample, a smooth trial costs 9 field
+evaluations for RK4 and 25 for DOP853, versus 1 for Boris. Subdivision and
+endpoint localization add further evaluations. Weighted stage increments use
+compensated sums; position, time and path retain the compensation described below.
+Momentum updates and field evaluations remain double precision.
+
+These explicit RK methods are not symplectic, are not exactly time-reversible,
+and do not preserve magnetic energy exactly. Their orders require sufficiently
+smooth fields and sufficiently resolved steps; field-table interpolation,
+event localization and finite-difference noise can dominate map errors.
+The host-only implementation adds no MPI reductions, OpenMP scheduling changes,
+GPU kernels or host/device transfers. Each rank computes its own identical map.
 
 ## Position, clock and path bookkeeping
 
-The host reference/map tracker performs each half drift directly in metres,
+The host reference/map tracker performs each Boris half drift directly in metres,
 without repeatedly scaling absolute positions by $c\Delta t$ and back:
 
 $$
