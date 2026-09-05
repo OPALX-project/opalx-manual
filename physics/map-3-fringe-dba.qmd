@@ -8,6 +8,65 @@ last-reviewed: "2026-09-05"
 
 ::: {.feature-opalx}
 
+## Additional unpadded six-cell RING {#map3-six-cell-ring}
+
+The separate `sandbox/map-3/ring/build_ring.py` fixture assembles six unchanged
+60-degree DBA cells using explicit 6D entrance poses. It retains $\rho=2$ m,
+two 30-degree bends, two 1 m drifts and the 0.2 m quadrupole per cell, with
+`HGAP=0.1`, `FINT=0.1` and the existing unmatched quadrupole seed. Its design
+circumference is
+
+$$
+C_{\mathrm{design}}=6\left(2\rho\frac{\pi}{6}+2(1\,\mathrm m)+0.2\,\mathrm m\right)
+=25.7663706143592\,\mathrm m.
+$$
+
+No fringe padding is added. Thus this is **different geometry** from the
+historical separated-support cell studied below, not a reproduction of its
+matrix. The existing study inputs, results and provenance remain unchanged.
+Finite transverse apertures distinguish neighbouring ring sectors: horizontal
+half-width 0.5 m, vertical half-width 0.1 m. These are transverse domain choices,
+not longitudinal field cutoffs or changes to the native fringe formulas.
+
+The generator checks nominal position/direction closure and contiguous body
+intervals. Its optional OPALX run uses one rank, one thread, `MAXSTEPS=1` and
+`--info 2`, saving `map-3-ring.out`, geometry and provenance. The default
+`DOP853`, $\Delta t=10^{-11}$ s, $\epsilon_j=10^{-4}$ and one Richardson level
+are smoke-test settings, not a new optimum or convergence claim.
+See [geometry, fringe support and ring return](linear-transfer-maps.qmd#fringe-geometry-ring-return)
+for the distinction between design closure and a tracked closed orbit.
+
+### Initial ring validation
+
+The single-rank `dop853-validation` run completed with those settings and printed
+a finite $6\times6$ return matrix. The unchanged quadrupole seed and launch are
+**not matched to the unpadded ring**:
+
+| Quantity | Value |
+|---|---:|
+| Design circumference | 25.7663706144 m |
+| Reference return length | 25.3196055628 m |
+| Return position mismatch | 0.601429057145 m |
+| Relative momentum mismatch | 0.388948624674 |
+| $R_{16}$ | 6.346340692238 m |
+| $R_{26}$ | 1.343525845901 |
+| Printed $\lvert\det M-1\rvert$ | 0.36949810 |
+| Printed $\max_{ij}\lvert(M^TJM-J)_{ij}\rvert$ | 68.898765 |
+
+These are return-map diagnostics, **not an accuracy or symplecticity pass**.
+The large matrix entries and mismatch require a closed-orbit/optics study before
+using this case as an optics regression oracle. The reported coordinates include
+noncanonical slopes, and the final momentum is not normal to the reused section;
+neither printed residual alone identifies the numerical integration error.
+No retuning, fringe renormalization or tolerance relaxation was applied.
+The executable SHA-256 was independently checked before and after the run:
+`f1a53f9b26b42566c0ad367bf4125d22ba819c06c8e8be24c486dec2202e300e`.
+The input, stdout and result provenance are in
+`sandbox/map-3/ring/dop853-validation/`. This smoke run validates completion and
+the separation of geometry from travelled length, not orbit closure.
+
+## Historical separated-support cell study
+
 This first stage of `sandbox/map-3` defines the **analytic fields**, not an exact
 transfer matrix or a matched achromat. It follows `BendFieldModel.h`,
 `SBend::makeFieldInputs`, `OpalSBend::update` and `PlacementResolver` on the

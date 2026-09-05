@@ -31,8 +31,10 @@ $$
 Here $\mathbf u=\mathbf p/(mc)=\vec\beta\gamma$ is OPALX's dimensionless
 mechanical momentum, $u_0=|\mathbf u_0|$, and
 $\beta_0=u_0/\sqrt{1+u_0^2}$. Positions and $\zeta$ are in metres;
-slopes and $\delta$ are dimensionless. Each entrance/exit plane is normal to
+slopes and $\delta$ are dimensionless. Ordinary entrance/exit planes are normal to
 the corresponding reference tangent $\mathbf e_s=\mathbf u_0/u_0$.
+At a RING return, the starting section and axes are reused even when the
+returned momentum is not parallel to its normal.
 Each ray is recorded at its own crossing time, not at a shared laboratory time.
 
 The transverse frame follows minimum-rotation (Bishop) transport. Between two
@@ -181,6 +183,19 @@ Do not add an equivalent thin-edge kick on top of a distributed representation
 of the same fringe effect. The present change does not alter the native SBEND
 Enge profile or its existing FINT coefficient convention.
 
+The regression coverage includes an analytic circular orbit whose travelled
+circumference deliberately differs from the supplied design-length guard, a
+nominal drift traversed by a neighbouring field, and native Enge support cutoffs
+of two, three, four and five full gaps at fixed body geometry. The latter compares
+all 36 matrix entries: the three- and four-gap results agree with the five-gap
+result within $10^{-8}$ in the test's coordinate units, while the two-gap cutoff
+produces a resolved change above $10^{-6}$. Nominal lengths and body endpoints
+remain unchanged. These are case-specific assertions, not universal cutoff
+recommendations. The relevant C++ tests pass on one rank, and the OrbitThreader
+suite also passes on two ranks. The
+[six-cell DBA smoke run](map-3-fringe-dba.qmd#map3-six-cell-ring) separately records
+its non-closed reference return.
+
 ### Documentation comparison: MAD-X, Bmad and MaryLie {#fringe-code-comparison}
 
 This is a **documentation comparison**, not an executed numerical code-to-code
@@ -225,7 +240,10 @@ integrator. `LINEARTRANSFERMAPINTEGRATOR="BORIS"` (default, alias `"LF2"`) uses
 drift--Boris-kick--drift, evaluating fields at the drift midpoint. `"RK4"` and
 `"DOP853"` select the fixed-step Runge–Kutta methods described below. The selection
 is independent of Richardson levels. It does not change the production-particle
-integrator, map-disabled threading, or secondary-species threading.
+integrator or select RK methods for map-disabled or secondary-species threading.
+RING reference threading always resolves support boundaries, including with Boris
+and with map calculation disabled. Its IndexMap records accepted subintervals;
+adjacent intervals with identical support sets are coalesced.
 The support set is obtained from each element's `isInside()` query, using that
 element's placement and, for a sector bend, its curved containment chart.
 Support can extend beyond the mechanical body because of fringe fields.
@@ -243,7 +261,9 @@ $$
 Here $h$ is the trial duration and $\Delta t$ the requested ray step. The
 floating-point term prevents endless subdivision when position updates become
 unresolvable. Trial steps are also capped at $L_{\min}/(4c)$, where $L_{\min}$
-is the shortest positive longitudinal field-support extent. Thus a regular
+is the shortest positive longitudinal support extent or nominal body arc length.
+The body-length cap resolves map ownership when support is wider than the body.
+Thus a regular
 longitudinal crossing cannot jump over a whole thin field region without a
 support sample. The existing input time-step safety check remains active.
 
