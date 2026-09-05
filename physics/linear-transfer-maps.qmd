@@ -1,6 +1,6 @@
 ---
 title: "Numerical linear transfer maps"
-description: "External-field ray maps, overlap composition, and boundary-resolved Boris integration."
+description: "External-field ray maps, selectable Richardson differentiation, overlap composition, and boundary-resolved integration."
 audience: physics
 status: experimental
 last-reviewed: "2026-09-05"
@@ -50,8 +50,8 @@ their transverse axes without requiring a nonzero curvature.
 ## Finite differences and overlaps
 
 For each coordinate $j$, launch two rays with $X_j=\pm\epsilon_j$ and all
-other coordinates zero. The current amplitudes are $10^{-3}$ in each coordinate's
-units. Construct the six columns
+other coordinates zero. `LINEARTRANSFERMAPSTEPS` sets the six starting amplitudes;
+the defaults are $10^{-3}$ in each coordinate's units. Construct the six columns
 
 $$
 D_{\mathrm{in},j}=\frac{X^+_{\mathrm{in},j}-X^-_{\mathrm{in},j}}{2},\qquad
@@ -62,6 +62,46 @@ $$
 A pivoted inversion of the input differences gives the matrix. Centered
 differences have an $O(\epsilon_j^2)$ truncation error in a differentiable map.
 Reducing `DT` alone cannot remove this error floor.
+
+### Selectable Richardson refinement
+
+`LINEARTRANSFERMAPRICHARDSON=L` selects zero through four refinement levels. For a
+fixed reference orbit, segment boundaries and time step, compute the centered maps
+at all six amplitudes scaled by $2^{-k}$ and form the tableau
+
+$$
+\begin{aligned}
+R_{k,0}&=M(\boldsymbol\epsilon/2^k),\\
+R_{k,j}&=R_{k,j-1}\\
+&\quad+\frac{R_{k,j-1}-R_{k-1,j-1}}{4^j-1}.
+\end{aligned}
+$$
+
+Here $1\le j\le k\le L$ in the extrapolation recurrence.
+
+The returned segment matrix is $R_{L,L}$. Under a smooth even-power truncation
+expansion its formal differentiation error is $O(\epsilon^{2(L+1)})$: second order
+at level zero, fourth at level one and sixth at level two. Scaling here means a
+common numerical factor applied to the six coordinate-specific amplitudes, not
+assigning a common physical unit to positions and slopes. The pivoted input solve
+is repeated at every scale before extrapolation. Refined segment matrices are
+then composed in reference-path order; stored overlap copies remain identical.
+
+This uses $12(L+1)$ private rays per segment. The cap at four levels limits the cost
+to 60 rays and prevents unbounded refinement requests; it is not a physics-derived
+accuracy threshold. No automatic convergence or precision guarantee is implied.
+The stored `richardsonCorrection` gives the maximum entrywise change in each column
+between the last two tableau diagonals. It is absent at level zero and is **not an
+error bound**; entries within a column can have different units. The maximum input
+condition estimate over the levels is retained.
+
+Richardson extrapolates perturbation size, not `DT`. The Jacobian still belongs to
+the numerically integrated trajectories. Integration, event resolution and field
+interpolation errors are not eliminated, and small perturbations amplify numerical
+noise. Assess amplitude and time-step convergence independently. In particular,
+Richardson does not by itself establish $10^{-10}$ accuracy or symplecticity.
+
+### Segment ownership
 
 The reference path is partitioned wherever its active-element set changes.
 Each segment has a unique identifier and is attached to every participating
@@ -90,6 +130,9 @@ gaps. The complete product is available from OrbitThreader's combined-map getter
 
 Both the map-enabled reference pass and its private rays use the same numerical
 drift--Boris-kick--drift step. Fields are evaluated at the drift midpoint.
+`LINEARTRANSFERMAPINTEGRATOR="BORIS"` selects this method; `"LF2"` is an alias. Other
+methods are currently rejected. The integration selection is independent of
+Richardson levels and does not change the production-particle integrator.
 The support set is obtained from each element's `isInside()` query, using that
 element's placement and, for a sector bend, its curved containment chart.
 Support can extend beyond the mechanical body because of fringe fields.
@@ -117,6 +160,61 @@ crossings independently. Grazing crossings, transverse holes smaller than the
 sampling scale, and discontinuities hidden inside a field table still require
 adequate nominal resolution. This algorithm does not estimate interpolation
 error or guarantee detection of arbitrary geometry at an arbitrarily large `DT`.
+
+## Position, clock and path bookkeeping
+
+The host reference/map tracker performs each half drift directly in metres,
+without repeatedly scaling absolute positions by $c\Delta t$ and back:
+
+$$
+\mathbf r_{1/2}=\mathbf r_0+\frac{ch}{2}\frac{\mathbf u_0}{\gamma_0},
+\qquad
+\mathbf r_1=\mathbf r_{1/2}+\frac{ch}{2}\frac{\mathbf u_1}{\gamma_1},
+\qquad \gamma_i=\sqrt{1+|\mathbf u_i|^2}.
+$$
+
+Here $\mathbf u=\mathbf p/(mc)=\boldsymbol\beta\gamma$ and $h$ is a signed
+step duration in seconds. The Boris kick between the half drifts is unchanged.
+Signed path length is integrated from speed:
+
+$$
+\frac{ds}{dt}=c\frac{|\mathbf u|}{\sqrt{1+|\mathbf u|^2}},
+\qquad
+\Delta s=\frac{ch}{2}
+\left(\frac{|\mathbf u_0|}{\gamma_0}+\frac{|\mathbf u_1|}{\gamma_1}\right).
+$$
+
+Unlike the endpoint chord, this does not shorten the accumulated path just
+because the velocity turns. It is exact for constant speed, apart from momentum
+and floating-point errors, and second-order quadrature under acceleration.
+It does **not** increase the integration order of Boris.
+
+Position, time and path additions use Kahan compensation. Each state retains a
+high part $a$ and correction $e$, representing $a-e$. Both parts survive support
+subdivision, reference sampling and shadow-ray initialization. Coordinate and
+time differences use
+
+$$
+(a-b)-(e_a-e_b),
+$$
+
+so small flight-time differences are not discarded when subtracting large
+absolute clocks. Field evaluators still receive ordinary double-precision
+positions and absolute time; this is not extended-precision field interpolation.
+
+The requested start/stop path is located by bisection of numerically tracked
+states, including field-support subdivision, rather than converting a path
+fraction directly into a time fraction. The time tolerance uses the support
+localization formula above with the enclosing interval as $\Delta t$; the
+endpoint is labelled by the requested path within that tolerance. Element
+boundary refinement likewise stores the path integrated by the trial ray.
+
+These changes affect host OrbitThreader/reference and private map rays, including
+reference bookkeeping with map calculation disabled. They do not modify the
+production-particle pusher, MPI reductions, OpenMP scheduling or GPU kernels.
+Floating-point trajectories and maps can therefore change relative to the
+earlier implementation; the DBA comparison must use the same input, grid and
+analytic oracle. Symplecticity is not guaranteed by compensated accumulation.
 
 ## Diagnostics and validation
 

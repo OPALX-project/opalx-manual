@@ -39,8 +39,8 @@ On the linear-map development branch, responsibilities are separated as follows:
 | Component | Responsibility |
 |---|---|
 | `Structure/LinearTransferMap.h` | Matrix result, boundary reference states, frames and diagnostics; no tracking logic. |
-| `Algorithms/ExternalFieldRayTracker` | Shared host-side Boris stepping and field-support boundary subdivision for reference and private rays. |
-| `Algorithms/LinearTransferMapBuilder` | Frame transport, reference segmentation, private-ray launches, finite-difference solve and ordered composition. Returns segment owners without attaching results. |
+| `Algorithms/ExternalFieldRayTracker` | Typed numerical-integrator dispatch plus shared host-side field evaluation and support-boundary subdivision for reference and private rays. Currently Boris/LF2 only. |
+| `Algorithms/LinearTransferMapBuilder` | Explicit `Settings`, frame transport, reference segmentation, private-ray launches, finite-difference/Richardson solve and ordered composition. Returns segment owners without attaching results. |
 | `Algorithms/OrbitThreader` | Reference pass, overlap bookkeeping, invoking the builder, attaching results to runtime elements and printing the combined map. |
 
 `Algorithms/LinearTransferMap.h` remains a forwarding include for compatibility.
@@ -49,3 +49,19 @@ production particle kernels. The calculation is host-side and replicated on
 MPI ranks; stdout remains rank-zero only. See the
 [physics description](../physics/linear-transfer-maps.qmd) for coordinates,
 boundary tolerance and limitations.
+
+The builder does not read global `Options`. `OrbitThreader` copies the option values into
+`LinearTransferMapBuilder::Settings` at construction and passes the same integration selection
+to its reference tracker and the builder's private tracker. Differentiation refinement and
+time integration are independent settings. A future method must be explicitly added to the
+ray integrator's dispatch and tested with both kinds of rays; unknown methods fail early.
+
+For the [closed-orbit proposal](https://github.com/OPALX-project/OPALX/issues/544#issuecomment-5523893372),
+the numerical builder and ray tracker are reusable without creating a particle bunch or
+invoking OrbitThreader's output/attachment machinery. The current `Result::combined` includes
+every unique segment, including field-free gaps, but maps between transported reference frames
+in `(x,x',y,y',zeta,delta)` coordinates. It is **not yet** the proposal's four-dimensional
+entrance-frame, fixed-energy one-turn function or its derivative. COF must supply exit-section
+termination, entrance-frame and kinetic-momentum coordinate transformations, the closure residual,
+and checks of geometric closure and TRACK consistency. The solver and that one-turn service
+are separate future work; Richardson refinement does not provide them implicitly.

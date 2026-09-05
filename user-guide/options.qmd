@@ -3,7 +3,7 @@ title: "Runtime Options"
 description: "Complete source-audited reference for values accepted by the OPALX OPTION statement."
 audience: user
 status: current
-last-reviewed: "2026-08-12"
+last-reviewed: "2026-09-05"
 ---
 
 `OPTION` changes process-wide parser, tracking, output, and diagnostic settings.
@@ -73,6 +73,37 @@ Frequencies are measured in global tracking steps unless stated otherwise.
 `CHECKPOINTFREQ` is independent of `PSDUMPFREQ` and `ENABLEHDF5`. OPALX
 atomically replaces `<input-basename>_checkpoint.h5`, so the file always holds
 the most recent completed checkpoint. See [Checkpoint and restart](../reference/file-formats.qmd#checkpoint-restart).
+
+## Numerical linear transfer maps
+
+```opal
+OPTION, ENABLELINEARTRANSFERMAPS=TRUE,
+        LINEARTRANSFERMAPRICHARDSON=1,
+        LINEARTRANSFERMAPSTEPS={1e-3,1e-3,1e-3,1e-3,1e-3,1e-3},
+        LINEARTRANSFERMAPINTEGRATOR="BORIS";
+```
+
+| Option | Default | Effect and constraints |
+|---|---|---|
+| `ENABLELINEARTRANSFERMAPS` | `FALSE` | Calculate and attach external-field maps during the design-reference OrbitThreader pass. Print the complete LINE or one-turn RING map and diagnostics. |
+| `LINEARTRANSFERMAPRICHARDSON` | `0` | Integer refinement level from `0` through `4`. Zero retains centered differences. Level 1 gives formally fourth-order differentiation, level 2 sixth-order, and so on, assuming a sufficiently smooth map. |
+| `LINEARTRANSFERMAPSTEPS` | Six values of `1e-3` | Starting amplitudes in `(x,x',y,y',zeta,delta)` order. Exactly six finite positive values; the delta amplitude must be less than 1. Position/zeta amplitudes are in metres; slopes/delta are dimensionless. |
+| `LINEARTRANSFERMAPINTEGRATOR` | `BORIS` | Numerical stepping for both the map-enabled reference orbit and perturbed rays. `LF2` is an alias for the same Boris pusher. Other methods are rejected, not silently substituted. |
+
+Richardson level $L$ uses $L+1$ centered maps with amplitudes reduced successively by two,
+costing $12(L+1)$ private rays per segment. The four-level limit bounds this at 60 rays.
+Higher levels do not guarantee a better answer: integration error, field interpolation,
+boundary resolution and subtraction noise remain. The ray integrator still has second-order
+accuracy in smooth fields; Richardson here changes differentiation order, not time-integration
+order. These controls do not select the production-particle integrator.
+
+The effective settings are printed before the combined matrix. Each element-owned segment map
+also records the starting/finest amplitudes, refinement level, integrator, and last refinement
+change (not a certified error estimate). A later `OPTION` statement preserves values it does
+not override. Settings are copied when the OrbitThreader is constructed.
+
+See [Numerical linear transfer maps](../physics/linear-transfer-maps.qmd) for coordinates,
+overlap composition, supported physics and diagnostic limitations.
 
 ## Tracking, particles, and solvers
 
