@@ -103,9 +103,12 @@ Richardson does not by itself establish $10^{-10}$ accuracy or symplecticity.
 
 ### Segment ownership
 
-The reference path is partitioned wherever its active-element set changes.
-Each segment has a unique identifier and is attached to every participating
-runtime element. An element can consequently own several segment maps.
+The reference path is partitioned wherever its **nominal body-owner set** changes,
+independently of field-support boundaries. Each segment has a unique identifier
+and is attached to every nominal owner. Ordinarily an element owns its
+entrance-to-exit map; overlapping nominal bodies or a ring-seam split can produce
+several segment maps. `activeElements` records the union of support-selected
+elements encountered by the reference in that interval, not the owner set.
 Private rays always evaluate the fields at their **own** positions:
 
 $$
@@ -114,17 +117,106 @@ $$
 $$
 
 The reference segment's owners do not restrict this ray-dependent field set.
-Overlap segments are composed once, and field-free gaps are included:
+A nominal drift map includes neighbouring fringe fields when present. Shared
+segments are composed once, and intervals without a nominal owner are included
+even when they contain a field tail:
 
 $$
 M_{\mathrm{total}}=M_N\cdots M_2M_1.
 $$
 
 The combined matrix and diagnostics are printed to stdout. For a periodic
-reference pass this is the one-turn map. Element attachments can be traversed
+reference pass this is a same-section return map, not proof of a closed orbit.
+Element attachments can be traversed
 with `OpalBeamline::getLinearTransferMapsInReferenceOrder()`; that traversal
-deduplicates shared overlap segments but does not contain unowned field-free
-gaps. The complete product is available from OrbitThreader's combined-map getter.
+deduplicates shared segments but does not contain unowned intervals.
+The complete product is available from OrbitThreader's combined-map getter.
+
+## Geometry, fringe support and ring return {#fringe-geometry-ring-return}
+
+Three quantities must remain separate:
+
+1. **Design circumference**: $C_{\mathrm{design}}=\sum_i L_i$, counting each
+   nominal occurrence once. Bend lengths are design arc lengths (including the
+   chord-to-arc conversion for an RBEND); drifts fill the nominal gaps.
+2. **Field support**: the spatial domain in which a source contributes to
+   $\mathbf E$ and $\mathbf B$. This can extend into a drift, another magnet, or
+   across the ring seam, without adding geometric length.
+3. **Tracked return length**: the distance actually travelled to the starting
+   transverse plane. It is a closed-orbit circumference only after position and
+   momentum closure have been established.
+
+Use explicit 6D entrance poses for new lattices; `ELEMEDGE` is deprecated and is
+not part of this design. `RING` is a beam-sequence declaration, not an element,
+and has no `CIRCUMFERENCE` input attribute. Its computed length does not check
+that the independently supplied 3D poses form a contiguous, closed geometry.
+
+The ring reference search detects a return to
+
+$$
+(\mathbf r-\mathbf r_{\mathrm{start}})\cdot\mathbf n_{\mathrm{start}}=0,
+\qquad
+\mathbf n_{\mathrm{start}}=\mathbf u_{\mathrm{start}}/|\mathbf u_{\mathrm{start}}|,
+$$
+
+in the launch crossing direction, after travelling more than
+$C_{\mathrm{design}}/2$. The crossing is refined by reintegration and bisection.
+Failure to return within $2C_{\mathrm{design}}$ (or four nominal flight times)
+raises an error. This bounded search targets a simple one-circuit ring; it is
+not a general multi-loop return detector or a closed-orbit solver.
+The final map plane and axes are the starting plane and axes, rather than a
+new plane normal to a possibly mismatched returned momentum.
+
+Stdout reports design circumference, reference return length, position closure
+residual in metres, and relative momentum mismatch. The distance-keyed IndexMap
+wraps by the **measured reference return length**, not the design circumference.
+Periodic reuse still assumes a sufficiently repeatable reference orbit; a
+non-closed launch is not made periodic by this bookkeeping. Production `TURNS`
+and progress retain their nominal design-length convention.
+
+Changing a numerical field cutoff must not move element poses or nominal map
+boundaries. At fixed geometry the design circumference must remain invariant,
+while tracked orbits and matrices should converge as the cutoff is enlarged.
+Do not add an equivalent thin-edge kick on top of a distributed representation
+of the same fringe effect. The present change does not alter the native SBEND
+Enge profile or its existing FINT coefficient convention.
+
+### Documentation comparison: MAD-X, Bmad and MaryLie {#fringe-code-comparison}
+
+This is a **documentation comparison**, not an executed numerical code-to-code
+benchmark. The conclusions below concern distinct models, not interchangeable
+predictions for an arbitrary finite fringe field.
+
+| Code and primary source | Geometry and fringe treatment | Relevant cross-check |
+|---|---|---|
+| [MAD-X element definitions](https://github.com/MethodicalAcceleratorDesign/MAD-X-User-Manual/blob/master/elements.tex), SBEND and DIPEDGE | SBEND length is the design arc; DIPEDGE is a zero-length edge correction. Fringe focusing does not add circumference. | Hard-edge and convention-matched thin-edge maps; not a distributed-overlap oracle. |
+| [Bmad manual, 4 August 2026](https://www.classe.cornell.edu/bmad/bmad-manual-2026-08-04.pdf), §§5.13, 5.16, 5.18 | Element length is separate from field-map extent. `field_overlaps` associates a source extending past its ends with other elements. | Closest architectural analogue; use a supported integration method with the same distributed field. `bmad_standard` tracking ignores field maps. |
+| [MaryLie 3.0 manual, December 2003](https://www.physics.umd.edu/dsat/docs/MaryLieMan.pdf), §§6.7, 6.31 | Separate entrance/body/exit maps; `arc` supplies geometry bookkeeping for imported maps. The manual warns about hard-edge fringe approximations and recommends GENMAP for realistic treatment. | Independent map-formalism and edge-model comparison; these sections do not establish automatic distributed-field overlap handling. |
+
+The CERN CAS treatment likewise factors a finite fringe transport into body/drift
+transport and an edge correction referred to a fixed boundary; a fringe correction
+is not an extra lattice interval. See the
+[CAS numerical tracking lecture](https://indico.cern.ch/event/1462429/contributions/6157280/attachments/2937404/5159798/Numerical_methods_tracking-2.pdf)
+discussion of fringe fields. The code-specific definitions above remain the
+authority for an actual numerical comparison.
+
+Before comparing full $6\times6$ matrices, match entrance/exit planes, reference
+rigidity, magnetic field integral, edge angles, and phase-space coordinates.
+OPALX's $\boldsymbol\beta\gamma$ momentum and reported slopes must be converted
+consistently to another code's canonical momentum and longitudinal conventions.
+In particular, MAD-X defines $g=2\,\mathrm{HGAP}$ and
+
+$$
+\mathrm{FINT}=\int_{-\infty}^{\infty}
+\frac{B_y(s)[B_0-B_y(s)]}{gB_0^2}\,ds,
+$$
+
+whereas MaryLie `frng` takes the full pole-to-pole gap directly.
+Equal parameter names or numbers do not guarantee equal fringe fields.
+The intended numerical validation sequence is a shared hard-edge DBA baseline,
+a convention-matched thin-edge comparison, and a shared distributed-field
+OPALX/Bmad overlap and ring-seam comparison. Those external-code runs remain
+future work.
 
 ## Field-support boundary subdivision
 

@@ -588,7 +588,6 @@ shared_pages = %w[
   user-guide/input-language.qmd
   user-guide/command-format/index.qmd
   user-guide/control-statements/index.qmd
-  user-guide/beam-lines/index.qmd
   user-guide/structures/index.qmd
   user-guide/appendix/language-syntax/index.qmd
   user-guide/appendix/opal-madx/index.qmd
@@ -598,6 +597,12 @@ shared_pages.each do |relative|
   if text.include?("feature-opalx") || text.match?(/feature-opal(?:\}|\s)/)
     errors += error("shared page unexpectedly contains a version block: #{relative}")
   end
+end
+
+# Shared LINE syntax now has a current-only RING geometry subsection.
+beam_lines_text = (ROOT / "user-guide/beam-lines/index.qmd").read
+unless beam_lines_text.include?("feature-opalx") && beam_lines_text.include?("{#ring-geometry-fringes}")
+  errors += error("beam-lines page must retain its OPALX RING geometry section")
 end
 
 {

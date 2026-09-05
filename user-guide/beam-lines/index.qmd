@@ -3,7 +3,7 @@ title: "Beam Lines"
 description: "Compose named elements and nested lines into the lattice selected by TRACK."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-09-05"
 ---
 
 
@@ -72,3 +72,41 @@ The source manual expands this in two steps.
 ```text
 A, B, C, D, E, B, A, C, D, E, A, B
 ```
+
+::: {.feature-opalx}
+
+## Ring geometry and fringe fields {#ring-geometry-fringes}
+
+`RING` declares a closed-topology beam sequence, not a lattice element:
+
+```text
+R: RING = (B1, D1, Q1, D2, B2, ...);
+```
+
+Specify each physical occurrence with its own explicit 6D entrance pose
+(`X`, `Y`, `Z`, `THETA`, `PHI`, `PSI`); use no `ELEMEDGE` in new inputs.
+Repetition and reflection modifiers are not supported by `RING`.
+The sequence does not automatically place or geometrically close the elements.
+
+The design circumference is calculated from the nominal element arc lengths
+and drift lengths. There is no `CIRCUMFERENCE` input option. Explicit drifts
+must account for the intended gaps once. A fringe extending into a drift does
+not add length or require moving that drift. For RBEND, the stored chord length
+is converted to the corresponding design arc length.
+
+With numerical maps enabled, an element's map covers its nominal body interval
+and includes neighbouring fields. A drift with a fringe field is therefore not
+a field-free drift map. Field-support boundaries remain integration boundaries,
+not additional pieces of lattice geometry.
+
+Ring threading measures the reference's return to the starting transverse plane
+and reports both the design circumference and the travelled return length,
+together with position and momentum closure residuals. A return is not a
+closed-orbit solve. The path-index lookup uses the measured return length;
+production `TURNS` and progress remain based on design length. The reference
+search is bounded and reports an error if no one-circuit return is found.
+
+See [geometry, fringe support and ring return](../../physics/linear-transfer-maps.qmd#fringe-geometry-ring-return)
+for the equations, search limits and comparison with MAD-X, Bmad and MaryLie.
+
+:::
