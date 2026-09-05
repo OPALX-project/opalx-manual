@@ -251,7 +251,6 @@ shared_pages = %w[
   user-guide/input-language.html
   user-guide/command-format/index.html
   user-guide/control-statements/index.html
-  user-guide/beam-lines/index.html
   user-guide/structures/index.html
 ]
 shared_pages.each do |relative|
@@ -262,6 +261,15 @@ shared_pages.each do |relative|
      html.match?(/class=["'][^"']*feature-opal(?:\s|["'])/)
     errors << "shared page unexpectedly renders version blocks: #{relative}"
   end
+end
+
+beam_lines_html_path = SITE / "user-guide/beam-lines/index.html"
+if beam_lines_html_path.file?
+  beam_lines_html = File.read(beam_lines_html_path)
+  errors << "beam-lines render is missing the OPALX RING geometry section" unless
+    beam_lines_html.match?(/<section\s+id=["']ring-geometry-fringes["'][^>]*class=["'][^"']*feature-opalx(?:\s|["'])/)
+else
+  errors << "render is missing user-guide/beam-lines/index.html"
 end
 
 %w[
