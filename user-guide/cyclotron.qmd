@@ -143,3 +143,61 @@ inline `TCR1/TCR2/MBTC/SLPTC` syntax. The original supplied input remains unchan
 
 See [cyclotron field physics](../physics/cyclotron.qmd) for coordinate and
 interpolation conventions.
+
+## Spectral coasting tunes
+
+`RUN,SPECTRALTUNES=TRUE` selects a separate, serial two-ray diagnostic. It reuses
+the external-field ray tracker, not the linear-map construction. The physical
+bunch is not tracked in this mode; its normal BEAM/source setup is still required
+to initialize the lattice and particle species. Only one proton beam, one MPI
+rank, a non-restarted RING containing only CYCLOTRONSECTOR elements, and
+FIELDSOLVER TYPE=NONE are supported. No RF or global particle processes are allowed.
+
+Add repeated triples to BEAM, with **kinetic energy in GeV, radius in metres,
+and radial momentum in units of mc**:
+
+```text
+BEAM0: BEAM, PARTICLE=PROTON, NALLOC=1,
+       BCHARGE=1.602176634e-19, SOURCES=SOURCES0, CHARGE=1,
+       TUNEINITIAL={0.072,2.1314,-0.000240,
+                    0.074,2.1551,-0.000296};
+TRACK, LINE=MYCYCL, BEAM=BEAM0, MAXSTEPS=72000,
+       DT=1.64527805199081e-10, STEPSPERTURN=720;
+RUN, METHOD="PARALLEL", FIELDSOLVER=FS0, SPECTRALTUNES=TRUE,
+     TURNS=100, TUNESAMPLE=50, TUNEINTEGRATOR="RK4", TUNESECTOR="SM0";
+ENDTRACK;
+```
+
+Each triple launches an independent reference ray and a second ray displaced
+5 mm radially and vertically, with identical initial momentum. `TUNESECTOR`
+supplies the centre, entrance radial plane and coordinate orientation; it defaults
+to SM0. There is no closed-orbit solve: the supplied radius/pr must be appropriate
+for the energy. All rows use the same configured sector fields and trim coils.
+
+`TURNS × STEPSPERTURN` is the number of fixed timesteps **per row** and must not
+exceed MAXSTEPS. In this legacy-compatible diagnostic, TURNS means nominal turns,
+not the directed-return stopping criterion of normal tracking. TUNESAMPLE is the
+sampling stride (default 50). TUNEINTEGRATOR selects RK4 (default), BORIS/LF2, or
+fixed-step DOP853 independently of the map integrator. EKINSTOP cannot be combined
+with this mode. Linear-map computation is bypassed.
+
+Outputs are `<base>-tunes.csv`, plus `<base>-tune-<row>-samples.csv` and
+`<base>-tune-<row>-spectrum.csv`. Row indices start at zero. The summary includes
+peak tunes, frequency-grid spacing, sample count, legacy normalization count and
+maximum relative kinetic-energy drift. Sample output includes accumulated reference
+angle, so nominal and geometric revolution counts can be distinguished. Signals
+and time are pre-step; the angle is post-step, matching the legacy turn-counter
+context. Do not interpret that angle as a simultaneous signal sample.
+
+The sandbox runner `run_spectral_tunes.py` converts ic.dat's MeV/mm/scaled-pr
+columns into these input units. The supplied table currently ends at 529.993 MeV;
+it must not be extrapolated silently to 590 MeV. At 72 MeV, the first comparison
+reproduces old OPAL's peaks 1.155 (radial) and 0.890 (vertical). These are finite-grid,
+finite-amplitude measurements, not exact linear tunes.
+
+At 72 MeV, halving DT while doubling STEPSPERTURN and TUNESAMPLE preserves the
+record duration and sample cadence. Both codes retain the same peak bins. The
+maximum radial signal difference decreases from 9.28 to 0.20 micrometres and
+the vertical difference from 0.525 to 0.033 micrometres. OPALX's maximum relative
+energy drift decreases from 7.90e-6 to 4.39e-7. These are trajectory checks in
+addition to the spectral-grid comparison, not an exact-tune accuracy claim.

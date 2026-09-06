@@ -198,3 +198,49 @@ inter-code envelopes of 1.5 keV in final energy and 100 micrometres in sampled
 position difference, and requires the no-TC refinement to reduce the difference.
 These bounds accommodate the measured event-timing discrepancy; they are not
 physical error estimates. Active-TC timestep refinement remains future work.
+
+## Legacy-compatible spectral tunes
+
+SpectralTunes evolves two independent external-field rays using the same
+support-aware ExternalFieldRayTracker as the linear-map rays, but without map
+segmentation or exit-plane projections. The reference starts at supplied kinetic
+energy $K$, radius $r$ and normalized radial momentum $u_r$; its tangential momentum
+is positive, $u_\theta=\sqrt{(1+K/M)^2-1-u_r^2}$, where $M=mc^2$ and $K$
+use the same energy units. The second ray has the same
+momentum and initial radial/vertical offsets of 5 mm. This does not find a closed
+orbit or suppress nonlinear amplitude effects.
+
+For samples $i=0,\ldots,N-1$, the signals are the difference in cylindrical radii and
+the displaced ray's vertical position. Following old OPAL's getTunes(), physical
+time is replaced by sample index. The legacy normalization $L$ is the nominal
+post-step turn number at the last sampled step, initialized to 1; it is not a
+directed geometric return count. Fixed steps and fixed sampling stride are required.
+
+The estimator subtracts the sample mean and fits sine/cosine columns at
+$\omega_k=2\pi k/[4(N-1)]$, $k=1,\ldots,\lfloor1.6N\rfloor$. With centered data
+$d$, design matrix $A_i=(\cos(\omega_k i),\sin(\omega_k i))$, and unbiased sample
+variance $v$, the power is
+
+$$P_k=\frac{d^T A(A^T A)^{-1}A^T d}{2v}.$$
+
+This is the Lomb--Scargle periodogram with
+old oversampling 4/high-frequency factor 0.8, written as a two-column least-squares
+solve rather than copying the legacy peak-array implementation. The returned
+tune is $k/(4L)$ at the largest power; there is no sub-bin interpolation. A 100-turn
+record therefore has grid spacing 0.0025; physical spectral resolution remains
+set by record duration, and sampling limits the unaliased frequency range.
+
+The implementation reanchors its trigonometric recurrence every 256 samples to
+bound accumulated roundoff. Invalid/constant signals raise an error rather than
+returning a fictitious tune. Unlike old code's vertical-mean gate, a valid
+zero-mean vertical oscillation is analyzed. No global canonical symplecticity
+assumption enters this method. Energy drift, timestep/amplitude sensitivity and
+agreement with independent old-code trajectories must still be checked.
+
+The supplied 230-row table spans 72 to 529.993 MeV. A fresh 100-nominal-turn,
+720-step-per-turn RK4 comparison on one rank agrees with old OPAL within one
+0.0025 tune bin in both planes at every row. The maximum relative kinetic-energy
+drift in OPALX is 8.03e-6. This establishes legacy-port agreement at these settings,
+not an absolute tune-accuracy bound. Both codes differ from the supplied SEO tune
+table, particularly near 500 MeV; that discrepancy remains a separate question.
+No 530--590 MeV result is claimed without additional validated launch conditions.
