@@ -36,6 +36,7 @@ book:
         - user-guide/control-statements/index.qmd
         - user-guide/options.qmd
         - user-guide/elements.qmd
+        - user-guide/cyclotron.qmd
         - user-guide/diagnostics-output.qmd
         - user-guide/beam-lines/index.qmd
         - user-guide/beam.qmd
@@ -59,6 +60,7 @@ book:
         - physics/overview/index.qmd
         - physics/coordinate-systems/index.qmd
         - physics/elements/index.qmd
+        - physics/cyclotron.qmd
         - physics/linear-transfer-maps.qmd
         - physics/map-3-fringe-dba.qmd
         - physics/collective-effects.qmd

@@ -1,0 +1,200 @@
+---
+title: "PSI cyclotron sector fields"
+description: "Median-plane interpolation, off-plane extension, and legacy mirrored trim coils."
+audience: physics
+status: experimental
+last-reviewed: "2026-09-06"
+---
+
+The first cyclotron implementation preserves the OPAL 2022.1 PSI Ring map model.
+Input radii are converted from millimetres to metres and map strengths from
+kilogauss to tesla. The host reader computes first derivatives with the legacy
+five-point Lagrange stencil, including one-sided stencils at both radial and
+angular boundaries. A final angular column copies the first column and its
+derivatives. Fields and derivatives are interpolated bilinearly.
+
+Let $F(r,\theta)$ be the stored median-plane map in tesla, $y$ the
+vertical displacement in metres, and $s_B$ the element's `BSCALE`. The base field is
+
+$$
+B_y=s_B F,\qquad B_r=s_B y\,\partial_r F,\qquad
+B_\theta=s_B\frac{y}{r}\,\partial_\theta F.
+$$
+
+Convert to Cartesian components using
+$B_x=B_r\cos\theta-B_\theta\sin\theta$ and
+$B_z=B_r\sin\theta+B_\theta\cos\theta$, then apply the element rotation.
+The proper rotation from old OPAL coordinates is
+$(x,y,z)_{\rm old}\mapsto(x,-z,y)_{\rm OPALX}$ for positions, momenta, and fields.
+The model retains only the first-order off-plane extension; it is not a general
+three-dimensional Maxwell field reconstruction. The acceptance test is on the
+median plane.
+
+The mirrored trim coil uses $q=S\min(r-r_1,r_2-r)$, with slope $S$ in inverse
+metres. Define
+
+$$
+u=\frac{1}{1+10^{0.03(q-4)}},\quad
+v=\frac{1}{1+10^{-0.2(q-8)}},\quad
+\Delta B_y=\frac{B_{\max}}{2.78}(-3+3u+5v).
+$$
+
+The preserved legacy radial correction is
+
+$$
+\Delta B_r=y\frac{B_{\max}S\ln 10}{2.78}
+[-0.09u(1-u)+v(1-v)].
+$$
+
+Legacy OPAL uses this derivative convention on both halves: it does not reverse
+its sign on the outer half when mirroring the profile. This compatibility choice
+must not be interpreted as a corrected Maxwell-consistent off-plane model.
+Shape radii are not hard support bounds. Trim contributions are independent of
+`BSCALE` and additive across named coils.
+
+Sector support is a half-open angular wedge with closed radial bounds and explicit
+vertical limits. The final radial interpolation cell is clamped at the outer grid
+point to avoid an out-of-bounds read. Host reference evaluation and Kokkos particle
+evaluation share formulas and map storage treated as read-only. No collective reduction is
+introduced in the field kernel.
+
+The Boris pusher conserves momentum norm in this magnetic-only case up to roundoff.
+Old OPAL's CYCLOTRON-T default is classical four-stage RK4. Its explicit
+`TIMEINTEGRATOR="LF2"` instead uses drift–Boris-kick–drift and provides the
+matched-integrator field-port regression. At the original 0.164527805199081 ns
+timestep, the 72 MeV trajectories agree within 8.6 nm in position and
+$1.5\times10^{-9}$ in normalized momentum, including the precision limit of the
+old ASCII orbit dump and rounded launch momentum. The RK4 comparison decreases
+from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice. All such
+comparison and convergence runs use one rank.
+
+Compare trajectories at common physical times; a completed directed turn can take
+more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of
+at least $10^{-9}$ m from the launch plane arms the next positive crossing,
+excluding the launch point and opposite-direction crossing. Endpoints may
+overshoot the plane by one timestep; the threader's reference return is localized
+within the crossing step.
+
+## Experimental discrete RF tracking
+
+The experimental `CyclotronRFProfile` / `CyclotronRFKick` components implement
+the radial-voltage model for forward median-plane protons. The initial tracking
+path is restricted to one unpolarized proton, one container, one MPI rank, and
+a beamline containing only cyclotron sectors and discrete gaps. Restart is not
+supported. `TRACK,EKINSTOP` adds a reference kinetic-energy target as described below.
+
+Profiles contain normalized coordinate $u$, voltage multiplier $f(u)$, and
+$df/du$ at each support point. Cubic Hermite interpolation uses the supplied
+derivatives. The support is the closed interval $[0,1]$; values outside it do not
+produce a kick. The local $x$ axis follows the gap, $z$ is its positive normal,
+and $y$ is vertical. Set $\varphi=\omega t-\phi_0$, with seconds and radians.
+For peak voltage $V$ in volts, rest energy $M$ in eV, gap width $g$ in metres,
+and a proton of incoming speed $\beta c$,
+
+$$
+a=\frac{\omega g}{2\beta c},\qquad
+\Delta\gamma=\frac{Vf(u)}{M}\frac{\sin a}{a}\cos\varphi.
+$$
+
+The zero-width limit is one. Radial momentum is preserved while the positive
+longitudinal momentum is reconstructed from the new energy. The subsequent
+legacy focusing rotation is
+
+$$
+\alpha=-\frac{f'(u)V c\sin\varphi}
+ {\ell\,\omega\,2\pi\,|\mathbf p|\,M},\qquad
+\begin{pmatrix}p_x'\\p_z'\end{pmatrix}=
+\begin{pmatrix}\cos\alpha&\sin\alpha\\-\sin\alpha&\cos\alpha\end{pmatrix}
+\begin{pmatrix}p_x\\p_z\end{pmatrix},
+$$
+
+where $\ell$ is the profile's physical length and momentum is in units of
+$m_pc$. The extra $2\pi$ and the absence of a transit factor in the focusing
+term reproduce OPAL 2022.1's convention deliberately. This is a compatibility
+model, not a newly derived general RF focusing law. Unsupported off-plane or
+backward states, and kicks without a physical outgoing momentum, are rejected
+without modifying momentum. Zero voltage leaves momentum exactly unchanged.
+
+Host and Kokkos evaluation share the same formulas; the kick kernel performs no
+MPI communication or host/device copies. The initial tracker calls the host kernel
+and explicitly mirrors the single particle to/from host memory. It transforms
+particle coordinates between the moving frame and lab frame; the reference uses
+the same lab-frame stepping routine. This is not a production multi-particle or
+GPU-optimized event integrator.
+
+A trial magnetic Boris step brackets positive crossings of each local $z=0$ gap
+plane. Forty bisections of the substep time locate each root. The earliest accepted
+crossing is processed first, followed by a complete kick and the remaining magnetic
+step. Already processed gaps are excluded from the remainder of that step. Spatial
+sector support is used directly instead of the nominal coasting orbit's path index;
+leaving that support raises an error. An initial point on a plane is not a crossing.
+
+Unlike old OPAL's distance/speed estimate, this procedure locates the actual plane
+intersection. At 2880 steps per nominal turn (41.13 ps), the first accelerating
+turn reaches 73.7423187 MeV versus old LF2's 73.7423109 MeV. The maximum matched-time
+position difference is 0.758 micrometres. A single zero-offset particle remains
+within 3 picometres of its reference. Regression bounds of 2 micrometres position,
+$5\times10^{-7}$ normalized momentum and 20 eV final energy accommodate the measured
+event-location difference and old ASCII precision. These are first-turn regression
+bounds, not an established asymptotic convergence rate or full-cycle accuracy claim.
+
+At DT/2 and DT/4 the maximum position differences against matched old-LF2 runs
+are 0.507 and 0.186 micrometres. At DT/4 the final energy difference is -1.93 eV.
+The return is sampled at a timestep endpoint, not interpolated to the exact turn
+plane. Particle E/B diagnostic arrays are not populated by this event path; field
+diagnostics require separate explicit sampling. Timesteps must resolve individual
+gap crossings without an intervening unobserved recrossing.
+
+## Energy-target semantics and long-run comparison
+
+With rest energy $M$ in eV and mechanical momentum $\mathbf p$ in units of
+$m_pc$, the reference criterion is
+
+$$
+K=(\sqrt{1+|\mathbf p|^2}-1)M\ \geq\ 10^9\,\mathrm{EKINSTOP}.
+$$
+
+It is checked immediately after each complete RF kick, including after a
+decelerating harmonic kick. A target does not impose an artificial fractional
+impulse. Before advancing the bunch clock, the tracker computes the reference's
+terminal substep and retains its pending state. It independently advances the
+physical particle with the same event routine, then publishes the pending
+reference through the usual moving-frame update. Only the terminal timestep is
+shortened. The reported endpoint therefore has the physical post-kick energy and
+gap time, with no remainder drift. Reference state is never substituted for the
+physical particle's state.
+
+Old OPAL's orbit dump instead records the endpoint after the remainder drift.
+Compare energies after the same kick, but compare positions and momenta using a
+separate matched fixed-step run. In the no-TC 2880-step case, both codes pass the
+target in the same 949th gap event. Old LF2 records 590.325895173 MeV; OPALX
+records 590.326824538 MeV. The difference is +929.365 eV (1.6 ppm). At the common
+endpoint the position difference is 55.785 micrometres, not the millimetre-scale
+difference obtained by comparing records at different times.
+
+This inter-code agreement must not be confused with timestep accuracy: halving
+old LF2's timestep changes its final energy to 590.296910517 MeV, a 28.985 keV
+shift. Long-run RF phase accumulation requires a separate refinement check even
+when the two implementations agree closely at a common timestep.
+
+The half-step OPALX result is 590.297352913 MeV, giving +442.396 eV (0.75 ppm)
+relative to old LF2. The matched final position difference falls to 26.682
+micrometres and both runs contain 949 gap kicks. Particle/reference separation
+stays below 3.2 nm over the full cycle. The observed reduction supports the
+port comparison; two timestep levels do not establish an asymptotic order.
+
+With the named mirrored trim coil active over the full azimuth, old LF2 reaches
+590.385013924 MeV and OPALX reaches 590.386116234 MeV at the corresponding
+fixed-step endpoint. The difference is +1102.310 eV (1.87 ppm), the final
+position difference is 63.183 micrometres, and the largest sampled position
+difference is 65.301 micrometres. OPALX records 949 kicks and particle/reference
+separation below 1.5 nm. The old result changes by 59.119 keV relative to TC-off,
+confirming that the coil is effective in this comparison. Explicit old-OPAL
+`PHIMIN=0, PHIMAX=360` is essential; an omitted upper limit in the installed
+2022.1 parser did not activate the intended full-azimuth coil.
+
+The reproducible `sandbox/cyclotron/report_acceleration590.py` checks empirical
+inter-code envelopes of 1.5 keV in final energy and 100 micrometres in sampled
+position difference, and requires the no-TC refinement to reduce the difference.
+These bounds accommodate the measured event-timing discrepancy; they are not
+physical error estimates. Active-TC timestep refinement remains future work.

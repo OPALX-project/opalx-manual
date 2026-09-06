@@ -1,0 +1,145 @@
+---
+title: "Cyclotron coasting and acceleration"
+description: "Track a proton through PSI sectors, mirrored trim coils and discrete RF gaps."
+audience: user
+status: experimental
+last-reviewed: "2026-09-06"
+---
+
+The `545-add-cyclotron-coasting-beam` development branch introduces
+`CYCLOTRONSECTOR` and named `TRIMCOIL` definitions. The first validation case is a
+single 72 MeV proton in the PSI Ring, with magnetic fields only and no space charge.
+
+```text
+TC1: TRIMCOIL, TYPE="PSI-BFIELD-MIRRORED",
+     RMIN=4.350, RMAX=4.470, BMAX=1.4E-3, SLPTC=600.0;
+SM0: CYCLOTRONSECTOR, FMAPFN="bfield.dat", SYM=8,
+     RMIN=1.9, RMAX=4.7, VMIN=-0.05, VMAX=0.05,
+     BSCALE=1, TRIMCOIL={"TC1"}, X=3.3, Y=0, Z=0,
+     THETA=0, PHI=0, PSI=0;
+```
+
+`FMAPFN` accepts the legacy PSI Ring median-plane format, with its angular origin
+at zero. `SYM` must match the map's angular span. Explicit `RMIN/RMAX` must match
+the file bounds; omitting them uses those bounds. Radii and vertical limits are
+metres, magnetic strength is tesla, and placement angles are radians.
+`BSCALE` multiplies the base map only. Eight occurrences share the loaded map.
+
+The sector pose is the entrance tangent at the map midpoint radius
+`Rm=(RMIN+RMAX)/2`. Its local ring centre is `(-Rm,0,0)`, the ring plane is X-Z,
+and Y is vertical. For an identity enclosing frame, sector k is placed at
+`X=Rm*cos(k*2*pi/SYM)`, `Z=Rm*sin(k*2*pi/SYM)`, `THETA=-k*2*pi/SYM`.
+The existing placement resolver composes these poses with the enclosing RING
+source frame. If that frame is translated to the launch radius, subtract that
+translation from the sector positions to retain the same global magnet centres.
+
+`TRIMCOIL` is a list of named definitions. Only `PSI-BFIELD-MIRRORED` is currently
+implemented. Its shape radii do not impose hard cutoffs: the profile has tails.
+`SLPTC` is in inverse metres; old OPAL's `0.6` in inverse millimetres becomes `600`.
+Coils cover the full azimuth and should be referenced by every sector.
+
+Assemble the sectors into a `RING` and use `RUN, TURNS=1`. Turns count directed
+reference-particle crossings of the launch plane, not the nominal geometry
+circumference. Tracking stops at the first timestep endpoint past the crossing;
+reduce `DT` to reduce this overshoot. Explicit `TURNS` requires one timestep
+segment and currently rejects checkpoint restart. The step budget remains a
+safety limit; failure to return is reported as an error.
+
+The reproducible input is `sandbox/cyclotron/opalx/coasting72.in` in the source
+repository. Run it from that directory. `sandbox/cyclotron/compare_coasting72.py`
+runs strictly one-rank timestep comparisons against old OPAL RK4 and LF2 orbit
+dumps. Old OPAL's default is RK4; explicitly select `TIMEINTEGRATOR="LF2"` for
+the matched Boris/leapfrog comparison. The supplied `reference72` input files
+select each integrator explicitly. Tune extraction is deferred.
+
+## First-turn RF acceleration
+
+The feature branch also supports an experimental `RFCAVITY, TYPE="SINGLEGAP"`
+radial voltage-profile kick for one unpolarized, median-plane proton on one rank.
+Only cyclotron sectors and these gaps may occur in the line; restart is rejected.
+Use `FIELDSOLVER, TYPE=NONE`.
+
+`FMAPFN` identifies a normalized voltage/derivative profile, not a 3D map.
+`VOLT` is in MV, `FREQ` in MHz and `PHI0` in degrees. For this model, `RMIN` and
+`RMAX` are the lower/upper local-x profile bounds in metres and `GAPWIDTH` is
+the transit-time width in metres. Position the gap plane at local z=0 using
+`X/Y/Z/THETA/PHI/PSI`; `ANGLE` and `PDIS` must remain zero. Positive local-z
+crossings receive one kick. Explicit phases are used without automatic phasing.
+Time-dependent RF models and voltage/phase error attributes are not supported.
+
+For example, before composing with the enclosing ring's pose, the old cavity at
+35 degrees with 416 mm perpendicular offset has X=0.416*sin(35 degrees),
+Z=-0.416*cos(35 degrees), and THETA=-35*pi/180. Subtract the ring's translation
+when its axes coincide with the lab axes. More generally compose the full poses.
+
+`sandbox/cyclotron/compare_acceleration_turn.py` generates the complete translated
+input from the recorded old-OPAL launch state and runs one directed accelerating
+turn. It requires the corresponding old baseline from `run_old_acceleration.py`.
+The timestep defaults to 41.13 ps (2880 steps per nominal RF revolution).
+All comparison runs use one MPI rank. The experimental event path evaluates
+magnetic fields on the host at substeps; GPU acceleration and multi-particle
+event tracking are not yet validated.
+
+## Stop at a kinetic-energy target
+
+For an accelerating ring, specify `EKINSTOP` on `TRACK`, in **GeV of kinetic
+energy**, not total energy. For example, in a configured ring input:
+
+```text
+TRACK, LINE=MYCYCL, BEAM=BEAM0,
+       DT=4.113195129976966e-11, MAXSTEPS=633600, EKINSTOP=0.590;
+RUN, METHOD="PARALLEL", FIELDSOLVER=FS0;
+ENDTRACK;
+```
+
+The first complete reference-particle RF kick reaching or exceeding the target
+ends tracking. The last output contains the post-kick state at the gap time;
+the remaining drift is omitted. Energy is **not** clamped to 590 MeV. For the
+no-trim-coil reference at this timestep the recorded energy is about 590.327 MeV.
+
+The target must be finite, positive and above the launch energy. Use one positive
+`DT` segment and no explicit `RUN,TURNS`; directed turns are still reported as
+diagnostics. Restart and multi-container/multi-rank runs are not supported.
+`MAXSTEPS` is a hard safety limit in energy-stop mode: reaching it or leaving
+magnetic field support before the target is an error, not successful completion.
+Unlike the directed-turn mode, this mode does not enlarge the requested step budget.
+
+### Reproducing the 72 to 590 MeV comparison
+
+Run from the OPALX source root with the Python scientific dependencies available
+and `omp-build/src/opalx` built. Output directories must be new. The old-OPAL
+runner sources `/Users/adelmann/OPAL-2022.1/etc/profile.d/opal.sh` and launches
+the installed executable directly on one rank; adapt that installation path for
+another machine.
+
+```sh
+python sandbox/cyclotron/run_old_acceleration.py --no-trim-coils \
+  --nominal-turns 220 --target-mev 590 \
+  --output sandbox/cyclotron/validation590/old
+python sandbox/cyclotron/compare_acceleration_turn.py --no-trim-coils \
+  --target-mev 590 \
+  --reference sandbox/cyclotron/validation590/old/to-target.csv \
+  --output sandbox/cyclotron/validation590/opalx-stop
+```
+
+For coordinate comparisons, additionally use `--fixed-steps` with the step from
+the old run's `target.json` (545799 in the 2880-step reference). This disables
+`EKINSTOP` for that comparison run and matches old OPAL's end-of-step sample;
+raw gap-stop and end-of-step positions are different physical times. Use
+`--steps-per-turn 5760` in both runners for the half-timestep comparison.
+
+### Trim coils in old-OPAL comparisons
+
+Use `--no-trim-coils` in both runners for the baseline. Omit it in both for the
+named mirrored-coil comparison. The legacy generator explicitly sets
+`PHIMIN=0, PHIMAX=360`: OPAL 2022.1's PHIMAX help advertises 360 degrees, but
+its constructor supplies no default value, so relying on the omission can leave
+the coil inactive. A nonzero BMAX alone is not proof that the old coil was active.
+
+The compared named model has shape radii 4.350/4.470 m, BMAX=1.4 mT and
+SLPTC=600 inverse metres (old input: 4350/4470 mm and 0.6 inverse millimetres).
+This is an explicit common model, not a blanket compatibility claim for obsolete
+inline `TCR1/TCR2/MBTC/SLPTC` syntax. The original supplied input remains unchanged.
+
+See [cyclotron field physics](../physics/cyclotron.qmd) for coordinate and
+interpolation conventions.
