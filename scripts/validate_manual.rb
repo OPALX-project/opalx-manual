@@ -265,7 +265,7 @@ if input_language_page.file?
   %w[
     BEAM DISTRIBUTION EMISSIONSOURCE EMISSIONSOURCELIST FIELDSOLVER BINNING LINE
     DRIFT CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID RFCAVITY
-    TRAVELINGWAVE RBEND SBEND VERTICALFFAMAGNET VARIABLE_RF_CAVITY LASER MONITOR
+    TRAVELINGWAVE CYCLOTRONSECTOR TRIMCOIL RING RBEND SBEND VERTICALFFAMAGNET VARIABLE_RF_CAVITY LASER MONITOR
     PROBE MARKER POLYNOMIAL_TIME_DEPENDENCE SINUSOIDAL_TIME_DEPENDENCE
     SPLINE_TIME_DEPENDENCE TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE SELECT
     DUMPEMFIELDS SYSTEM PSYSTEM STOP QUIT
@@ -282,7 +282,7 @@ if input_language_page.file?
   end
 
   {
-    "source revision" => "d1e762f15a2a",
+    "source registry wording" => "current parser and registration tables",
     "overview cards" => "{.doc-grid}",
     "beam guide" => "[Beam](beam.qmd)",
     "distribution guide" => "beam-distributions.qmd#distribution",
@@ -318,6 +318,7 @@ element_sections = [
   ["## `SOLENOID` {#solenoid}", "solenoid"],
   ["## `RFCAVITY` {#rfcavity}", "rfcavity"],
   ["## `TRAVELINGWAVE` {#travelingwave}", "travelingwave"],
+  ["## `CYCLOTRONSECTOR` {#cyclotronsector}", "cyclotronsector"],
   ["## `LASER` {#laser}", "laser"],
   ["## `MONITOR` {#monitor}", "monitor"],
   ["## `MARKER` {#marker}", "marker"],
@@ -347,6 +348,7 @@ if elements_page.file?
       "bulk particle kernel applies only indices 0 and 1",
     "strength-error limitation" => "not applied by the current field kernel",
     "RFCAVITY autophase behavior" => "`OPTION.AUTOPHASE>0`",
+    "cyclotron sector element" => "`CYCLOTRONSECTOR` loads a PSI median-plane",
     "unsupported variable-radius MULTIPOLET mode" =>
       "Variable-radius curved magnets are currently rejected"
   }.each do |description, required_text|
@@ -511,7 +513,7 @@ source_audited_inputs = {
     GEOMETRY NSLICES EX EY EZ K1 DK1 K1S DK1S KN DKN KS DKS
     TP LFRINGE RFRINGE HAPERT VAPERT MAXFORDER ROTATION EANGLE BBLENGTH ANGLE
     MAXXORDER VARRADIUS ENTRYOFFSET SCALING_MODEL FMAPFN FAST
-    VOLT DVOLT FREQ LAG DLAG APVETO RMIN RMAX PDIS GAPWIDTH PHI0 DESIGNENERGY
+    VOLT DVOLT FREQ LAG DLAG APVETO RMIN RMAX VMIN VMAX BSCALE TRIMCOIL BMAX SLPTC PDIS GAPWIDTH PHI0 DESIGNENERGY
     PHASE_MODEL AMPLITUDE_MODEL FREQUENCY_MODEL NUMCELLS MODE
     WAVELENGTH PULSEENERGY PULSELENGTH WAISTX WAISTY DIR STOKES
     XSTART XEND YSTART YEND WIDTH STEP
@@ -619,7 +621,7 @@ field_maps_text = (ROOT / "user-guide/appendix/field-maps/index.qmd").read
 %w[2DMagnetoStatic 2DDynamic AstraDynamic AstraMagnetoStatic].each do |map_type|
   errors += error("field-map appendix is missing current OPALX type #{map_type}") unless field_maps_text.include?("`#{map_type}`")
 end
-unless field_maps_text.include?("Recognition is not support") && field_maps_text.include?("d1e762f15")
+unless field_maps_text.include?("Recognition is not support") && field_maps_text.include?("currently audited OPALX source tree")
   errors += error("field-map appendix must distinguish recognized headers from constructible OPALX maps")
 end
 

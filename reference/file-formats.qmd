@@ -29,6 +29,31 @@ Each completed format page will specify:
 - Versioning and backward-compatibility policy.
 - A minimal reader and writer example.
 
+## Spectral tune files {#spectral-tune-files}
+
+::: {.feature-opalx}
+
+`RUN,SPECTRALTUNES=TRUE` writes one summary CSV and two detailed CSV files for
+each `TUNEINITIAL` row. The basename is the input basename used by the run. Row
+indices start at zero.
+
+| File | Rows | Columns |
+|---|---|---|
+| `<base>-tunes.csv` | One row per `TUNEINITIAL` triple. | `energy_MeV`, `radius_m`, `pr`, `nu_r`, `nu_y`, `grid_spacing`, `legacy_turns`, `samples`, `max_relative_energy_drift` |
+| `<base>-tune-<row>-samples.csv` | One row per retained sample for that tune row. | `time_s`, `delta_r_m`, `y_m`, `reference_angle_rad` |
+| `<base>-tune-<row>-spectrum.csv` | One row per tune grid point. | `tune`, `radial_power`, `vertical_power` |
+
+The summary energy is written in MeV even though `BEAM.TUNEINITIAL` uses GeV.
+`pr` is radial momentum in units of `mc`. `legacy_turns` is the nominal turn
+count used by the spectral analysis, and `samples` is the number of sampled
+signal values. Sample rows contain pre-step signal values and the accumulated
+reference angle used for turn-context diagnostics.
+
+These files are rank-zero text diagnostics for the spectral tune calculation.
+They are independent of normal particle phase-space output.
+
+:::
+
 ## Checkpoint and restart {#checkpoint-restart}
 
 ::: {.feature-opalx}

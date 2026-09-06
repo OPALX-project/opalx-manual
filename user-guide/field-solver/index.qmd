@@ -112,7 +112,7 @@ Dirichlet boundary setting therefore has no runnable backend at present.
 :::
 
 `P3M` is not an accepted `FIELDSOLVER.TYPE` on current master. Historical or
-development-branch references to it do not describe a released OPALX input.
+implementation notes that mention it do not describe a released OPALX input.
 
 ## `FIELDSOLVER` parameters {#fieldsolver-parameters}
 

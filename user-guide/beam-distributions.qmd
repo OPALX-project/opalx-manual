@@ -356,7 +356,7 @@ step.
 
 ## Reproducibility and current limitations {#reproducibility-limitations}
 
-Record the OPALX revision, random seed, `NPARTDIST`, `BEAM.NALLOC`, bunch
+Record the OPALX version, random seed, `NPARTDIST`, `BEAM.NALLOC`, bunch
 charge, source list, and every referenced file. Keep `NALLOC` at least as large
 as the sum of the source distributions' particle counts.
 

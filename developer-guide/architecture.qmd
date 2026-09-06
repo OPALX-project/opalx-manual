@@ -69,3 +69,109 @@ entrance-frame, fixed-energy one-turn function or its derivative. COF must suppl
 termination, entrance-frame and kinetic-momentum coordinate transformations, the closure residual,
 and checks of geometric closure and TRACK consistency. The solver and that one-turn service
 are separate future work; Richardson refinement does not provide them implicitly.
+
+## Linear Maps
+
+```{mermaid}
+flowchart TD
+  Options[Map options] --> Threader[OrbitThreader]
+  Threader --> Ref[Reference samples]
+  Ref --> Builder[LinearTransferMapBuilder]
+  Builder --> Rays[ExternalFieldRayTracker]
+  Rays --> Fields[Element field evaluation]
+  Builder --> Segments[Segment maps]
+  Segments --> Product[Combined map]
+  Product --> Elements[Attach maps to ordered element occurrences]
+```
+
+`OrbitThreader` owns the production reference pass and hands sampled reference
+states to `LinearTransferMapBuilder`. The builder constructs finite-difference
+segment maps with private rays and returns ordered maps plus their combined
+product.
+
+## Closed Orbit Finder
+
+```{mermaid}
+flowchart TD
+  Cof[COF block] --> Ring[RING sequence]
+  Cof --> Beam[Explicit-energy BEAM]
+  Cof --> Solver[Fixed-energy solver]
+  Solver --> Return[One-turn return function]
+  Return --> Residual[Closure residual]
+  Residual --> Update[Newton correction]
+  Update --> Solver
+  Solver --> Output[Orbit and summary files]
+```
+
+`COF` is a command block for static magnetic rings. It reuses the ring geometry
+and ray-tracking services but builds a fixed-energy closure problem rather than
+a particle-bunch tracking run.
+
+## Tune Computation
+
+```{mermaid}
+flowchart TD
+  Beam[BEAM.TUNEINITIAL triples] --> TuneRun[RUN SPECTRALTUNES]
+  TuneRun --> Sector[TUNESECTOR launch frame]
+  TuneRun --> Rays[Reference and displaced rays]
+  Rays --> Tracker[ExternalFieldRayTracker]
+  Tracker --> Samples[Radial and vertical signals]
+  Samples --> Lomb[Lomb spectral analysis]
+  Lomb --> Files[Summary, samples, and spectrum CSVs]
+```
+
+The spectral tune path is a diagnostic mode. It tracks two serial rays per
+launch row in static cyclotron sector fields and writes CSV diagnostics; it does
+not build the normal linear-map matrices.
+
+## Ring
+
+```{mermaid}
+flowchart TD
+  Input[RING syntax] --> LineParser[LINE list parser]
+  LineParser --> Checks[Reject repetition, reflection, and nested RING]
+  Checks --> Expanded[Expanded ordered members]
+  Expanded --> Tags[Ring membership tags]
+  Tags --> Track[TRACK directed returns]
+  Tags --> Cof[COF fixed-energy returns]
+```
+
+`RING` is a closed-topology sequence declaration. It tags expanded member
+occurrences with the enclosing ring name while leaving physical placement and
+geometric closure to the element definitions and tracking diagnostics.
+
+## CYCLOTRONSECTOR, RFCAVITY, and Trim Coils
+
+```{mermaid}
+flowchart TD
+  Map[PSI sector map] --> Sector[CYCLOTRONSECTOR]
+  CoilDef[TRIMCOIL definitions] --> Sector
+  Sector --> Ring[RING]
+  GapProfile[Single-gap profile] --> Cavity[RFCAVITY TYPE=SINGLEGAP]
+  Cavity --> Ring
+  Ring --> Coasting[Coasting tracking]
+  Ring --> Accel[Accelerated tracking with EKINSTOP]
+  Ring --> Tunes[Spectral tunes]
+```
+
+Cyclotron sectors provide the static mapped magnetic field. Named trim coils add
+radial correction fields to sectors. `RFCAVITY,TYPE="SINGLEGAP"` supplies the
+experimental radial RF kick path used by accelerated cyclotron rings.
+
+## OrbitThreader
+
+```{mermaid}
+flowchart TD
+  State[Reference state] --> Query[IndexMap active-element query]
+  Query --> Local[Local element frames]
+  Local --> Step[External field integration]
+  Step --> Sample[Reference sample record]
+  Sample --> Return{RING return?}
+  Return -- no --> Query
+  Return -- yes --> Metrics[Return length and closure residuals]
+  Sample --> MapBuilder[Optional linear-map builder]
+```
+
+`OrbitThreader` follows the reference through the ordered beamline, records
+active element intervals, detects ring return sections, and supplies the sampled
+reference path used by linear-map construction.

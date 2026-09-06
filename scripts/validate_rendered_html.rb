@@ -106,7 +106,7 @@ if elements_html_path.file?
   elements_html = File.read(elements_html_path)
   element_anchors = %w[
     common-element-syntax drift constant-electric-field-cavity quadrupole multipole multipolet
-    solenoid rfcavity travelingwave laser monitor marker probe bends verticalffamagnet
+    solenoid rfcavity travelingwave cyclotronsector laser monitor marker probe bends verticalffamagnet
     variable-rf-cavity element-limitations
   ]
   element_anchors.each do |anchor|
@@ -118,10 +118,11 @@ if elements_html_path.file?
     "constant-electric-field-cavity" => /data-number=["']\d+\.3["']/,
     "rfcavity" => /data-number=["']\d+\.8["']/,
     "travelingwave" => /data-number=["']\d+\.9["']/,
-    "laser" => /data-number=["']\d+\.10["']/,
-    "bends" => /data-number=["']\d+\.14["']/,
-    "variable-rf-cavity" => /data-number=["']\d+\.16["']/,
-    "element-limitations" => /data-number=["']\d+\.17["']/
+    "cyclotronsector" => /data-number=["']\d+\.10["']/,
+    "laser" => /data-number=["']\d+\.11["']/,
+    "bends" => /data-number=["']\d+\.15["']/,
+    "variable-rf-cavity" => /data-number=["']\d+\.17["']/,
+    "element-limitations" => /data-number=["']\d+\.18["']/
   }.each do |anchor, numbering|
     section = elements_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "elements ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)

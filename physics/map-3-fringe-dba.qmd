@@ -1,5 +1,5 @@
 ---
-title: "map-3: DBA fields with finite fringes"
+title: "DB & DBA with Fringe Fields"
 description: "Analytic native-SBEND field model, separated supports, and off-axis FINT diagnostics for the map-3 DBA study."
 audience: physics
 status: experimental

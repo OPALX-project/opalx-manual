@@ -1,5 +1,5 @@
 ---
-title: "PSI cyclotron sector fields"
+title: "Physics"
 description: "Median-plane interpolation, off-plane extension, and legacy mirrored trim coils."
 audience: physics
 status: experimental
@@ -199,7 +199,7 @@ position difference, and requires the no-TC refinement to reduce the difference.
 These bounds accommodate the measured event-timing discrepancy; they are not
 physical error estimates. Active-TC timestep refinement remains future work.
 
-## Legacy-compatible spectral tunes
+## Spectral Tune Calculation
 
 SpectralTunes evolves two independent external-field rays using the same
 support-aware ExternalFieldRayTracker as the linear-map rays, but without map

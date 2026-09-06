@@ -1,9 +1,9 @@
 ---
-title: "Numerical linear transfer maps"
+title: "Linear Transfer Maps"
 description: "External-field ray maps, selectable Richardson differentiation, overlap composition, and boundary-resolved integration."
 audience: physics
 status: experimental
-last-reviewed: "2026-09-05"
+last-reviewed: "2026-09-06"
 ---
 
 ::: {.feature-opalx}
@@ -411,8 +411,8 @@ finite-difference floor.
 ## Fixed-section return-map service (experimental)
 
 The `OneTurnMap` C++ service is the first building block for the general RING
-closed-orbit finder. It is not yet connected to a `COF` input command and does
-not replace the segmented transfer-map calculator described above.
+closed-orbit finder. The experimental [COF input command](../user-guide/tracking.qmd#opalx-cof-command)
+now uses it; it does not replace the segmented transfer-map calculator described above.
 
 Its state is $v=(x,p_x,y,p_y)$ on a fixed local $z=0$ section. Positions are in
 metres and momenta are mechanical $p/(mc)$, not slopes. Given fixed total
@@ -440,13 +440,13 @@ with separately specified positive position/momentum steps. It is not obtained
 by extracting a block of the slope-coordinate 6D matrix. Returned momenta are
 not renormalized: integration energy drift remains a separate diagnostic.
 Topology, geometric closure and static-magnetic physics validation belong to
-the future caller. This host-only service constructs no bunch or collective
+the caller (`CofCmd` for the input command). This host-only service constructs no bunch or collective
 solver and does not alter existing tracking or parallel execution.
 
 ### Damped fixed-point solver (C++ interface)
 
 `ClosedOrbitSolver` accepts a deterministic four-coordinate return map, including
-`OneTurnMap`. It is still not an input-file `COF` command. For $F(v)=T(v)-v$,
+`OneTurnMap`; `CofCmd` provides its input-file adapter. For $F(v)=T(v)-v$,
 central differences form $M=dT/dv$ and each Newton correction solves
 
 $$
@@ -486,17 +486,56 @@ starting values, not validated settings for a particular accelerator.
 The result contains status, last accepted coordinates, residual, final Jacobian
 on success, evaluation count, and accepted-iteration diagnostics. Eigenanalysis
 is a separate C++ operation described below. Analytic coupled affine maps and nonlinear
-fixed-point tests validate the solver; real-machine COF benchmarks are pending.
+fixed-point tests validate the solver; the first native cyclotron benchmark is
+described below. A stable hard-edge DBA-ring benchmark is described next;
+ISIS and finite-fringe DBA-ring validation remain pending.
 Timestep, finite-difference and launch-amplitude convergence remain independent
 requirements. No production pusher, reduction order, MPI collective, GPU kernel,
 or OpenMP scheduling is changed by this serial algorithm.
+
+### Stable non-achromatic hard-edge DBA ring
+
+The `sandbox/dba-ring-cof` benchmark repeats six cells of two 30-degree,
+2 m-radius sector bends, two 1 m drifts and a 0.2 m quadrupole. Changing
+the quadrupole to $K_1=+2.84\,\mathrm{m}^{-2}$ in OPALX's electron convention
+gives stable, non-achromatic optics; circumference is 25.76637061436 m.
+The independent hard-edge reference is $M_{\rm cell}^{6}$. For the on-axis
+fixed-momentum orbit its transverse slope matrix is converted to mechanical
+coordinates by $M_u=T M_{\rm slope}T^{-1}$, with
+$T=\operatorname{diag}(1,u_0,1,u_0)$ and $u_0=p/(mc)$ from the actual BEAM.
+
+One-rank DOP853 tracking at $\Delta t=5\times10^{-12}$ s and central differences
+$h_x=h_y=3\times10^{-5}$ m, $h_{u_x}=h_{u_y}=u_0(3\times10^{-5})$, gives:
+
+| Principal fractional mode | Analytic | Tracked |
+|---|---:|---:|
+| Horizontal | 0.229892430867 | 0.229892431493 |
+| Vertical | 0.310463602980 | 0.310463603175 |
+
+The maximum slope-matrix entry error, with positions scaled by 1 m, is
+$6.32\times10^{-9}$; maximum eigenvalue-modulus error is $5.13\times10^{-10}$.
+The unchanged $10^{-8}$ unit-circle tolerance classifies both modes as stable.
+The twice-larger timestep also agrees, and a seed displaced by 0.1 mm in
+both planes converges to the design orbit. Smaller finite-difference steps
+can amplify tracking noise enough to fail the strict unit-circle test;
+the saved scan retains those outcomes. Integer tune branches, spectral tunes,
+off-momentum optics and distributed fringe fields are not validated here.
+
+For conventional elements, COF assigns aperture checks to the nearest finite
+design centreline, independently of aperture dimensions. This prevents a remote
+ring arm's infinite longitudinal slab from causing a false loss. Circular SBEND
+arcs and straight/RBEND axes include endpoints; ties within floating-point
+roundoff are all checked. The assignment is stateless for independent shadow
+rays and return-root reintegration. It assumes a local orbit neighbourhood of
+a distinct path, not a solid model for intersecting beam pipes. Cyclotron-sector
+native domain checks and all field-selection/pusher logic are unchanged.
 
 ### Eigenvalues, stability and fractional modes
 
 `LinearMapEigenAnalysis::analyze` takes the final 4-by-4 matrix; the caller must
 first require a converged closed orbit. `writeReport` emits the eigenvalues,
 moduli, stability classification, residual and eigenbasis diagnostics, and mode
-phases. These interfaces are not yet exposed through a `COF` input command.
+phases. The `COF` input command calls these interfaces after verified convergence.
 
 The full real nonsymmetric matrix, including transverse coupling, is analyzed
 with reference LAPACK's `dgeev` through LAPACKE. No plane blocks are discarded.
@@ -540,7 +579,118 @@ and require separate timestep/finite-difference studies for a real machine.
 
 Tests cover stable rotations, coupled/scaled similarities, real reciprocal and
 complex unstable pairs, near-integer modes, repeated/defective spectra, and an
-analytic closed-orbit-solver-to-eigenanalysis workflow. No cyclotron, ISIS or DBA
-COF tune benchmark is claimed yet.
+analytic closed-orbit-solver-to-eigenanalysis workflow.
+
+### First native cyclotron closed-orbit benchmark
+
+The opt-in `OrbitThreaderTest.Cyclotron72ClosedOrbitBenchmark` composes eight
+native `CyclotronSector` elements, the PSI magnetic map and mirrored trim coil,
+the shared RK4 ray tracker, fixed-section return map, Newton solver and LAPACK
+eigenanalysis. This C++ benchmark bypasses input parsing; separate command-level
+regressions exercise the COF input interface, native proton/electron SBEND rings
+and MPI status propagation.
+Supply the local map explicitly and run on one MPI rank:
+
+```sh
+OPALX_COF_CYCLOTRON_MAP=/absolute/path/to/sandbox/cyclotron/opal/bfield.dat \
+OMP_NUM_THREADS=1 OMP_PROC_BIND=false \
+./omp-build/unit_tests/Algorithms/TestOrbitThreader \
+  --gtest_filter=OrbitThreaderTest.Cyclotron72ClosedOrbitBenchmark
+```
+
+Without the map environment variable this optional machine benchmark is skipped.
+The static 72 MeV proton case starts from the first legacy `ic.dat` row,
+$(r,p_r,y,p_y)=(2.1314,-0.00024,0,0)$ in metres and mechanical $p/(mc)$.
+The section is global $Z=0$, with positive-$Z$ return. The trim profile uses
+$R_{min}=4.35$ m, $R_{max}=4.47$ m, $B_{max}=0.0014$ T and slope $600$ m$^{-1}$;
+its radial tails are retained. No RF or collective field is present.
+
+Seven timestep levels, $\Delta t=6/(50.65\times10^6\,720\,2^k)$ seconds,
+$k=0,\ldots,6$, converge to numerical closed orbits with the unchanged
+$10^{-10}$ componentwise closure tolerances. The finest radius is approximately
+2.131503545 m and $p_r/(mc)=-0.0002391852$. The final timestep halving changes
+the radius by about 18 nm; this discretization difference is larger than the
+nonlinear closure residual and must not be confused with it.
+
+The radial Jacobian is sensitive to both timestep and central-difference step.
+At the finest timestep its positive phase is approximately 0.1574, but the
+pair modulus still differs from unity by order $10^{-4}$--$10^{-3}$ for small
+derivative steps. The vertical complementary phase is approximately 0.89338.
+These are **diagnostic phases, not a certified stable spectrum**: the default
+$10^{-8}$ unit-circle tolerance is unchanged. The coarse-to-fine radial modulus
+alternates between artificial growth and damping. Resolving the differentiated
+tracking error is required before interpreting a stability label physically;
+the field map's piecewise interpolation is a candidate to investigate, not a
+confirmed explanation. This benchmark does not validate the separate segmented
+transfer-map seam treatment or an ISIS/DBA-ring closed orbit.
+
+A displaced launch (1 mm radial, 0.5 mm vertical, with momentum offsets)
+recovers the same orbit within $10^{-9}$ in each coordinate's units. An independent
+0.1 mm amplitude, 100-nominal-turn spectral run gives 1.155 and 0.890, also the
+previous old-OPAL spectral values. Do not directly subtract these from physical
+per-return map phases: the legacy estimator assigns its entire sampled span
+exactly 100 turns. If $t_s$ is the last-minus-first sample time and $T_{rev}$ is
+the measured COF period, compare the legacy spectral value against
+
+$$
+\nu_{legacy,expected}=\nu_{return}\frac{t_s}{100T_{rev}}.
+$$
+
+Here $T_{rev}\simeq118.6675$ ns and the factor is approximately 0.9975584,
+including the omitted final sampling interval. The predicted legacy-axis phases
+are approximately 1.15455 and 0.89120, within one frequency bin (0.0025) of
+the measured peaks. This independent normalization explains the comparison
+offset without fitting the tunes, changing the legacy estimator or relaxing
+the eigenvalue stability threshold. No new old-OPAL run is implied.
+
+### Higher-energy checks with trim coils
+
+Set `OPALX_COF_CASE=400` or `OPALX_COF_CASE=590` in the same benchmark invocation
+(the default remains `72`). The 400 case uses the actual 399.995 MeV `ic.dat`
+row. The table ends at 529.993 MeV, so the 590 case first performs fixed-energy
+Newton continuation from that row in increments no greater than 5 MeV.
+This is a **590 MeV coasting orbit**, not a closed orbit during acceleration.
+
+Both cases use the same seven timestep levels, derivative-step sweep, trim
+coils, displaced-launch check and 0.1 mm spectral excitation described above.
+The finest solutions are:
+
+| Kinetic energy [MeV] | Radius [m] | $p_r/(mc)$ | Radius change on final timestep halving |
+|---:|---:|---:|---:|
+| 399.995 | 4.0203122462 | 0.1966177730 | 2.0 nm |
+| 590 | 4.4014800681 | 0.2101917477 | 16.5 nm |
+
+Both displaced starts recover the same orbit within $10^{-9}$ in coordinate
+units. Fresh closure residuals remain below $10^{-10}$ and finest-step relative
+energy drift is below $3\times10^{-14}$. These are numerical checks, not bounds
+on magnetic-map or physical-model errors.
+
+New single-process old-OPAL RK4 runs use the OPALX closed-orbit coordinates,
+the same map, explicitly full-azimuth trim coil, 0.1 mm excitation, 2880 steps
+per nominal turn and 100 nominal turns. The legacy Lomb estimator applied to
+the old-OPAL signals gives the following comparison on the **legacy frequency
+axis**, with spacing 0.0025:
+
+| Energy [MeV] | Mode | Map phase, converted | OPALX spectral | Old OPAL spectral |
+|---:|:---|---:|---:|---:|
+| 399.995 | Radial | 1.488155 | 1.4875 | 1.4875 |
+| 399.995 | Vertical | 0.872986 | 0.8725 | 0.8725 |
+| 590 | Radial | 1.326722 | 1.3275 | 1.3275 |
+| 590 | Vertical | 1.173548 | 1.1725 | 1.1725 |
+
+All four map-to-spectral differences are smaller than half a frequency bin.
+Eigenvector weights identify the planes in this uncoupled median-plane case;
+the spectral result supplies the integer/conjugate branch. Sorted eigenvalue
+order alone is not a plane label. The corresponding selected physical
+per-return branches are about 1.489114/0.873549 and 1.328672/1.175272,
+respectively; eigenanalysis alone still cannot select these branches.
+
+At derivative steps $(10^{-5}\,\mathrm{m},10^{-6},10^{-5}\,\mathrm{m},10^{-6})$,
+the finest radial moduli are approximately 0.999660 and 0.998556. They remain
+sensitive to differentiation and timestep: the tune agreement does not certify
+conservative linear stability. No unit-circle tolerance has been relaxed.
+`sandbox/cyclotron/compare_cof_energies.py` reproduces the matched old-OPAL run
+and comparison from a successful benchmark log; inputs are stored under
+`sandbox/cyclotron/opal/cof-tunes/` and results under `sandbox/cyclotron/cof-results/`.
 
 :::

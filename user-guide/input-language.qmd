@@ -12,8 +12,7 @@ overview: it explains what can appear in an input file and directs readers to
 the maintained guide for each interface. Attribute-level details belong on the
 linked pages and in the [Command Reference](../reference/commands.qmd).
 
-The catalog was checked against the parser and the registrations in
-`opalx/src/OpalConfigure/Configure.cpp` at OPALX revision `d1e762f15a2a`.
+The catalog was checked against the current parser and registration tables.
 
 ## A simulation at a glance {#simulation-at-a-glance}
 
@@ -167,6 +166,9 @@ user-guide section.
 | `SOLENOID` | Defines a solenoid from normalized strength or a field map. | [SOLENOID](elements.qmd#solenoid) |
 | `RFCAVITY` | Defines a standing-wave or single-gap RF cavity, normally from a field map. | [RFCAVITY](elements.qmd#rfcavity) |
 | `TRAVELINGWAVE` | Defines a traveling-wave RF structure with cell and phase-advance controls. | [TRAVELINGWAVE](elements.qmd#travelingwave) |
+| `CYCLOTRONSECTOR` | Defines a PSI-style cyclotron sector field with optional named trim coils. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
+| `TRIMCOIL` | Defines a named cyclotron trim-coil field model referenced by `CYCLOTRONSECTOR`. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
+| `RING` | Orders named elements into a closed-topology lattice for ring tracking and COF. | [Beam Lines](beam-lines/index.qmd#ring-geometry-fringes) |
 | `RBEND` | Defines a rectangular bending magnet. | [RBEND](elements.qmd#bends) |
 | `SBEND` | Defines a sector bending magnet. | [SBEND](elements.qmd#bends) |
 | `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [VERTICALFFAMAGNET](elements.qmd#verticalffamagnet) |

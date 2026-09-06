@@ -13,8 +13,7 @@ version-specific interfaces.
 
 ::: {.feature-opalx}
 The OPALX view covers every element type found in the current source registry,
-including interfaces without maintained regression inputs. It was audited in
-`opalx/src/OpalConfigure/Configure.cpp` at source commit `d1e762f15a2a`.
+including interfaces without maintained regression inputs. It was audited against the current OPALX source registry.
 Regression coverage is stated separately from parser registration.
 
 | Type | Regression use | External data |
@@ -27,6 +26,7 @@ Regression coverage is stated separately from parser registration.
 | `SOLENOID` | Mapped solenoid field | field map |
 | `RFCAVITY` | Standing-wave RF field | field map |
 | `TRAVELINGWAVE` | Traveling-wave RF field | field map |
+| `CYCLOTRONSECTOR` | PSI-style cyclotron sector field | field map and optional trim coils |
 | `LASER` | Source registered; no maintained regression input | none |
 | `MONITOR` | Source registered; no maintained regression input | output file |
 | `MARKER` | Source registered; no maintained regression input | none |
@@ -281,6 +281,41 @@ TW1: TRAVELINGWAVE,
 Use a regression-matched map, cell count, and mode as one consistent set. As
 with `RFCAVITY`, `AUTOPHASE=0` disables phase searching globally and
 `APVETO=TRUE` disables it for this element only.
+
+## `CYCLOTRONSECTOR` {#cyclotronsector}
+
+`CYCLOTRONSECTOR` loads a PSI median-plane magnetic sector map and applies it as
+one explicitly placed sector of a cyclotron `RING`. It may reference named
+`TRIMCOIL` definitions that add full-azimuth radial correction fields.
+
+```opal
+TC1: TRIMCOIL, TYPE="PSI-BFIELD-MIRRORED",
+     RMIN=4.350, RMAX=4.470, BMAX=1.4E-3, SLPTC=600.0;
+
+SM0: CYCLOTRONSECTOR, FMAPFN="bfield.dat", SYM=8,
+     RMIN=1.9, RMAX=4.7, VMIN=-0.05, VMAX=0.05,
+     BSCALE=1, TRIMCOIL={"TC1"}, X=3.3, Y=0, Z=0, THETA=0;
+```
+
+| Parameter | Default | Unit | Current behavior |
+|---|---:|---:|---|
+| `FMAPFN` | unset | path | Required PSI sector field-map filename. |
+| `SYM` | `8` | count | Integer sector symmetry; must be at least 2 and match the map span. |
+| `RMIN`, `RMAX` | map bounds | m | Optional bounds. If supplied, they must match the field-map radii. |
+| `VMIN`, `VMAX` | `-0.05`, `0.05` | m | Vertical support range for field evaluation. |
+| `BSCALE` | `1` | none | Multiplier applied to the base sector map. |
+| `TRIMCOIL` | empty | names | String array naming previously defined `TRIMCOIL` objects. |
+
+: {tbl-colwidths="[18, 12, 12, 58]"}
+
+A `TRIMCOIL` definition currently supports `TYPE="PSI-BFIELD-MIRRORED"` with
+finite SI parameters `0<RMIN<RMAX`, `BMAX` in tesla, and positive `SLPTC` in
+inverse metres. The trim-coil profile has tails; `RMIN` and `RMAX` describe the
+shape radii, not hard field-support cutoffs.
+
+Use explicit absolute placement for each sector occurrence. The common
+`ELEMEDGE` placement form is not appropriate for cyclotron sectors in new input
+files.
 
 ## `LASER` {#laser}
 

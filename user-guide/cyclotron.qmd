@@ -1,166 +1,121 @@
 ---
-title: "Cyclotron coasting and acceleration"
-description: "Track a proton through PSI sectors, mirrored trim coils and discrete RF gaps."
+title: "Cyclotron Modelling"
+description: "Configure coasting, accelerating, closed-orbit, and tune calculations for cyclotron rings."
 audience: user
 status: experimental
 last-reviewed: "2026-09-06"
 ---
 
-The `545-add-cyclotron-coasting-beam` development branch introduces
-`CYCLOTRONSECTOR` and named `TRIMCOIL` definitions. The first validation case is a
-single 72 MeV proton in the PSI Ring, with magnetic fields only and no space charge.
+Cyclotron modelling in OPALX uses explicit sector magnets, optional trim coils,
+optional single-gap RF cavities, and a closed-topology `RING` sequence. The
+current implementation is aimed at PSI-style separated-sector cyclotrons with
+field-map sectors in the horizontal X-Z plane and Y as the vertical direction.
 
-```text
+## Coasting Beam
+
+A coasting-beam model contains magnetic sectors and no RF acceleration. Define
+named trim coils when needed, place each sector explicitly, assemble the sectors
+into a `RING`, and track a fixed number of directed returns.
+
+```opal
 TC1: TRIMCOIL, TYPE="PSI-BFIELD-MIRRORED",
      RMIN=4.350, RMAX=4.470, BMAX=1.4E-3, SLPTC=600.0;
+
 SM0: CYCLOTRONSECTOR, FMAPFN="bfield.dat", SYM=8,
      RMIN=1.9, RMAX=4.7, VMIN=-0.05, VMAX=0.05,
      BSCALE=1, TRIMCOIL={"TC1"}, X=3.3, Y=0, Z=0,
      THETA=0, PHI=0, PSI=0;
+
+MYCYCL: RING = (SM0, SM1, SM2, SM3, SM4, SM5, SM6, SM7);
 ```
 
-`FMAPFN` accepts the legacy PSI Ring median-plane format, with its angular origin
-at zero. `SYM` must match the map's angular span. Explicit `RMIN/RMAX` must match
-the file bounds; omitting them uses those bounds. Radii and vertical limits are
-metres, magnetic strength is tesla, and placement angles are radians.
-`BSCALE` multiplies the base map only. Eight occurrences share the loaded map.
+`FMAPFN` names a PSI median-plane sector field map. `SYM` is the integer sector
+symmetry and must match the map span. If `RMIN` or `RMAX` is given, it must match
+the map bounds. `VMIN` and `VMAX` define the accepted vertical support. `BSCALE`
+multiplies only the base map; trim-coil fields are added after that scaling.
 
 The sector pose is the entrance tangent at the map midpoint radius
-`Rm=(RMIN+RMAX)/2`. Its local ring centre is `(-Rm,0,0)`, the ring plane is X-Z,
-and Y is vertical. For an identity enclosing frame, sector k is placed at
-`X=Rm*cos(k*2*pi/SYM)`, `Z=Rm*sin(k*2*pi/SYM)`, `THETA=-k*2*pi/SYM`.
-The existing placement resolver composes these poses with the enclosing RING
-source frame. If that frame is translated to the launch radius, subtract that
-translation from the sector positions to retain the same global magnet centres.
+`Rm=(RMIN+RMAX)/2`. In an identity ring frame, sector `k` is placed at
+`X=Rm*cos(k*2*pi/SYM)`, `Z=Rm*sin(k*2*pi/SYM)`, and
+`THETA=-k*2*pi/SYM`. If the enclosing `RING` has a translated or rotated source
+frame, compose the sector pose with that frame.
 
-`TRIMCOIL` is a list of named definitions. Only `PSI-BFIELD-MIRRORED` is currently
-implemented. Its shape radii do not impose hard cutoffs: the profile has tails.
-`SLPTC` is in inverse metres; old OPAL's `0.6` in inverse millimetres becomes `600`.
-Coils cover the full azimuth and should be referenced by every sector.
+Normal coasting tracking uses `RUN,TURNS=n`. The turn count is the number of
+directed reference-particle crossings of the launch plane, not a promise that
+the nominal geometry is exactly closed. The last step can overshoot the crossing;
+reduce `DT` when the final crossing time or coordinates are important.
 
-Assemble the sectors into a `RING` and use `RUN, TURNS=1`. Turns count directed
-reference-particle crossings of the launch plane, not the nominal geometry
-circumference. Tracking stops at the first timestep endpoint past the crossing;
-reduce `DT` to reduce this overshoot. Explicit `TURNS` requires one timestep
-segment and currently rejects checkpoint restart. The step budget remains a
-safety limit; failure to return is reported as an error.
+## Accelerated Beam
 
-The reproducible input is `sandbox/cyclotron/opalx/coasting72.in` in the source
-repository. Run it from that directory. `sandbox/cyclotron/compare_coasting72.py`
-runs strictly one-rank timestep comparisons against old OPAL RK4 and LF2 orbit
-dumps. Old OPAL's default is RK4; explicitly select `TIMEINTEGRATOR="LF2"` for
-the matched Boris/leapfrog comparison. The supplied `reference72` input files
-select each integrator explicitly. Tune extraction is deferred.
+An accelerated cyclotron model adds `RFCAVITY, TYPE="SINGLEGAP"` elements to the
+same `RING`. This model applies a radial voltage-profile kick when the reference
+particle crosses the gap plane in the positive local-z direction.
 
-## First-turn RF acceleration
+```opal
+GAP0: RFCAVITY, TYPE="SINGLEGAP", FMAPFN="gap-profile.dat",
+      VOLT=0.75, FREQ=50.6328, PHI0=35.0,
+      RMIN=1.9, RMAX=4.7, GAPWIDTH=0.04,
+      X=0.2386, Y=0, Z=-0.3407, THETA=-0.6108652382;
+```
 
-The feature branch also supports an experimental `RFCAVITY, TYPE="SINGLEGAP"`
-radial voltage-profile kick for one unpolarized, median-plane proton on one rank.
-Only cyclotron sectors and these gaps may occur in the line; restart is rejected.
-Use `FIELDSOLVER, TYPE=NONE`.
+For a single-gap cavity, `FMAPFN` is a normalized voltage and derivative profile,
+not a 3D RF field map. `VOLT` is in MV, `FREQ` is in MHz, and `PHI0` is in
+degrees. `RMIN` and `RMAX` are local-x profile bounds in metres. `GAPWIDTH` is
+the transit-time width in metres. `ANGLE` and `PDIS` must remain zero for this
+model, and automatic phasing is not used.
 
-`FMAPFN` identifies a normalized voltage/derivative profile, not a 3D map.
-`VOLT` is in MV, `FREQ` in MHz and `PHI0` in degrees. For this model, `RMIN` and
-`RMAX` are the lower/upper local-x profile bounds in metres and `GAPWIDTH` is
-the transit-time width in metres. Position the gap plane at local z=0 using
-`X/Y/Z/THETA/PHI/PSI`; `ANGLE` and `PDIS` must remain zero. Positive local-z
-crossings receive one kick. Explicit phases are used without automatic phasing.
-Time-dependent RF models and voltage/phase error attributes are not supported.
+Use `TRACK,EKINSTOP=<kinetic energy in GeV>` when the run should stop at an
+energy target:
 
-For example, before composing with the enclosing ring's pose, the old cavity at
-35 degrees with 416 mm perpendicular offset has `X=0.416*sin(35 degrees)`,
-`Z=-0.416*cos(35 degrees)`, and `THETA=-35*pi/180`. Subtract the ring's translation
-when its axes coincide with the lab axes. More generally compose the full poses.
-
-`sandbox/cyclotron/compare_acceleration_turn.py` generates the complete translated
-input from the recorded old-OPAL launch state and runs one directed accelerating
-turn. It requires the corresponding old baseline from `run_old_acceleration.py`.
-The timestep defaults to 41.13 ps (2880 steps per nominal RF revolution).
-All comparison runs use one MPI rank. The experimental event path evaluates
-magnetic fields on the host at substeps; GPU acceleration and multi-particle
-event tracking are not yet validated.
-
-## Stop at a kinetic-energy target
-
-For an accelerating ring, specify `EKINSTOP` on `TRACK`, in **GeV of kinetic
-energy**, not total energy. For example, in a configured ring input:
-
-```text
+```opal
 TRACK, LINE=MYCYCL, BEAM=BEAM0,
        DT=4.113195129976966e-11, MAXSTEPS=633600, EKINSTOP=0.590;
 RUN, METHOD="PARALLEL", FIELDSOLVER=FS0;
 ENDTRACK;
 ```
 
-The first complete reference-particle RF kick reaching or exceeding the target
-ends tracking. The last output contains the post-kick state at the gap time;
-the remaining drift is omitted. Energy is **not** clamped to 590 MeV. For the
-no-trim-coil reference at this timestep the recorded energy is about 590.327 MeV.
+Tracking stops after the first complete RF kick that reaches or exceeds the
+requested kinetic energy. The energy is not clamped to the target value. The
+current energy-stop path requires a non-restarted `RING`, one positive `DT`
+segment, no explicit `RUN,TURNS`, and a single cyclotron container path.
 
-The target must be finite, positive and above the launch energy. Use one positive
-`DT` segment and no explicit `RUN,TURNS`; directed turns are still reported as
-diagnostics. Restart and multi-container/multi-rank runs are not supported.
-`MAXSTEPS` is a hard safety limit in energy-stop mode: reaching it or leaving
-magnetic field support before the target is an error, not successful completion.
-Unlike the directed-turn mode, this mode does not enlarge the requested step budget.
+## Closed Orbit Finder
 
-### Reproducing the 72 to 590 MeV comparison
+`COF` finds a fixed-energy closed orbit for a static magnetic `RING`. It is a
+separate input block, not a `TRACK` subcommand, and requires exactly one local
+`RUN,METHOD="NEWTON"` followed by `ENDCOF`.
 
-Run from the OPALX source root with the Python scientific dependencies available
-and `omp-build/src/opalx` built. Output directories must be new. The old-OPAL
-runner sources `/Users/adelmann/OPAL-2022.1/etc/profile.d/opal.sh` and launches
-the installed executable directly on one rank; adapt that installation path for
-another machine.
-
-```sh
-python sandbox/cyclotron/run_old_acceleration.py --no-trim-coils \
-  --nominal-turns 220 --target-mev 590 \
-  --output sandbox/cyclotron/validation590/old
-python sandbox/cyclotron/compare_acceleration_turn.py --no-trim-coils \
-  --target-mev 590 \
-  --reference sandbox/cyclotron/validation590/old/to-target.csv \
-  --output sandbox/cyclotron/validation590/opalx-stop
+```opal
+COF, LINE=MYCYCL, BEAM=BEAM0,
+     DT=1.0e-12, MAXSTEPS=200000, MAXPATH=40.0,
+     TIMEINTEGRATOR="RK4", GEOMTOL=1e-9, ANGLETOL=1e-10;
+RUN, METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
+     FDSTEP={1e-5,1e-6,1e-5,1e-6}, OUTPUT="cof";
+ENDCOF;
 ```
 
-For coordinate comparisons, additionally use `--fixed-steps` with the step from
-the old run's `target.json` (545799 in the 2880-step reference). This disables
-`EKINSTOP` for that comparison run and matches old OPAL's end-of-step sample;
-raw gap-stop and end-of-step positions are different physical times. Use
-`--steps-per-turn 5760` in both runners for the half-timestep comparison.
+`LINE` must name a `RING`. `BEAM` must define an explicit reference momentum or
+energy through `PC`, `ENERGY`, or `GAMMA`, and must not use global processes.
+`MAXPATH` is required and bounds the return search. `SECTION` may override the
+return section as global `X,Y,Z,THETA,PHI,PSI`; otherwise the `RING` frame is
+used. The supported ray integrators are `BORIS`, `LF2`, `RK4`, and `DOP853`.
 
-### Trim coils in old-OPAL comparisons
+The current COF path supports static magnetic transport elements and
+`CYCLOTRONSECTOR`; it does not support restart mode, RF acceleration, space
+charge, or global particle processes.
 
-Use `--no-trim-coils` in both runners for the baseline. Omit it in both for the
-named mirrored-coil comparison. The legacy generator explicitly sets
-`PHIMIN=0, PHIMAX=360`: OPAL 2022.1's PHIMAX help advertises 360 degrees, but
-its constructor supplies no default value, so relying on the omission can leave
-the coil inactive. A nonzero BMAX alone is not proof that the old coil was active.
+## Tune Calculation
 
-The compared named model has shape radii 4.350/4.470 m, BMAX=1.4 mT and
-SLPTC=600 inverse metres (old input: 4350/4470 mm and 0.6 inverse millimetres).
-This is an explicit common model, not a blanket compatibility claim for obsolete
-inline `TCR1/TCR2/MBTC/SLPTC` syntax. The original supplied input remains unchanged.
+`RUN,SPECTRALTUNES=TRUE` selects a serial two-ray coasting tune diagnostic. It
+uses fixed-energy rays in sector fields and bypasses normal bunch tracking and
+linear-map construction.
 
-See [cyclotron field physics](../physics/cyclotron.qmd) for coordinate and
-interpolation conventions.
-
-## Spectral coasting tunes
-
-`RUN,SPECTRALTUNES=TRUE` selects a separate, serial two-ray diagnostic. It reuses
-the external-field ray tracker, not the linear-map construction. The physical
-bunch is not tracked in this mode; its normal BEAM/source setup is still required
-to initialize the lattice and particle species. Only one proton beam, one MPI
-rank, a non-restarted RING containing only CYCLOTRONSECTOR elements, and
-FIELDSOLVER TYPE=NONE are supported. No RF or global particle processes are allowed.
-
-Add repeated triples to BEAM, with **kinetic energy in GeV, radius in metres,
-and radial momentum in units of mc**:
-
-```text
+```opal
 BEAM0: BEAM, PARTICLE=PROTON, NALLOC=1,
        BCHARGE=1.602176634e-19, SOURCES=SOURCES0, CHARGE=1,
        TUNEINITIAL={0.072,2.1314,-0.000240,
                     0.074,2.1551,-0.000296};
+
 TRACK, LINE=MYCYCL, BEAM=BEAM0, MAXSTEPS=72000,
        DT=1.64527805199081e-10, STEPSPERTURN=720;
 RUN, METHOD="PARALLEL", FIELDSOLVER=FS0, SPECTRALTUNES=TRUE,
@@ -168,36 +123,17 @@ RUN, METHOD="PARALLEL", FIELDSOLVER=FS0, SPECTRALTUNES=TRUE,
 ENDTRACK;
 ```
 
-Each triple launches an independent reference ray and a second ray displaced
-5 mm radially and vertically, with identical initial momentum. `TUNESECTOR`
-supplies the centre, entrance radial plane and coordinate orientation; it defaults
-to SM0. There is no closed-orbit solve: the supplied radius/pr must be appropriate
-for the energy. All rows use the same configured sector fields and trim coils.
+`TUNEINITIAL` is a flat list of triples: kinetic energy in GeV, radius in metres,
+and radial momentum in units of `mc`. Each row launches a reference ray plus a
+second ray displaced radially and vertically. `TUNESECTOR` defines the launch
+centre and axes. There is no closed-orbit solve in this mode, so the supplied
+radius and radial momentum must already be appropriate for the requested energy.
 
-`TURNS * STEPSPERTURN` is the number of fixed timesteps **per row** and must not
-exceed MAXSTEPS. In this legacy-compatible diagnostic, TURNS means nominal turns,
-not the directed-return stopping criterion of normal tracking. TUNESAMPLE is the
-sampling stride (default 50). TUNEINTEGRATOR selects RK4 (default), BORIS/LF2, or
-fixed-step DOP853 independently of the map integrator. EKINSTOP cannot be combined
-with this mode. Linear-map computation is bypassed.
+The diagnostic currently requires one proton beam, one MPI rank, `FIELDSOLVER`
+`TYPE=NONE`, a non-restarted `RING` containing only `CYCLOTRONSECTOR` elements,
+and no RF elements or global particle processes. `TURNS` means nominal tune
+record length, not directed-return tracking. The output files are documented in
+[File Formats](../reference/file-formats.qmd#spectral-tune-files).
 
-Outputs are `<base>-tunes.csv`, plus `<base>-tune-<row>-samples.csv` and
-`<base>-tune-<row>-spectrum.csv`. Row indices start at zero. The summary includes
-peak tunes, frequency-grid spacing, sample count, legacy normalization count and
-maximum relative kinetic-energy drift. Sample output includes accumulated reference
-angle, so nominal and geometric revolution counts can be distinguished. Signals
-and time are pre-step; the angle is post-step, matching the legacy turn-counter
-context. Do not interpret that angle as a simultaneous signal sample.
-
-The sandbox runner `run_spectral_tunes.py` converts ic.dat's MeV/mm/scaled-pr
-columns into these input units. The supplied table currently ends at 529.993 MeV;
-it must not be extrapolated silently to 590 MeV. At 72 MeV, the first comparison
-reproduces old OPAL's peaks 1.155 (radial) and 0.890 (vertical). These are finite-grid,
-finite-amplitude measurements, not exact linear tunes.
-
-At 72 MeV, halving DT while doubling STEPSPERTURN and TUNESAMPLE preserves the
-record duration and sample cadence. Both codes retain the same peak bins. The
-maximum radial signal difference decreases from 9.28 to 0.20 micrometres and
-the vertical difference from 0.525 to 0.033 micrometres. OPALX's maximum relative
-energy drift decreases from 7.90e-6 to 4.39e-7. These are trajectory checks in
-addition to the spectral-grid comparison, not an exact-tune accuracy claim.
+See [cyclotron physics](../physics/cyclotron.qmd) for coordinate, interpolation,
+RF-kick, and spectral-analysis details.

@@ -1,9 +1,9 @@
 ---
 title: "Tracking"
-description: "Configure TRACK, RUN, and ENDTRACK for current OPALX or retained legacy OPAL behavior."
+description: "Configure TRACK and the experimental static-ring COF command in OPALX, or retained legacy OPAL tracking."
 audience: user
 status: current
-last-reviewed: "2026-08-18"
+last-reviewed: "2026-09-06"
 ---
 
 A tracking block selects a lattice and beam, defines its step schedule, starts
@@ -163,6 +163,104 @@ tracking communication object.
 :::
 
 ::: {.feature-opalx}
+## Closed-orbit command (experimental) {#opalx-cof-command}
+
+`COF` finds a four-dimensional, fixed-energy orbit of a **static magnetic RING**.
+It is separate from `TRACK`; it emits no particles, runs no collective physics,
+and does not change the selected `BEAM` or subsequent tracking initial conditions.
+Use exactly one local `RUN`, then `ENDCOF`:
+
+```opal
+// MYRING is a geometrically closed RING; B0 is a fully defined BEAM.
+COF, LINE=MYRING, BEAM=B0, DT=4.113195129977025e-11,
+     MAXSTEPS=8000, MAXPATH=40, TIMEINTEGRATOR="RK4";
+  RUN, METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
+       FDSTEP={1e-5,1e-6,1e-5,1e-6}, SCALES={1,0.4,1,0.4},
+       XTOL=1e-10, PTOL=1e-10, OUTPUT="closed-orbit";
+ENDCOF;
+```
+
+The numerical values above illustrate the 72 MeV cyclotron, not universal ring
+settings. Set the beam's energy explicitly, for example `ENERGY=PMASS+0.072`
+for a 72 MeV proton: BEAM `ENERGY` is **total energy in GeV**, not kinetic energy.
+Existing BEAM requirements (`NALLOC`, `SOURCES`, etc.) still apply, but COF does
+not load or emit the linked source distributions.
+
+### Outer COF controls
+
+| Attribute | Default | Meaning |
+|---|---|---|
+| `LINE`, `BEAM` | required | Root `RING` and one charged massive `BEAM` with explicit `PC`, `ENERGY` or `GAMMA`. |
+| `DT` | `1e-12` s | One positive scalar ray timestep, not a schedule. |
+| `MAXSTEPS` | `200000` | Positive integer budget per return; reaching it without a return fails. |
+| `MAXPATH` | required | Positive maximum search path in metres; normally greater than one circumference. |
+| `TIMEINTEGRATOR` | `RK4` | Shared ray integrator: `RK4`, `DOP853`, `BORIS`, or alias `LF2`. |
+| `T0` | `0` s | Initial ray time. Fields must nevertheless be static. |
+| `SECTION` | root RING frame | Optional global `{X,Y,Z,THETA,PHI,PSI}` in metres and radians, using element-pose rotation conventions. |
+| `GEOMTOL` | `1e-9` m | Nominal last-element exit to first-element entrance position tolerance. |
+| `ANGLETOL` | `1e-10` rad | Maximum mismatch angle between corresponding nominal frame axes. |
+
+Each ray starts on the section's local `z=0` plane and returns in the local
+positive-z direction after a negative-side excursion. There is no teleportation,
+fixed-time turn, or energy projection. `MAXPATH` and `MAXSTEPS` are failure guards,
+not turn definitions. The nominal geometry test is independent of the particle's
+orbit and ignores misalignments; tracked fields retain native misalignments.
+The user must choose a meaningful section and sufficiently small `DT`, especially
+for self-intersecting trajectories.
+
+### COF-local RUN controls
+
+| Attribute | Default | Meaning |
+|---|---|---|
+| `METHOD`, `DIMENSION`, `JACOBIAN` | `NEWTON`, `4`, `CENTRAL` | Only these choices are supported. |
+| `X`, `PX`, `Y`, `PY` | `0` | Initial section-frame guess; positions in metres, mechanical momenta in `p/(mc)`, **not slopes**. |
+| `MAXIT` | `20` | Maximum accepted Newton iterations. |
+| `XTOL`, `PTOL` | `1e-10`, `1e-10` | Componentwise position and momentum tolerances for both residual and undamped correction. |
+| `FDSTEP` | `{1e-6,1e-6,1e-6,1e-6}` | Four positive absolute derivative steps in the coordinate units. |
+| `SCALES` | `{1,1,1,1}` | Four positive coordinate scales for Newton and eigenanalysis. |
+| `DAMPING` | `TRUE` | Backtracking; when false only a residual-reducing full Newton step is accepted. |
+| `OUTPUT` | input basename + `_cof` | Output prefix; existing result files are rejected, not overwritten. |
+
+Supported field elements initially are `DRIFT`, `MARKER`, static `MULTIPOLE`
+(including its quadrupole/sextupole definitions), native `SBEND`, `RBEND`, and
+`CYCLOTRONSECTOR`. Passive monitors are skipped without initialising their output
+files. Other types, including RF even at zero voltage, are rejected. Native
+element aperture-loss predicates are checked at accepted substep start, midpoint
+and end; timestep convergence is still necessary to resolve narrow interceptions.
+For conventional elements, the check selects the nearest finite design centreline
+independently of aperture size. This prevents a drift on the opposite ring arm
+from rejecting a valid particle merely because it lies between that drift's
+extended entrance and exit planes. Equal-distance segments are checked together;
+sector bends use circular design arcs, while straight and rectangular-bend bodies
+use their straight axes. This assumes a local orbit neighbourhood with an
+unambiguous nearby design path, not intersecting beam-pipe solids. Cyclotron
+sectors retain their native domain predicates. Field selection is unchanged.
+The selected beam cannot have global processes. No RF/6D closure, space charge,
+restart, energy continuation, named result reuse, or automatic integer tune and
+plane assignment is provided. Unsupported attributes such as `ZSTOP`, `BEAMS`,
+`FIELDSOLVER`, and `ENERGYSTART` are errors, not ignored compatibility settings.
+
+### Results and parallel behavior
+
+Successful runs write `OUTPUT.txt` (settings, iteration diagnostics, orbit,
+matrix and eigenanalysis), `OUTPUT.json` (coordinates, residual, matrix, complex
+eigenvalues, numerical stability and fractional modes), and `OUTPUT-orbit.csv`
+(one-turn lab positions/momenta, time and path). Failed solves may leave a text
+diagnostic or partial output; choose a fresh output prefix before retrying.
+
+The solve runs on rank zero; diagnostic result text and failure status are
+broadcast before returning. Only rank zero writes COF result files. One empty
+setup container is constructed collectively per block to preserve existing
+element reference-charge semantics, not per trial. No production particle
+tracking or field solve is performed.
+
+Convergence proves closure of the numerical return map, not physical stability.
+Off-unit-circle eigenpairs have null stable-tune values in JSON. Fractional modes
+are unlabelled and do not determine an integer or conjugate branch. In particular,
+the cyclotron radial modulus sensitivity remains under investigation; the command
+does not suppress this warning or relax the unit-circle tolerance. See the
+[return-map and solver physics](../physics/linear-transfer-maps.qmd#fixed-section-return-map-service-experimental).
+
 ## Current OPALX step sequence {#opalx-step-sequence}
 
 At each step `ParallelTracker` performs a half position push, assembles

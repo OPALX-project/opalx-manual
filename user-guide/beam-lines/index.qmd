@@ -85,8 +85,11 @@ R: RING = (B1, D1, Q1, D2, B2, ...);
 
 Specify each physical occurrence with its own explicit 6D entrance pose
 (`X`, `Y`, `Z`, `THETA`, `PHI`, `PSI`); use no `ELEMEDGE` in new inputs.
-Repetition and reflection modifiers are not supported by `RING`.
-The sequence does not automatically place or geometrically close the elements.
+Repetition and reflection modifiers are not supported by `RING`, and a `RING`
+cannot be nested inside a `LINE` or another `RING`. A `RING` may contain named
+`LINE` segments; the expanded physical occurrences are tagged with the enclosing
+ring name. The sequence does not automatically place or geometrically close the
+elements.
 
 The design circumference is calculated from the nominal element arc lengths
 and drift lengths. There is no `CIRCUMFERENCE` input option. Explicit drifts
@@ -105,6 +108,10 @@ together with position and momentum closure residuals. A return is not a
 closed-orbit solve. The path-index lookup uses the measured return length;
 production `TURNS` and progress remain based on design length. The reference
 search is bounded and reports an error if no one-circuit return is found.
+
+`TRACK,LINE=<ring>` supports directed-return tracking for closed-topology runs.
+The separate `COF` block also requires `LINE` to name a `RING`, because it builds
+a fixed-energy return problem from the ring's ordered static magnetic elements.
 
 See [geometry, fringe support and ring return](../../physics/linear-transfer-maps.qmd#fringe-geometry-ring-return)
 for the equations, search limits and comparison with MAD-X, Bmad and MaryLie.

@@ -63,7 +63,7 @@ an element tries to load the map and must not be used in OPALX:
 | `1DPROFILE1-DEFAULT` | built-in legacy profile marker |
 
 Recognition is not support: `Fieldmap::getFieldmap()` rejects all of these
-types. This distinction reflects OPALX source commit `d1e762f15`.
+types. This distinction reflects the currently audited OPALX source tree.
 :::::
 
 
