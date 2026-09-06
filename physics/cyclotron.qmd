@@ -25,7 +25,7 @@ Convert to Cartesian components using
 $B_x=B_r\cos\theta-B_\theta\sin\theta$ and
 $B_z=B_r\sin\theta+B_\theta\cos\theta$, then apply the element rotation.
 The proper rotation from old OPAL coordinates is
-$(x,y,z)_{\rm old}\mapsto(x,-z,y)_{\rm OPALX}$ for positions, momenta, and fields.
+$(x,y,z)_{\mathrm{old}}\mapsto(x,-z,y)_{\mathrm{OPALX}}$ for positions, momenta, and fields.
 The model retains only the first-order off-plane extension; it is not a general
 three-dimensional Maxwell field reconstruction. The acceptance test is on the
 median plane.

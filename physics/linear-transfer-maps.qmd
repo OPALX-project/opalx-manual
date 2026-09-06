@@ -443,4 +443,104 @@ Topology, geometric closure and static-magnetic physics validation belong to
 the future caller. This host-only service constructs no bunch or collective
 solver and does not alter existing tracking or parallel execution.
 
+### Damped fixed-point solver (C++ interface)
+
+`ClosedOrbitSolver` accepts a deterministic four-coordinate return map, including
+`OneTurnMap`. It is still not an input-file `COF` command. For $F(v)=T(v)-v$,
+central differences form $M=dT/dv$ and each Newton correction solves
+
+$$
+\left[S^{-1}(M-I)S\right]w=-S^{-1}F,\qquad \Delta v=Sw.
+$$
+
+$S$ is diagonal with positive, user-supplied characteristic coordinate scales
+(metres or normalized momentum); its default entries are one. A small 4-by-4
+column-pivoted Householder QR implementation recomputes trailing column norms
+and solves the triangular system without forming an inverse. The ratio of the
+smallest to largest QR diagonal magnitude is reported as a rank diagnostic,
+**not** a condition number. A ratio at or below the default $10^{-12}$ rejects
+the Newton system. This threshold is configurable and is not a bound on errors
+in the numerically differentiated map.
+
+Backtracking tries $\lambda=1,1/2,\ldots$ and requires
+
+$$
+\|S^{-1}F(v+\lambda\Delta v)\|_2
+\leq(1-10^{-4}\lambda)\|S^{-1}F(v)\|_2.
+$$
+
+The default permits 20 halvings and 20 accepted iterations. With damping
+disabled, only the full step is tried and must still reduce the residual.
+Lost line-search trials are rejected without changing the last accepted state.
+A failed initial evaluation or derivative probe aborts with a diagnostic;
+finite-difference steps are not silently reduced after losses.
+
+Both the residual and the **undamped** Newton correction must meet separate
+position and normalized-momentum tolerances (both numerically $10^{-10}$ by
+default). A fresh map evaluation must then confirm residual closure. Singular
+systems are rejected even if the supplied point already has zero residual,
+since the solver cannot establish a locally isolated solution. Defaults for
+central-difference steps are $10^{-6}$ in each coordinate's units; these are
+starting values, not validated settings for a particular accelerator.
+
+The result contains status, last accepted coordinates, residual, final Jacobian
+on success, evaluation count, and accepted-iteration diagnostics. Eigenanalysis
+is a separate C++ operation described below. Analytic coupled affine maps and nonlinear
+fixed-point tests validate the solver; real-machine COF benchmarks are pending.
+Timestep, finite-difference and launch-amplitude convergence remain independent
+requirements. No production pusher, reduction order, MPI collective, GPU kernel,
+or OpenMP scheduling is changed by this serial algorithm.
+
+### Eigenvalues, stability and fractional modes
+
+`LinearMapEigenAnalysis::analyze` takes the final 4-by-4 matrix; the caller must
+first require a converged closed orbit. `writeReport` emits the eigenvalues,
+moduli, stability classification, residual and eigenbasis diagnostics, and mode
+phases. These interfaces are not yet exposed through a `COF` input command.
+
+The full real nonsymmetric matrix, including transverse coupling, is analyzed
+with reference LAPACK's `dgeev` through LAPACKE. No plane blocks are discarded.
+The routine works on a copy of $A=S^{-1}MS$, retaining LAPACK's error status.
+For normalized complex right eigenvectors, it verifies
+
+$$
+\frac{\|Av-\lambda v\|_2}{\max(\|A\|_F,|\lambda|)}\leq 10^{-10}.
+$$
+
+For the zero matrix the unscaled residual is used. Nonfinite data, a failed
+LAPACK call or excessive residual cause an exception. Singular values from
+`dgesvd` provide the reciprocal condition of the real-packed eigenvector basis;
+this flags nearly dependent eigenvectors, including defective complex pairs.
+It is a scaled-basis diagnostic, not an eigenvalue error bound.
+
+Classification uses a configurable unit-modulus band (default $10^{-8}$):
+
+- **Unstable:** at least one eigenvalue has modulus above $1+10^{-8}$.
+- **Non-unit-circle:** some eigenvalue lies outside the band, but none grows.
+  This is not certified as a stable conservative map; purely damped spectra
+  are not incorrectly labelled growing.
+- **Marginal:** the spectrum is in the band but has real unit eigenvalues,
+  a near-integer phase, or eigenbasis reciprocal condition below $10^{-10}$.
+- **Stable:** the remaining well-conditioned, unit-circle complex-pair cases.
+  This is a linear spectral classification, not a nonlinear stability proof.
+
+Each positive-imaginary eigenvalue gives a representative phase
+$q=\arg(\lambda)/(2\pi)$ and its conjugate branch $1-q$. The report explicitly
+leaves the integer tune and oriented branch undetermined. For example, the
+same pair can represent fractional tune 0.11 or 0.89. Modes are sorted by this
+representative phase, not labelled radial/vertical or horizontal/vertical;
+coupled modes can exchange order in a parameter scan. No mode-continuation
+algorithm is implied. Off-unit-circle pairs do not receive stable tune values.
+
+A unit-circle phase within $10^{-6}$ turns of an integer is flagged explicitly.
+Exact real $+1$ or $-1$ eigenvalues are marginal and do not create oscillatory
+mode entries. Numeric phases reported for other marginal cases must not be
+interpreted as validated stable tunes. All diagnostic tolerances are configurable
+and require separate timestep/finite-difference studies for a real machine.
+
+Tests cover stable rotations, coupled/scaled similarities, real reciprocal and
+complex unstable pairs, near-integer modes, repeated/defective spectra, and an
+analytic closed-orbit-solver-to-eigenanalysis workflow. No cyclotron, ISIS or DBA
+COF tune benchmark is claimed yet.
+
 :::

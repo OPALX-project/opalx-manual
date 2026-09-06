@@ -3,10 +3,25 @@ title: "Build, Test, and CI"
 description: "Developer builds, unit tests, regression tests, and pull-request checks."
 audience: developer
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-09-06"
 ---
 
 Use a debug build with unit tests for local development:
+
+A Fortran compiler is required for the fetched reference LAPACK backend (for
+example `gfortran`). CMake downloads BLAS, LAPACK and LAPACKE from the pinned
+Reference-LAPACK 3.12.1 archive and verifies its SHA-256. These libraries build
+under the build directory's `_deps/`; a system LAPACK installation is not needed.
+Use `-DCMAKE_Fortran_COMPILER=/path/to/compiler` to select a compiler explicitly.
+The dependency is static, position-independent, real double precision with the
+32-bit integer interface. Its own tests and examples are disabled; OPALX includes
+eigenpair and coupled-map tests. LAPACK's upstream Fortran optimization policy is
+retained; it does not change OPALX's C++ Release flags.
+
+The backend is host-side and serial, even in GPU builds. It introduces no GPU
+copies or MPI collectives into optics. Runtime deployments must provide the
+selected Fortran compiler runtime (for GNU on Ubuntu, `libgfortran5`). CI build
+jobs install the compiler; the serial smoke-test job installs its runtime.
 
 ```bash
 cmake -S . -B build_serial \
