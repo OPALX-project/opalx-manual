@@ -68,8 +68,8 @@ crossings receive one kick. Explicit phases are used without automatic phasing.
 Time-dependent RF models and voltage/phase error attributes are not supported.
 
 For example, before composing with the enclosing ring's pose, the old cavity at
-35 degrees with 416 mm perpendicular offset has X=0.416*sin(35 degrees),
-Z=-0.416*cos(35 degrees), and THETA=-35*pi/180. Subtract the ring's translation
+35 degrees with 416 mm perpendicular offset has `X=0.416*sin(35 degrees)`,
+`Z=-0.416*cos(35 degrees)`, and `THETA=-35*pi/180`. Subtract the ring's translation
 when its axes coincide with the lab axes. More generally compose the full poses.
 
 `sandbox/cyclotron/compare_acceleration_turn.py` generates the complete translated
@@ -174,7 +174,7 @@ supplies the centre, entrance radial plane and coordinate orientation; it defaul
 to SM0. There is no closed-orbit solve: the supplied radius/pr must be appropriate
 for the energy. All rows use the same configured sector fields and trim coils.
 
-`TURNS × STEPSPERTURN` is the number of fixed timesteps **per row** and must not
+`TURNS * STEPSPERTURN` is the number of fixed timesteps **per row** and must not
 exceed MAXSTEPS. In this legacy-compatible diagnostic, TURNS means nominal turns,
 not the directed-return stopping criterion of normal tracking. TUNESAMPLE is the
 sampling stride (default 50). TUNEINTEGRATOR selects RK4 (default), BORIS/LF2, or

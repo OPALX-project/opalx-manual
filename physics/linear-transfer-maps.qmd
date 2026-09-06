@@ -408,4 +408,39 @@ canonical-$J$ residuals, and the difference from the finest numerical map.
 That last comparison helps distinguish time discretization from the fixed
 finite-difference floor.
 
+## Fixed-section return-map service (experimental)
+
+The `OneTurnMap` C++ service is the first building block for the general RING
+closed-orbit finder. It is not yet connected to a `COF` input command and does
+not replace the segmented transfer-map calculator described above.
+
+Its state is $v=(x,p_x,y,p_y)$ on a fixed local $z=0$ section. Positions are in
+metres and momenta are mechanical $p/(mc)$, not slopes. Given fixed total
+normalized momentum $p_0>0$, each launch uses
+$p_z=\sqrt{p_0^2-p_x^2-p_y^2}>0$. The same section and momentum constraint apply
+to every finite-difference perturbation.
+
+The shared `ExternalFieldRayTracker` advances each ray independently. A negative
+section-distance excursion exceeding the default 1 nm hysteresis arms the next
+positive crossing; neither the launch nor the reverse crossing counts. Accepted
+support-resolved substeps are examined, and the return is located by tracked
+bisection to a time-bracket width of $10^{-12}DT$ or representable resolution.
+Coordinates are never teleported or projected onto the plane. `DT` must still
+resolve the section excursions; a self-intersecting orbit may need a more
+selective section than the first directed return. Path and step budgets bound
+failed searches. Losses propagate as errors; field-free intervals are allowed.
+
+The derivative uses eight returns,
+
+$$
+M_{:,j}=\frac{T(v+h_j e_j)-T(v-h_j e_j)}{2h_j},
+$$
+
+with separately specified positive position/momentum steps. It is not obtained
+by extracting a block of the slope-coordinate 6D matrix. Returned momenta are
+not renormalized: integration energy drift remains a separate diagnostic.
+Topology, geometric closure and static-magnetic physics validation belong to
+the future caller. This host-only service constructs no bunch or collective
+solver and does not alter existing tracking or parallel execution.
+
 :::
