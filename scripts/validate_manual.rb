@@ -547,11 +547,21 @@ tracking_positions = tracking_headings.map { |heading| tracking_text.index(headi
 if tracking_positions.any?(&:nil?) || tracking_positions != tracking_positions.sort
   errors += error("tracking page must use ordered shared TRACK, RUN, and ENDTRACK headings")
 end
+turns_position = tracking_text.index("### `TURNS` {#turns}")
+if turns_position.nil? || tracking_positions[1].nil? || tracking_positions[2].nil? ||
+   turns_position < tracking_positions[1] || turns_position > tracking_positions[2]
+  errors += error("tracking page must document TURNS within the RUN section")
+end
 unless tracking_text.include?("`BEAMS` takes precedence")
   errors += error("tracking page must document BEAMS precedence")
 end
 unless tracking_text.include?("`RUN` does not register `BEAM`, `BEAMS`, `SOURCES`, or `DISTRIBUTION`")
   errors += error("tracking page must document current RUN ownership")
+end
+unless tracking_text.include?("When `TURNS` is omitted, no turn-count stopping condition is enabled") &&
+       tracking_text.include?("omitting `TURNS` is intentionally different from specifying") &&
+       tracking_text.include?("When `SPECTRALTUNES=TRUE`, `TURNS` instead specifies")
+  errors += error("tracking page must distinguish omitted, explicit, and spectral TURNS behavior")
 end
 
 binning_text = (ROOT / "user-guide/structures/index.qmd").read

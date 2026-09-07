@@ -36,7 +36,7 @@ ENDTRACK;
 | `DTSCINIT` | `1e-12` s | Accepted adaptive-integrator setting; not used by the current parallel path. |
 | `DTAU` | `-1` | Accepted adaptive-integrator accuracy setting; not used by the current parallel path. |
 | `TIMEINTEGRATOR` | `RK4` | Accepts `RK-4`, `RK4`, `LF-2`, `LF2`, or `MTS`, but does not currently select the `ParallelTracker` integration kernel. |
-| `STEPSPERTURN` | `720` | OPAL-CYCL compatibility attribute; inactive in OPALX tracking. |
+| `STEPSPERTURN` | `720` | Nominal steps per turn for spectral tune analysis; otherwise inactive in normal tracking. |
 | `MAP_ORDER` | `1` | Stored compatibility value for map tracking; inactive in the current parallel path. |
 
 `DT`, `MAXSTEPS`, and `ZSTOP` may contain different numbers of entries. OPALX
@@ -117,12 +117,50 @@ reused for the remaining segments.
 | `METHOD` | required | Only `PARALLEL` is accepted. |
 | `FIELDSOLVER` | required | Name of the `FIELDSOLVER` used for the run. |
 | `BOUNDARYGEOMETRY` | `NONE` | Optional named boundary geometry. |
-| `TURNS` | `1` | Accepted compatibility value; inactive in the current parallel path. |
+| `TURNS` | omitted; `1` for spectral tunes | Optional `RING` return-count stopping condition. |
 | `TRACKBACK` | `FALSE` | Accepted compatibility value; reverse tracking is not currently applied. |
 
 `RUN` does not register `BEAM`, `BEAMS`, `SOURCES`, or `DISTRIBUTION`.
 Selection belongs on `TRACK` and each `BEAM`; distribution objects are reached
 through the beam's emission-source list.
+
+### `TURNS` {#turns}
+
+`TURNS` is an optional stopping condition for tracking a `RING`.
+
+When `TURNS=N` is specified explicitly, OPALX counts directed crossings of the
+ring return plane and stops each active particle container after `N` complete
+returns. `N` must be a positive integer.
+
+For each particle container, the fixed return plane passes through the launch
+reference position and is normal to the initial reference momentum. The initial
+point and an opposite-direction crossing do not count. OPALX records a return at
+the first integration endpoint beyond the plane; it does not interpolate the
+crossing or shorten the final step.
+
+When `TURNS` is omitted, no turn-count stopping condition is enabled. Tracking
+instead follows the `ZSTOP` and `MAXSTEPS` schedule defined by `TRACK`.
+Consequently, omitting `TURNS` is intentionally different from specifying
+`TURNS=1`.
+
+Explicit turn-count tracking currently has the following restrictions:
+
+- Directed turn counting is implemented only for a `RING`. On a `LINE`, an
+  explicit `TURNS` value currently does not activate a turn-count stop.
+- Exactly one `DT`, `MAXSTEPS`, and `ZSTOP` segment must be defined.
+- Restart tracking is not supported.
+- `TURNS` cannot be combined with `EKINSTOP`.
+
+For an explicit turn count, OPALX disables the `ZSTOP` limit and may increase
+the single `MAXSTEPS` value using `N` times the design circumference to estimate
+the step budget. The circumference is not the completion criterion. The run
+reports an error if any active container does not complete the requested returns
+within the resulting step budget or field bounds.
+
+When `SPECTRALTUNES=TRUE`, `TURNS` instead specifies the nominal number of turns
+used for spectral analysis. In that mode, its default value is `1`, the run takes
+`TURNS * STEPSPERTURN` integration steps, and geometric return crossings are not
+used.
 :::
 
 ::: {.feature-opal}

@@ -187,7 +187,9 @@ residual in metres, and relative momentum mismatch. The distance-keyed IndexMap
 wraps by the **measured reference return length**, not the design circumference.
 Periodic reuse still assumes a sufficiently repeatable reference orbit; a
 non-closed launch is not made periodic by this bookkeeping. Production `TURNS`
-and progress retain their nominal design-length convention.
+stops on directed crossings of the fixed launch plane, not on nominal design
+length. When no explicit return-count or energy stop is active, ring progress is
+reported relative to the design circumference.
 
 Changing a numerical field cutoff must not move element poses or nominal map
 boundaries. At fixed geometry the design circumference must remain invariant,

@@ -40,10 +40,11 @@ The sector pose is the entrance tangent at the map midpoint radius
 `THETA=-k*2*pi/SYM`. If the enclosing `RING` has a translated or rotated source
 frame, compose the sector pose with that frame.
 
-Normal coasting tracking uses `RUN,TURNS=n`. The turn count is the number of
-directed reference-particle crossings of the launch plane, not a promise that
-the nominal geometry is exactly closed. The last step can overshoot the crossing;
-reduce `DT` when the final crossing time or coordinates are important.
+Normal coasting tracking uses [`RUN,TURNS=n`](tracking.qmd#turns). The turn count
+is the number of directed reference-particle crossings of the launch plane, not
+a promise that the nominal geometry is exactly closed. The last step can
+overshoot the crossing; reduce `DT` when the final crossing time or coordinates
+are important.
 
 ## Accelerated Beam
 
