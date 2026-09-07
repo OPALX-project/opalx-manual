@@ -3,7 +3,7 @@ title: "Runtime Options"
 description: "Complete source-audited reference for values accepted by the OPALX OPTION statement."
 audience: user
 status: current
-last-reviewed: "2026-09-05"
+last-reviewed: "2026-09-07"
 ---
 
 `OPTION` changes process-wide parser, tracking, output, and diagnostic settings.
@@ -107,6 +107,68 @@ not override. Settings are copied when the OrbitThreader is constructed.
 
 See [Numerical linear transfer maps](../physics/linear-transfer-maps.qmd) for coordinates,
 overlap composition, supported physics and diagnostic limitations.
+
+### OrbitThreader performance diagnostics
+
+Run with `--info 1` (or a higher information level) to enable the diagnostic log
+and `timing.dat` output, for example `opalx --info 1 ring.in`. At information
+level zero the current IPPL output layer suppresses both, leaving an empty timing
+file even when tracking completes successfully.
+
+OrbitThreader prints its effective time step, integrator, map enablement, Richardson
+level, and ring period for each species pass. Reference and perturbed map rays run
+serially on the host; OpenMP thread capacity reported at startup applies to the
+runtime and does not imply parallel ray tracking. Startup also records the loaded
+executable path (where supported), build configuration, compiler, configure-time
+CMake C++ flags, assertion status, MPI ranks, and Kokkos host concurrency. CMake flags
+are not a complete compile command: target/dependency options may add flags, and
+multi-configuration builds select their configuration at build time.
+
+The existing `OrbThreader` total in `timing.dat` includes these accumulated phase
+timers, plus constructor and surrounding tracker setup:
+
+| Timer | Included work |
+|---|---|
+| `OT reference` | Backward pre-roll, forward reference integration, support index construction, reference samples, and design-path row writes. |
+| `OT segmentation` | Reference clipping, nominal-body queries and boundary localization, and segment partitioning. |
+| `OT maps` | Perturbed-ray tracking, finite differences/Richardson, contributor queries, map composition, and attachment to elements. |
+| `OT output` | Combined-map printing, support-index/geometry output, and closing the design-path log. |
+
+Phase timers accumulate across species and repeated tracking calls. The printed work
+summaries instead describe **one OrbitThreader pass on rank zero**, without MPI
+reductions. They report:
+
+- `nominal_steps`: outer reference or perturbed-ray tracking iterations;
+  `advances`: all support-resolved advance calls, including localization retries.
+- `trials` and `accepted_steps`: evaluated integration trials and accepted substeps.
+  Accepted substeps include work subsequently discarded by enclosing path/plane
+  localization; they are not a count of unique steps on the final orbit.
+- `cap_splits`, `support_splits`, `max_depth`, `min_accepted_dt_s`, and `step_cap_s`:
+  subdivision counts by cause, deepest recursion, smallest accepted duration, and
+  the smallest geometric time-step cap encountered, in seconds.
+- `support_lookups`, `body_lookups`, and `element_tests`: full-lattice selections
+  and the number of elements scanned by those selections. `field_samples` counts summed-field
+  evaluations; `element_fields` counts individual element field applications in
+  reference/map ray integration. Cavity-autophaser internals are not covered by
+  these ray-work counters, although their time remains in `OT reference`.
+- `membership_reuses`: full support lookups avoided by reusing an already evaluated
+  membership set at an identical recursive start or accepted endpoint. Reuse is
+  limited to one ray advance; field values and trajectories are not cached.
+- `reference_samples`, `segments`, and `rays`: recorded reference states, unique
+  map intervals, and perturbed trajectories. At Richardson level $L$, each map
+  interval normally launches $12(L+1)$ rays.
+- `ray_tracking_s`: time inside perturbed-ray tracking, already included in
+  `OT maps`. Its subsets `ray_transport_s` and `ray_exit_s` separate ordinary
+  tracking through the first bracketed exit crossing from exit-plane localization.
+  `exit_iterations` counts the localization reintegrations. These subset clocks
+  introduce no additional synchronization or per-step clock reads.
+- `log_rows` and `log_write_s`: design-path rows and their write time, already
+  included in `OT reference`. Do not add subsets to their enclosing phase totals.
+
+An unused measurement is printed as zero. Inner-loop diagnostics use counters;
+wall-clock reads occur at phase, trajectory, and log-row boundaries. Phase timers
+retain the configured IPPL timer-fence policy. Diagnostics do not change integration
+tolerances, field selection, or the production-particle integrator.
 
 ## Tracking, particles, and solvers
 

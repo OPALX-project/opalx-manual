@@ -3,7 +3,7 @@ title: "Linear Transfer Maps"
 description: "External-field ray maps, selectable Richardson differentiation, overlap composition, and boundary-resolved integration."
 audience: physics
 status: experimental
-last-reviewed: "2026-09-06"
+last-reviewed: "2026-09-07"
 ---
 
 ::: {.feature-opalx}
@@ -36,6 +36,19 @@ the corresponding reference tangent $\mathbf e_s=\mathbf u_0/u_0$.
 At a RING return, the starting section and axes are reused even when the
 returned momentum is not parallel to its normal.
 Each ray is recorded at its own crossing time, not at a shared laboratory time.
+
+For private map rays, the last nominal step brackets the exit-plane crossing.
+Boris retains tracked bisection because changing trial durations produced
+measurable map differences in the stable DBA benchmark. For RK4 and DOP853,
+a safeguarded secant search proposes trial arrival times from the signed plane
+distances; a trial that fails to halve the bracket forces bisection on the next
+iteration. Each trial is fully integrated from the original bracket start,
+including field-support subdivision: coordinates are never interpolated.
+The search retains the absolute time-bracket tolerance $10^{-12}|\mathrm{DT}|$
+(seconds), with early termination for an exact plane hit or adjacent representable
+times. Nonfinite residuals or failure to converge are errors. This changes trial
+times and final roundoff relative to fixed bisection, without changing integration
+methods, support tolerances, or the crossing direction and return-time gate.
 
 The transverse frame follows minimum-rotation (Bishop) transport. Between two
 reference tangents, rotate all three axes about
@@ -276,6 +289,15 @@ the independently integrated diagnostic midpoint, must have the same support set
 as the start and end; otherwise the trial is subdivided using the same tolerance.
 This also applies to map-enabled RK pre-roll. This algorithm does not estimate interpolation
 error or guarantee detection of arbitrary geometry at an arbitrarily large `DT`.
+
+During one ray advance, an already evaluated support set can be reused at an
+identical recursive start or when an accepted endpoint becomes the next half-step's
+start. This assumes containment is a fixed function of position during that advance.
+The reuse retains all original support predicates, field-evaluation order, accepted
+steps and tolerances; no field values or integrated trajectory prefixes are cached.
+Rejected trial endpoints are discarded, and no membership cache survives into a
+separate advance call or another ray. This host-only optimization adds no MPI
+communication, OpenMP scheduling, or device transfers.
 
 ## Map-only Runge–Kutta integration
 
