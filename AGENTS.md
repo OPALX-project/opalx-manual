@@ -8,6 +8,9 @@
 - Keep writing concise and user-oriented. Put detailed physics in `physics/`
   and implementation guidance in `developer-guide/`.
 - Do not commit generated `_site/` or `.quarto/` content.
+- For recurring maintenance, read `REMEMBER.md` before starting and update its
+  task register and maintenance log when the pass is complete. Use `HANDOFF.md`
+  only for work that is currently in progress.
 
 ## Manual pages
 

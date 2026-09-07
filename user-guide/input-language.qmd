@@ -168,7 +168,7 @@ user-guide section.
 | `TRAVELINGWAVE` | Defines a traveling-wave RF structure with cell and phase-advance controls. | [TRAVELINGWAVE](elements.qmd#travelingwave) |
 | `CYCLOTRONSECTOR` | Defines a PSI-style cyclotron sector field with optional named trim coils. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
 | `TRIMCOIL` | Defines a named cyclotron trim-coil field model referenced by `CYCLOTRONSECTOR`. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
-| `RING` | Orders named elements into a closed-topology lattice for ring tracking and COF. | [Beam Lines](beam-lines/index.qmd#ring-geometry-fringes) |
+| `RING` | Declares an ordered `RING` sequence for ring tracking and COF. | [Beam Lines](beam-lines/index.qmd#ring-geometry-fringes) |
 | `RBEND` | Defines a rectangular bending magnet. | [RBEND](elements.qmd#bends) |
 | `SBEND` | Defines a sector bending magnet. | [SBEND](elements.qmd#bends) |
 | `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [VERTICALFFAMAGNET](elements.qmd#verticalffamagnet) |

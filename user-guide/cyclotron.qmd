@@ -7,7 +7,7 @@ last-reviewed: "2026-09-06"
 ---
 
 Cyclotron modelling in OPALX uses explicit sector magnets, optional trim coils,
-optional single-gap RF cavities, and a closed-topology `RING` sequence. The
+optional single-gap RF cavities, and a `RING` sequence. The
 current implementation is aimed at PSI-style separated-sector cyclotrons with
 field-map sectors in the horizontal X-Z plane and Y as the vertical direction.
 
@@ -76,8 +76,8 @@ ENDTRACK;
 
 Tracking stops after the first complete RF kick that reaches or exceeds the
 requested kinetic energy. The energy is not clamped to the target value. The
-current energy-stop path requires a non-restarted `RING`, one positive `DT`
-segment, no explicit `RUN,TURNS`, and a single cyclotron container path.
+current energy-stop mode requires a non-restarted `RING`, one positive `DT`
+segment, no explicit `RUN,TURNS`, and a single cyclotron particle container.
 
 ## Closed Orbit Finder
 
@@ -100,7 +100,7 @@ energy through `PC`, `ENERGY`, or `GAMMA`, and must not use global processes.
 return section as global `X,Y,Z,THETA,PHI,PSI`; otherwise the `RING` frame is
 used. The supported ray integrators are `BORIS`, `LF2`, `RK4`, and `DOP853`.
 
-The current COF path supports static magnetic transport elements and
+The current COF implementation supports static magnetic transport elements and
 `CYCLOTRONSECTOR`; it does not support restart mode, RF acceleration, space
 charge, or global particle processes.
 

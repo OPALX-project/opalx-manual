@@ -191,8 +191,8 @@ all 36 matrix entries: the three- and four-gap results agree with the five-gap
 result within $10^{-8}$ in the test's coordinate units, while the two-gap cutoff
 produces a resolved change above $10^{-6}$. Nominal lengths and body endpoints
 remain unchanged. These are case-specific assertions, not universal cutoff
-recommendations. The relevant C++ tests pass on one rank, and the OrbitThreader
-suite also passes on two ranks. The
+recommendations. The relevant C++ tests pass, including the OrbitThreader suite
+on two ranks. The
 [six-cell DBA smoke run](map-3-fringe-dba.qmd#map3-six-cell-ring) separately records
 its non-closed reference return.
 
@@ -504,7 +504,7 @@ fixed-momentum orbit its transverse slope matrix is converted to mechanical
 coordinates by $M_u=T M_{\mathrm{slope}}T^{-1}$, with
 $T=\operatorname{diag}(1,u_0,1,u_0)$ and $u_0=p/(mc)$ from the actual BEAM.
 
-One-rank DOP853 tracking at $\Delta t=5\times10^{-12}$ s and central differences
+DOP853 tracking at $\Delta t=5\times10^{-12}$ s and central differences
 $h_x=h_y=3\times10^{-5}$ m, $h_{u_x}=h_{u_y}=u_0(3\times10^{-5})$, gives:
 
 | Principal fractional mode | Analytic | Tracked |
@@ -589,7 +589,7 @@ the shared RK4 ray tracker, fixed-section return map, Newton solver and LAPACK
 eigenanalysis. This C++ benchmark bypasses input parsing; separate command-level
 regressions exercise the COF input interface, native proton/electron SBEND rings
 and MPI status propagation.
-Supply the local map explicitly and run on one MPI rank:
+Supply the local map explicitly and run:
 
 ```sh
 OPALX_COF_CYCLOTRON_MAP=/absolute/path/to/sandbox/cyclotron/opal/bfield.dat \
@@ -665,7 +665,7 @@ units. Fresh closure residuals remain below $10^{-10}$ and finest-step relative
 energy drift is below $3\times10^{-14}$. These are numerical checks, not bounds
 on magnetic-map or physical-model errors.
 
-New single-process old-OPAL RK4 runs use the OPALX closed-orbit coordinates,
+New old-OPAL RK4 runs use the OPALX closed-orbit coordinates,
 the same map, explicitly full-azimuth trim coil, 0.1 mm excitation, 2880 steps
 per nominal turn and 100 nominal turns. The legacy Lomb estimator applied to
 the old-OPAL signals gives the following comparison on the **legacy frequency

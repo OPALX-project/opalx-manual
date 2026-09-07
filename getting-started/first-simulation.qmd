@@ -16,7 +16,7 @@ current parser and physics implementation.
 3. Run the executable from that directory.
 
 ```bash
-mpirun -np 1 /path/to/build_serial/src/opalx example.in --info 2
+/path/to/build_serial/src/opalx example.in --info 2
 ```
 
 For a multi-GPU run, map each MPI rank to a device:

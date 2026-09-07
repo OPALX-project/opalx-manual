@@ -266,7 +266,7 @@ root. The Python environment must provide `numpy`, `pandas`, and `matplotlib`;
 in the OPALX development checkout this is typically the `.venv-h6` environment.
 
 From the OPALX repository root, copy the input deck into `sandbox/` and run the
-single-rank OpenMP case:
+OpenMP case:
 
 ```bash
 REPRO=~/git/physics-manual-opalx/sections/beam-beam/reproducers
@@ -274,7 +274,7 @@ IN=sandbox/BeamBeam-static-1V.in
 
 mkdir -p sandbox data/sandbox
 cp "$REPRO/BeamBeam-static-1V.in" "$IN"
-mpiexec -n 1 build_openmp/src/opalx --info 1 "$IN"
+build_openmp/src/opalx --info 1 "$IN"
 ```
 
 The run writes active BeamBeam diagnostics under `data/sandbox/`. For the

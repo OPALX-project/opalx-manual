@@ -25,5 +25,5 @@ convergence study, or benchmark that makes failures observable.
 - Keep kernels valid for CPU and GPU execution.
 - Avoid host-only calls and non-device captures inside device lambdas.
 - Make required enclosing functions public for CUDA compilation.
-- Test MPI decomposition as well as single-rank behavior.
+- Test across supported MPI decompositions.
 - Document backend-specific constraints instead of silently falling back.

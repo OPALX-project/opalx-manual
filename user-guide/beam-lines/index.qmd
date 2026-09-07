@@ -77,7 +77,7 @@ A, B, C, D, E, B, A, C, D, E, A, B
 
 ## Ring geometry and fringe fields {#ring-geometry-fringes}
 
-`RING` declares a closed-topology beam sequence, not a lattice element:
+`RING` declares a beam sequence, not a lattice element:
 
 ```text
 R: RING = (B1, D1, Q1, D2, B2, ...);
@@ -109,7 +109,7 @@ closed-orbit solve. The path-index lookup uses the measured return length;
 production `TURNS` and progress remain based on design length. The reference
 search is bounded and reports an error if no one-circuit return is found.
 
-`TRACK,LINE=<ring>` supports directed-return tracking for closed-topology runs.
+`TRACK,LINE=<ring>` supports directed-return tracking for `RING` runs.
 The separate `COF` block also requires `LINE` to name a `RING`, because it builds
 a fixed-energy return problem from the ring's ordered static magnetic elements.
 

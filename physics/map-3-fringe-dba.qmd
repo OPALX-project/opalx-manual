@@ -29,8 +29,8 @@ half-width 0.5 m, vertical half-width 0.1 m. These are transverse domain choices
 not longitudinal field cutoffs or changes to the native fringe formulas.
 
 The generator checks nominal position/direction closure and contiguous body
-intervals. Its optional OPALX run uses one rank, one thread, `MAXSTEPS=1` and
-`--info 2`, saving `map-3-ring.out`, geometry and provenance. The default
+intervals. Its optional OPALX run uses `MAXSTEPS=1` and `--info 2`, saving
+`map-3-ring.out`, geometry and provenance. The default
 `DOP853`, $\Delta t=10^{-11}$ s, $\epsilon_j=10^{-4}$ and one Richardson level
 are smoke-test settings, not a new optimum or convergence claim.
 See [geometry, fringe support and ring return](linear-transfer-maps.qmd#fringe-geometry-ring-return)
@@ -38,7 +38,7 @@ for the distinction between design closure and a tracked closed orbit.
 
 ### Initial ring validation
 
-The single-rank `dop853-validation` run completed with those settings and printed
+The `dop853-validation` run completed with those settings and printed
 a finite $6\times6$ return matrix. The unchanged quadrupole seed and launch are
 **not matched to the unpadded ring**:
 
@@ -239,19 +239,19 @@ and the hard-edge limit; `TestBendFieldModel` checks the C++ profile helpers.
 Matching the actual reference orbit and dispersion remains future work. The
 unmatched lattice can already be compared with the independent reference below.
 The old map-2 hard-edge oracle is not valid for
-these fringe fields and larger body separation. Subsequent studies use one MPI
-rank and save stdout with `--info 2`.
+these fringe fields and larger body separation. Subsequent studies save stdout
+with `--info 2`.
 
 ## OPALX reproduction with archived best settings {#map3-opalx-runs}
 
 `sandbox/map-3/dba/map-3-dba.in` implements the fields and layout above, retaining
 the unmatched quadrupole seed and unscaled dipole strengths. Exactly one case
-per map integrator was run sequentially, with one MPI rank and one OpenMP thread.
+per map integrator was run sequentially.
 `MAXSTEPS=1` limits production tracking; the design OrbitThreader still computes
 the complete requested map to $s=8.294395102393196\,\mathrm{m}$.
 
 For each method, select the lowest full-map error among all saved valid
-single-rank map-2 observations. The previous campaign was incomplete, so these
+map-2 observations. The previous campaign was incomplete, so these
 are **observed minima**, not a complete-grid optimum or a guarantee for map-3.
 The RK4 setting in particular may benefit from cancellation in the hard-edge
 benchmark. Each listed starting $\epsilon$ is applied to all six coordinates,

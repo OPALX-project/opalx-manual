@@ -136,7 +136,7 @@ flowchart TD
   Tags --> Cof[COF fixed-energy returns]
 ```
 
-`RING` is a closed-topology sequence declaration. It tags expanded member
+`RING` is a sequence declaration. It tags expanded member
 occurrences with the enclosing ring name while leaving physical placement and
 geometric closure to the element definitions and tracking diagnostics.
 
@@ -156,7 +156,7 @@ flowchart TD
 
 Cyclotron sectors provide the static mapped magnetic field. Named trim coils add
 radial correction fields to sectors. `RFCAVITY,TYPE="SINGLEGAP"` supplies the
-experimental radial RF kick path used by accelerated cyclotron rings.
+experimental radial RF kick implementation used by accelerated cyclotron rings.
 
 ## OrbitThreader
 

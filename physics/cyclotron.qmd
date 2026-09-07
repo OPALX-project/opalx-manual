@@ -65,8 +65,7 @@ matched-integrator field-port regression. At the original 0.164527805199081 ns
 timestep, the 72 MeV trajectories agree within 8.6 nm in position and
 $1.5\times10^{-9}$ in normalized momentum, including the precision limit of the
 old ASCII orbit dump and rounded launch momentum. The RK4 comparison decreases
-from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice. All such
-comparison and convergence runs use one rank.
+from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice.
 
 Compare trajectories at common physical times; a completed directed turn can take
 more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of
@@ -78,8 +77,8 @@ within the crossing step.
 ## Experimental discrete RF tracking
 
 The experimental `CyclotronRFProfile` / `CyclotronRFKick` components implement
-the radial-voltage model for forward median-plane protons. The initial tracking
-path is restricted to one unpolarized proton, one container, one MPI rank, and
+the radial-voltage model for forward median-plane protons. The implementation
+is restricted to one unpolarized proton, one container, one MPI rank, and
 a beamline containing only cyclotron sectors and discrete gaps. Restart is not
 supported. `TRACK,EKINSTOP` adds a reference kinetic-energy target as described below.
 
@@ -238,7 +237,7 @@ assumption enters this method. Energy drift, timestep/amplitude sensitivity and
 agreement with independent old-code trajectories must still be checked.
 
 The supplied 230-row table spans 72 to 529.993 MeV. A fresh 100-nominal-turn,
-720-step-per-turn RK4 comparison on one rank agrees with old OPAL within one
+720-step-per-turn RK4 comparison agrees with old OPAL within one
 0.0025 tune bin in both planes at every row. The maximum relative kinetic-energy
 drift in OPALX is 8.03e-6. This establishes legacy-port agreement at these settings,
 not an absolute tune-accuracy bound. Both codes differ from the supplied SEO tune
