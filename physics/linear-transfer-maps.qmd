@@ -499,9 +499,9 @@ The `sandbox/dba-ring-cof` benchmark repeats six cells of two 30-degree,
 2 m-radius sector bends, two 1 m drifts and a 0.2 m quadrupole. Changing
 the quadrupole to $K_1=+2.84\,\mathrm{m}^{-2}$ in OPALX's electron convention
 gives stable, non-achromatic optics; circumference is 25.76637061436 m.
-The independent hard-edge reference is $M_{\rm cell}^{6}$. For the on-axis
+The independent hard-edge reference is $M_{\mathrm{cell}}^{6}$. For the on-axis
 fixed-momentum orbit its transverse slope matrix is converted to mechanical
-coordinates by $M_u=T M_{\rm slope}T^{-1}$, with
+coordinates by $M_u=T M_{\mathrm{slope}}T^{-1}$, with
 $T=\operatorname{diag}(1,u_0,1,u_0)$ and $u_0=p/(mc)$ from the actual BEAM.
 
 One-rank DOP853 tracking at $\Delta t=5\times10^{-12}$ s and central differences
