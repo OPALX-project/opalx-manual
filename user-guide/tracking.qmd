@@ -3,7 +3,7 @@ title: "Tracking"
 description: "Configure TRACK and the experimental static-ring COF command in OPALX, or retained legacy OPAL tracking."
 audience: user
 status: current
-last-reviewed: "2026-09-06"
+last-reviewed: "2026-09-09"
 ---
 
 A tracking block selects a lattice and beam, defines its step schedule, starts
@@ -119,10 +119,36 @@ reused for the remaining segments.
 | `BOUNDARYGEOMETRY` | `NONE` | Optional named boundary geometry. |
 | `TURNS` | omitted; `1` for spectral tunes | Optional `RING` return-count stopping condition. |
 | `TRACKBACK` | `FALSE` | Accepted compatibility value; reverse tracking is not currently applied. |
+| `SCFIELDUPDATE` | `MIDPOINT` | Space-charge evaluation point within the drift--kick--drift step: `MIDPOINT` or `PRESTEP`. |
 
 `RUN` does not register `BEAM`, `BEAMS`, `SOURCES`, or `DISTRIBUTION`.
 Selection belongs on `TRACK` and each `BEAM`; distribution objects are reached
 through the beam's emission-source list.
+
+### Space-charge field update point {#space-charge-field-update}
+
+`SCFIELDUPDATE` controls when an active particle self-field is calculated:
+
+```opal
+RUN, METHOD="PARALLEL", FIELDSOLVER=FS1,
+     SCFIELDUPDATE="PRESTEP";
+```
+
+| Value | Space-charge positions | Step ordering |
+|---|---|---|
+| `MIDPOINT` | $R_{n+1/2}$ | Half drift, self-field solve, external-field evaluation, Boris kick, half drift |
+| `PRESTEP` | $R_n$ | Self-field solve, half drift, external-field evaluation, Boris kick, half drift |
+
+`MIDPOINT` is the default OPALX ordering. `PRESTEP` reproduces the historical
+OPAL space-charge sampling point: the gathered self-fields are carried with
+their particles through the first half drift and then combined with external
+fields evaluated at the midpoint. Both values use the same particle deposition,
+Poisson solver, Green function, Boris momentum update, and position drifts.
+
+The option applies to normal parallel bunch tracking on a `LINE` or `RING`; it
+is not specific to cyclotrons. It has no physical effect when
+`FIELDSOLVER.TYPE=NONE`. Treat a change of update point as a numerical-method
+change and repeat the timestep-convergence study for the observables of interest.
 
 ### `TURNS` {#turns}
 
@@ -301,9 +327,12 @@ does not suppress this warning or relax the unit-circle tolerance. See the
 
 ## Current OPALX step sequence {#opalx-step-sequence}
 
-At each step `ParallelTracker` performs a half position push, assembles
-space-charge and external fields, emits particles, applies the Boris momentum
-update and second half push, advances time, and updates the reference state.
+With the default `SCFIELDUPDATE="MIDPOINT"`, `ParallelTracker` performs a half
+position push, assembles space-charge and external fields, emits particles,
+applies the Boris momentum update and second half push, advances time, and
+updates the reference state. With `SCFIELDUPDATE="PRESTEP"`, it assembles the
+self-field before the first half push while retaining midpoint external-field
+evaluation. See [Space-charge field update point](#space-charge-field-update).
 The [Physics Overview](../physics/overview/index.qmd) describes this split.
 
 The time step must resolve the shortest relevant field, geometry, emission,

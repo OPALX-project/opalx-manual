@@ -3,7 +3,7 @@ title: "Field Solvers"
 description: "Configure OPALX particle-in-cell space charge, boundary conditions, binning, and cathode-plane corrections."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-09-09"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
@@ -93,6 +93,11 @@ it is not an approximation to an isolated bunch.
 `OPEN` uses IPPL's Hockney free-space FFT solver. The doubled-grid convolution
 removes the periodic wraparound of an ordinary FFT solve. Set all three
 `BCFFT*` values to `OPEN`.
+
+In historical OPAL input, the corresponding isolated solver is written as
+`FSTYPE=FFT` together with open boundaries. Do not translate that name
+literally to OPALX `TYPE=FFT`: OPALX uses `TYPE=FFT` for a periodic solver and
+`TYPE=OPEN` for the isolated Hockney solve.
 
 `GREENSF` selects the free-space kernel:
 
@@ -236,6 +241,31 @@ $$
 Use binning when velocity varies substantially through the bunch, especially
 during emission or in a chirped beam. Check convergence with respect to both
 mesh resolution and binning parameters.
+
+The charge mesh is aligned with the bunch mean momentum before a binned solve.
+Particle positions and normalized momenta are rotated into this same mesh frame
+before bin selection and relativistic field reconstruction, then rotated back
+after the solve. A rotation changes components but preserves momentum magnitude,
+energy, and the Lorentz factor.
+
+For a nearly monoenergetic cyclotron bunch, one explicit bin enables this
+relativistic beam-frame treatment without subdividing the bunch:
+
+```opal
+SCBin: BINNING, MAXBINS=1, PARAMETER=GAMMAZ,
+       ADAPTIVEBINNING=FALSE;
+
+FSOpen: FIELDSOLVER, TYPE=OPEN, BINS=SCBin,
+        NX=32, NY=32, NZ=32,
+        PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+        BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+        GREENSF=STANDARD, BBOXINCR=2;
+```
+
+This is a starting configuration, not a converged resolution. Increase the
+particle count and each mesh dimension independently. The time at which the
+self-field is evaluated is selected separately by
+[`RUN.SCFIELDUPDATE`](../tracking.qmd#space-charge-field-update).
 
 ### Explicit image-charge Dirichlet correction {#explicit-image-charges}
 

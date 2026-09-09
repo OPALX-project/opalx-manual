@@ -3,7 +3,7 @@ title: "Cyclotron Modelling"
 description: "Configure coasting, accelerating, closed-orbit, and tune calculations for cyclotron rings."
 audience: user
 status: experimental
-last-reviewed: "2026-09-06"
+last-reviewed: "2026-09-09"
 ---
 
 Cyclotron modelling in OPALX uses explicit sector magnets, optional trim coils,
@@ -45,6 +45,49 @@ is the number of directed reference-particle crossings of the launch plane, not
 a promise that the nominal geometry is exactly closed. The last step can
 overshoot the crossing; reduce `DT` when the final crossing time or coordinates
 are important.
+
+## Coasting Beam with Space Charge {#cyclotron-space-charge}
+
+Add a named binning definition and an open field solver to track a finite
+cyclotron bunch with space charge. The following fragment extends the magnetic
+`MYCYCL` ring defined above:
+
+```opal
+Dist0: DISTRIBUTION, TYPE=FROMFILE,
+       FNAME="cyclotron-bunch.dat", NPARTDIST=262144;
+Source0: EMISSIONSOURCE, DISTRIBUTION=Dist0;
+Sources0: EMISSIONSOURCELIST=(Source0);
+
+SCBin: BINNING, MAXBINS=1, PARAMETER=GAMMAZ,
+       ADAPTIVEBINNING=FALSE;
+
+FSOpen: FIELDSOLVER, TYPE=OPEN, BINS=SCBin,
+        NX=32, NY=32, NZ=32,
+        PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+        BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+        GREENSF=STANDARD, BBOXINCR=2;
+
+Beam0: BEAM, PARTICLE=PROTON, NALLOC=262144,
+       BCHARGE=3.9486673248e-11, SOURCES=Sources0, CHARGE=1;
+
+TRACK, LINE=MYCYCL, BEAM=Beam0,
+       DT=1.645278052e-10, MAXSTEPS=1600, ZSTOP=1e6;
+  RUN, METHOD="PARALLEL", FIELDSOLVER=FSOpen,
+       TURNS=1, SCFIELDUPDATE="MIDPOINT";
+ENDTRACK;
+```
+
+The example uses one explicit momentum bin so that positions and momenta are
+treated consistently in the beam-aligned space-charge frame. The quoted bunch
+charge corresponds to 2 mA at 50.65 MHz. The distribution file must contain
+the absolute launch coordinates and normalized momenta expected by OPALX.
+
+The $32^3$ mesh is deliberately coarse. Repeat the calculation with larger
+particle counts and independently refined mesh dimensions before drawing a
+physics conclusion. `SCFIELDUPDATE="PRESTEP"` selects the historical OPAL
+self-field sampling point for comparison; `MIDPOINT` remains the OPALX default.
+See [Field Solvers](field-solver/index.qmd) and
+[Space-charge field update point](tracking.qmd#space-charge-field-update).
 
 ## Accelerated Beam
 

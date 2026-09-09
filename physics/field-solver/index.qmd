@@ -3,7 +3,7 @@ title: "Field Solver Physics"
 description: "Planned derivation and validation guide for OPALX particle-mesh space-charge solvers."
 audience: physics
 status: planned
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-09-09"
 toc-depth: 3
 ---
 
@@ -59,8 +59,23 @@ particle positions.
 
 ## Frames and relativistic transformations {#frames-transformations}
 
-Derive the transformations between the laboratory frame, mean rest frame, and
-bin-local frames. State where approximations enter.
+For binned space charge, OPALX first constructs a beam-aligned frame whose
+origin follows the bunch and whose longitudinal axis is parallel to the mean
+momentum. Let $Q$ denote its orthogonal rotation. Particle coordinates entering
+the binned calculation are
+
+$$
+\mathbf r'_i=Q(\mathbf r_i-\mathbf r_0),
+\qquad
+\mathbf p'_i=Q\mathbf p_i.
+$$
+
+Both transformations are required: using $\mathbf r'_i$ with unrotated
+$\mathbf p_i$ mixes coordinate systems in bin selection, mean-bin momentum,
+and the field transformation. Because $Q$ is orthogonal,
+$|\mathbf p'_i|=|\mathbf p_i|$ and
+$\gamma_i=\sqrt{1+|\mathbf p_i|^2}$ is unchanged. After gathering, positions,
+momenta, and electromagnetic fields are rotated back to the tracking frame.
 
 ## Boundary conditions and Green functions {#physics-boundary-conditions}
 
@@ -101,8 +116,23 @@ is production-ready.
 
 ## Binned rest-frame space charge {#physics-binned-space-charge}
 
-Derive the longitudinal binning approximation, bin-frame transforms, per-bin
-solve, and accumulation of the resulting fields.
+For each populated bin $b$, OPALX computes the mean normalized momentum
+$\mathbf p_b$ and a representative Lorentz factor $\gamma_b$. The longitudinal
+mesh spacing is stretched by $\gamma_b$, charge is deposited and solved in the
+approximate bin rest frame, and the gathered electric field $\mathbf E'_b$ is
+transformed back according to
+
+$$
+\mathbf E_b=\gamma_b\mathbf E'_b
+ -(\gamma_b-1)(\mathbf E'_b\cdot\widehat{\mathbf v}_b)\widehat{\mathbf v}_b,
+\qquad
+\mathbf B_b=\frac{\gamma_b}{c^2}\mathbf v_b\times\mathbf E'_b,
+$$
+
+where $\mathbf v_b=c\mathbf p_b/\gamma_b$. Contributions from all populated
+bins are accumulated before the particle push. One explicit bin applies a
+single common boost to the bunch; multiple bins approximate a longitudinally
+varying velocity distribution.
 
 ## Emission and conducting boundaries {#physics-emission-boundaries}
 
@@ -123,8 +153,31 @@ Separate sampling noise from mesh and solver error.
 
 ### Time-step coupling {#time-step-coupling}
 
-Explain how field-solve frequency, particle stepping, and emission updates
-couple to the spatial solve.
+The particle step is a drift--kick--drift composition. OPALX provides two
+self-field sampling conventions while retaining the same Boris kick and
+external-field evaluation at the midpoint.
+
+For the default midpoint convention,
+
+$$
+\mathbf r_{n+1/2}=D_{\Delta t/2}(\mathbf r_n,\mathbf p_n),\qquad
+(\mathbf E_{\mathrm{sc}},\mathbf B_{\mathrm{sc}})_{n+1/2}
+ =\mathcal S(\mathbf r_{n+1/2},\mathbf p_n),
+$$
+
+followed by the full Boris momentum kick and the second half drift. The
+historical pre-step convention instead evaluates
+
+$$
+(\mathbf E_{\mathrm{sc}},\mathbf B_{\mathrm{sc}})_n
+ =\mathcal S(\mathbf r_n,\mathbf p_n)
+$$
+
+before the first half drift. Those gathered fields remain attached to their
+particles through that drift and are combined with midpoint external fields.
+The input choices are `SCFIELDUPDATE="MIDPOINT"` and `"PRESTEP"`; changing the
+choice changes the temporal discretization and therefore requires a new
+timestep-convergence study.
 
 ## Domain decomposition and load balancing {#domain-decomposition}
 
@@ -152,8 +205,26 @@ The editable source is `figures/current-space-charge-class-diagram.tex`.
 
 ## Verification and benchmarks {#field-solver-verification}
 
-List analytic solutions, manufactured solutions, regression cases, conserved
-quantities, and cross-code comparisons required for each solver mode.
+A one-turn coasting benchmark compared OPALX with OPAL 2022.1 at 72 MeV using
+a 2 mA proton bunch, 262144 macroparticles, a $32^3$ open mesh, one momentum
+bin, `GREENSF=STANDARD`, and the common timestep
+$1.645278052\times10^{-10}$ s. After applying the common-frame momentum
+rotation, the endpoint comparison was:
+
+| Observable | OPAL 2022.1 | OPALX | Relative difference |
+|---|---:|---:|---:|
+| radial RMS size [mm] | 4.608578 | 4.605885 | -0.0584% |
+| vertical RMS size [mm] | 4.215521 | 4.217434 | +0.0454% |
+| longitudinal RMS size [mm] | 1.980226 | 1.981539 | +0.0663% |
+| radial normalized RMS emittance [mm mrad] | 2.793744 | 2.793274 | -0.0168% |
+| vertical normalized RMS emittance [mm mrad] | 1.012587 | 1.014261 | +0.1654% |
+| longitudinal normalized RMS emittance [mm mrad] | 0.192261 | 0.190979 | -0.6667% |
+| RMS energy spread [keV] | 43.354672 | 43.176349 | -0.4113% |
+
+These values establish a cross-code regression point at one discretization;
+they are not a mesh, particle-number, or timestep-convergence result. A clean
+comparison of the two `SCFIELDUPDATE` conventions with the production field
+reconstruction remains to be added.
 
 ## Assumptions and known limitations {#field-solver-limitations}
 

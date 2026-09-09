@@ -54,9 +54,9 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Incremental work on 2026-09-06 | Perform a complete command, element, option, and file-format audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Incremental work on 2026-09-06 | Establish a page-by-page physics baseline |
-| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Incremental work on 2026-09-06 | Classify current studies as proposal, validated result, or obsolete |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Incremental work on 2026-09-09 | Perform a complete command, element, option, and file-format audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Incremental work on 2026-09-09 | Add a clean `MIDPOINT` versus `PRESTEP` timestep-convergence benchmark |
+| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Incremental work on 2026-09-09 | Classify the remaining current studies as proposal, validated result, or obsolete |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental work on 2026-09-05 | Recheck diagrams against current class ownership and call paths |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Initial rules and focused cleanup on 2026-09-07 | Complete the first contextual review of vague "path" wording |
 | `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | CI investigated on 2026-09-07 | Confirm the workflow for the latest manual revision, then repeat weekly |
@@ -229,6 +229,23 @@ the missing step in CI after an authorized push.
 - Open items: complete a contextual manual-wide review of vague "path" wording;
   ask before changing a use whose technical meaning is uncertain.
 - Next trigger: every documentation edit and the next monthly review.
+
+### 2026-09-09 - DOC-USER/DOC-PHYS/DOC-SANDBOX: cyclotron space charge
+
+- OPALX range: `0718796dc..fd675e885`
+- Manual base: `cbbd14c`
+- Reviewed: `RUN.SCFIELDUPDATE`, open field-solver naming, binned
+  beam-frame transformations, the cyclotron space-charge input, and the
+  one-turn 72 MeV cross-code benchmark.
+- Changed: documented `MIDPOINT` and `PRESTEP`, the common rotation of
+  positions and momenta, a coarse one-bin cyclotron setup, and the validated
+  OPAL 2022.1 versus OPALX endpoint comparison.
+- Verification: source validator, full 57-chapter HTML render, and whitespace
+  diff check passed. Rendered-link validation remains blocked by 62 pre-existing
+  missing PDF and report targets, including `The-OPALX-Universe.pdf`.
+- Open items: produce a clean timestep-convergence comparison of `MIDPOINT`
+  and `PRESTEP` using the production field reconstruction.
+- Next trigger: completion of that comparison or the next field-solver change.
 
 Use this template for subsequent entries:
 
