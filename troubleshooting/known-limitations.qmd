@@ -16,6 +16,14 @@ last-reviewed: "2026-07-23"
   execution does not establish GPU support.
 - Hard-edge fields and active elements shorter than a few integration steps can
   create numerical splitting. Always check time-step convergence.
+- The experimental [COF command](../user-guide/tracking.qmd#opalx-cof-command)
+  solves static, fixed-energy, four-dimensional ring closure. It does not provide
+  RF/6D closure, space-charge matching, or automatic integer-tune and plane
+  assignment. A converged orbit does not establish stability.
+- [COF-to-TRACK handover](../user-guide/tracking.qmd#opalx-initial-orbit)
+  requires a fresh generated beam with completed emission. TRACK closure needs
+  its own timestep study because its integration and return plane can differ
+  from COF's. Explicit `TURNS` currently excludes space charge and RF.
 
 These limitations are documentation status, not a substitute for the issue
 tracker. Report unexpected implemented behavior with a reproducible case.

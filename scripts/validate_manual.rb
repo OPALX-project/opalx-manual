@@ -264,10 +264,10 @@ if input_language_page.file?
 
   %w[
     BEAM DISTRIBUTION EMISSIONSOURCE EMISSIONSOURCELIST FIELDSOLVER BINNING LINE
-    DRIFT CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID RFCAVITY
+    DRIFT COLLIMATOR CONSTANTFOCUSING CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID RFCAVITY
     TRAVELINGWAVE CYCLOTRONSECTOR TRIMCOIL RING RBEND SBEND VERTICALFFAMAGNET VARIABLE_RF_CAVITY LASER MONITOR
     PROBE MARKER POLYNOMIAL_TIME_DEPENDENCE SINUSOIDAL_TIME_DEPENDENCE
-    SPLINE_TIME_DEPENDENCE TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE SELECT
+    SPLINE_TIME_DEPENDENCE COF TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE SELECT
     DUMPEMFIELDS SYSTEM PSYSTEM STOP QUIT
   ].each do |statement|
     unless input_language_text.include?("| `#{statement}`")
@@ -489,7 +489,8 @@ source_audited_inputs = {
   ],
   "user-guide/tracking.qmd" => %w[
     LINE SOURCES BEAM BEAMS DT DTSCINIT DTAU T0 MAXSTEPS ZSTART ZSTOP STEPSPERTURN
-    TIMEINTEGRATOR MAP_ORDER METHOD TURNS FIELDSOLVER BOUNDARYGEOMETRY TRACKBACK
+    TIMEINTEGRATOR INITIALORBIT EKINSTOP METHOD TURNS FIELDSOLVER BOUNDARYGEOMETRY TRACKBACK SCFIELDUPDATE
+    SPECTRALTUNES TUNESAMPLE TUNEINTEGRATOR TUNESECTOR
   ],
   "user-guide/options.qmd" => %w[
     ECHO INFO TRACE WARN SEED TELL PSDUMPFREQ STATDUMPFREQ CHECKPOINTFREQ STEPINFOFQ PRINTRANKDISTRFQ
@@ -562,6 +563,30 @@ unless tracking_text.include?("When `TURNS` is omitted, no turn-count stopping c
        tracking_text.include?("omitting `TURNS` is intentionally different from specifying") &&
        tracking_text.include?("When `SPECTRALTUNES=TRUE`, `TURNS` instead specifies")
   errors += error("tracking page must distinguish omitted, explicit, and spectral TURNS behavior")
+end
+
+%w[opalx-cof-command opalx-initial-orbit].each do |anchor|
+  errors += error("tracking page is missing ##{anchor}") unless tracking_text.include?("{##{anchor}}")
+end
+cof_text = tracking_text.split("{#opalx-cof-command}", 2).last.to_s.split("## Current OPALX step sequence", 2).first
+%w[LINE BEAM DT MAXSTEPS MAXPATH TIMEINTEGRATOR T0 SECTION GEOMTOL ANGLETOL
+   METHOD DIMENSION JACOBIAN X PX Y PY MAXIT XTOL PTOL FDSTEP SCALES DAMPING OUTPUT].each do |attribute|
+  errors += error("COF section is missing input attribute: #{attribute}") unless cof_text.include?("`#{attribute}`")
+end
+tracking_text.scan(/```opal\n(.*?)```/m).flatten.each do |example|
+  if example.match?(/\bENDCOF\s*;|\bRUN\s*,\s*METHOD\s*=\s*"?NEWTON\b/i)
+    errors += error("tracking example uses the removed COF block syntax")
+  end
+end
+unless (ROOT / "reference/commands.qmd").read.include?("[`COF`]")
+  errors += error("command reference is missing COF")
+end
+formats_text = (ROOT / "reference/file-formats.qmd").read
+cof_format = formats_text.split("{#cof-result-json}", 2).last.to_s.split("## Checkpoint", 2).first
+%w[converged dt_s energy_MeV coordinates residual matrix eigenvalues stability
+   near_integer fractional_modes relative_energy_drift time_s position_m momentum_mc
+   line species mass_eV charge_e section_origin_m section_rotation_wxyz].each do |key|
+  errors += error("COF JSON reference is missing key: #{key}") unless cof_format.include?("`#{key}`")
 end
 
 binning_text = (ROOT / "user-guide/structures/index.qmd").read

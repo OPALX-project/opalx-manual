@@ -42,9 +42,10 @@ frame, compose the sector pose with that frame.
 
 Normal coasting tracking uses [`RUN,TURNS=n`](tracking.qmd#turns). The turn count
 is the number of directed reference-particle crossings of the launch plane, not
-a promise that the nominal geometry is exactly closed. The last step can
-overshoot the crossing; reduce `DT` when the final crossing time or coordinates
-are important.
+a promise that the nominal geometry is exactly closed. The final step is
+shortened to the reference crossing, and the bunch advances to the same time.
+This requires completed emission, one beam and `FIELDSOLVER, TYPE=NONE`;
+repeat with smaller `DT` to establish transverse-orbit convergence.
 
 ## Coasting Beam with Space Charge {#cyclotron-space-charge}
 
@@ -73,9 +74,13 @@ Beam0: BEAM, PARTICLE=PROTON, NALLOC=262144,
 TRACK, LINE=MYCYCL, BEAM=Beam0,
        DT=1.645278052e-10, MAXSTEPS=1600, ZSTOP=1e6;
   RUN, METHOD="PARALLEL", FIELDSOLVER=FSOpen,
-       TURNS=1, SCFIELDUPDATE="MIDPOINT";
+       SCFIELDUPDATE="MIDPOINT";
 ENDTRACK;
 ```
+
+Explicit `TURNS` stopping is not supported with space charge. This example
+stops after the configured 1600 steps unless it reaches `ZSTOP` earlier; that
+schedule does not promise an exact return-plane crossing.
 
 The example uses one explicit momentum bin so that positions and momenta are
 treated consistently in the beam-aligned space-charge frame. The quoted bunch
@@ -126,17 +131,20 @@ segment, no explicit `RUN,TURNS`, and a single cyclotron particle container.
 ## Closed Orbit Finder
 
 `COF` finds a fixed-energy closed orbit for a static magnetic `RING`. It is a
-separate input block, not a `TRACK` subcommand, and requires exactly one local
-`RUN,METHOD="NEWTON"` followed by `ENDCOF`.
+named single-statement command, separate from `TRACK`. All tracking and solver
+settings belong on the same command; no `RUN` or `ENDCOF` is needed.
 
 ```opal
-COF, LINE=MYCYCL, BEAM=BEAM0,
+ic: COF, LINE=MYCYCL, BEAM=BEAM0,
      DT=1.0e-12, MAXSTEPS=200000, MAXPATH=40.0,
-     TIMEINTEGRATOR="RK4", GEOMTOL=1e-9, ANGLETOL=1e-10;
-RUN, METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
-     FDSTEP={1e-5,1e-6,1e-5,1e-6}, OUTPUT="cof";
-ENDCOF;
+     TIMEINTEGRATOR="RK4", GEOMTOL=1e-9, ANGLETOL=1e-10,
+     METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
+     FDSTEP={1e-5,1e-6,1e-5,1e-6};
 ```
+
+`OUTPUT` is optional and names one JSON file. Omit it for an in-memory result.
+Use `TRACK, INITIALORBIT=ic` for an orbit-local generated bunch; see
+[the handover rules](tracking.qmd#opalx-initial-orbit).
 
 `LINE` must name a `RING`. `BEAM` must define an explicit reference momentum or
 energy through `PC`, `ENERGY`, or `GAMMA`, and must not use global processes.

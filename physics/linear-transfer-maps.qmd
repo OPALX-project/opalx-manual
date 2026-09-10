@@ -512,14 +512,14 @@ on success, evaluation count, and accepted-iteration diagnostics. Eigenanalysis
 is a separate C++ operation described below. Analytic coupled affine maps and nonlinear
 fixed-point tests validate the solver; the first native cyclotron benchmark is
 described below. A stable hard-edge DBA-ring benchmark is described next;
-ISIS and finite-fringe DBA-ring validation remain pending.
+it does not validate finite-fringe DBA rings or arbitrary ring optics.
 Timestep, finite-difference and launch-amplitude convergence remain independent
 requirements. No production pusher, reduction order, MPI collective, GPU kernel,
 or OpenMP scheduling is changed by this serial algorithm.
 
 ### Stable non-achromatic hard-edge DBA ring
 
-The `sandbox/dba-ring-cof` benchmark repeats six cells of two 30-degree,
+The `sandbox/Regression-Tests/dba-ring-cof` benchmark repeats six cells of two 30-degree,
 2 m-radius sector bends, two 1 m drifts and a 0.2 m quadrupole. Changing
 the quadrupole to $K_1=+2.84\,\mathrm{m}^{-2}$ in OPALX's electron convention
 gives stable, non-achromatic optics; circumference is 25.76637061436 m.
@@ -605,6 +605,43 @@ Tests cover stable rotations, coupled/scaled similarities, real reciprocal and
 complex unstable pairs, near-integer modes, repeated/defective spectra, and an
 analytic closed-orbit-solver-to-eigenanalysis workflow.
 
+### Closed-orbit launch handover {#closed-orbit-launch-handover}
+
+A named COF retains the full laboratory launch $(\mathbf r_0,\mathbf p_0,t_0)$,
+where positions are in metres and $\mathbf p_0$ is mechanical momentum divided
+by $mc$. For the solved section coordinates $(x,p_x,y,p_y)$ and fixed magnitude
+$P_0=|\mathbf p_0|$, $p_z=\sqrt{P_0^2-p_x^2-p_y^2}>0$; the section transform
+maps this state to the lab.
+
+For TRACK initialisation, let $Q$ map the orbit-local frame to the laboratory.
+Its +z axis is parallel to $\mathbf p_0$, with transverse roll fixed by the
+shortest rotation from the COF section +z axis. Generated particles are placed as
+
+$$
+\mathbf r_i=\mathbf r_0+Q\boldsymbol\xi_i,\qquad
+\mathbf p_i=Q\boldsymbol\pi_i.
+$$
+
+Here $\boldsymbol\pi_i$ is the full local normalized momentum, not a deviation.
+This rigid change preserves distances, momentum norms and the distribution's
+local correlations. It does not modify the integration algorithm or establish
+space-charge equilibrium. The reference remains the solved state even when the
+finite sample has a nonzero centroid. Scalar frame construction occurs on the
+host; particle kernels continue using the existing local frame and device views.
+All MPI ranks receive the same launch state; no new particle reduction is needed.
+Energy/species compatibility permits only floating-point roundoff (64 machine
+epsilons relative), not a physics matching tolerance.
+
+The [INITIALORBIT interface](../user-guide/tracking.qmd#opalx-initial-orbit)
+transfers this state without transferring the COF integrator or timestep. COF's
+fixed-section ray return and TRACK's Boris trajectory are different numerical
+calculations. TRACK also defines its return normal by $\mathbf p_0$, whereas
+COF retains the selected section normal; these need not coincide for nonzero
+section-frame transverse launch momenta. Terminal-step localization controls
+distance from TRACK's return plane, not transverse closure or agreement with
+COF. Establish TRACK timestep convergence independently of Newton residual,
+finite-difference convergence, and eigenvalue stability.
+
 ### First native cyclotron closed-orbit benchmark
 
 The opt-in `OrbitThreaderTest.Cyclotron72ClosedOrbitBenchmark` composes eight
@@ -616,7 +653,7 @@ and MPI status propagation.
 Supply the local map explicitly and run:
 
 ```sh
-OPALX_COF_CYCLOTRON_MAP=/absolute/path/to/sandbox/cyclotron/opal/bfield.dat \
+OPALX_COF_CYCLOTRON_MAP=/absolute/path/to/bfield.dat \
 OMP_NUM_THREADS=1 OMP_PROC_BIND=false \
 ./omp-build/unit_tests/Algorithms/TestOrbitThreader \
   --gtest_filter=OrbitThreaderTest.Cyclotron72ClosedOrbitBenchmark

@@ -3,7 +3,7 @@ title: "Physics"
 description: "Median-plane interpolation, off-plane extension, and legacy mirrored trim coils."
 audience: physics
 status: experimental
-last-reviewed: "2026-09-06"
+last-reviewed: "2026-09-09"
 ---
 
 The first cyclotron implementation preserves the OPAL 2022.1 PSI Ring map model.
@@ -70,9 +70,40 @@ from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice.
 Compare trajectories at common physical times; a completed directed turn can take
 more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of
 at least $10^{-9}$ m from the launch plane arms the next positive crossing,
-excluding the launch point and opposite-direction crossing. Endpoints may
-overshoot the plane by one timestep; the threader's reference return is localized
-within the crossing step.
+excluding the launch point and opposite-direction crossing. Earlier turns are
+counted at timestep endpoints. The final requested return is localized for static
+magnetic single-container tracking without collective fields or ongoing emission.
+The threader's reference return remains a separate calculation.
+
+### Final reference return event
+
+With launch position $\mathbf r_0$ and unit launch momentum $\mathbf n$, the
+terminal event solves
+
+$$
+g(\tau)=\mathbf n\cdot[\mathbf r_{\mathrm{ref}}(t_n+\tau)-\mathbf r_0]=0,
+\qquad 0<\tau\le\Delta t,
+\qquad \mathbf n\cdot\mathbf p_{\mathrm{ref}}>0.
+$$
+
+Positions are in metres, times in seconds and mechanical momentum in $mc$ units.
+TRACK brackets the armed final crossing, then bisects by repeating its own Boris
+reference advance from the unchanged step start. It retains the nonnegative
+endpoint, resolves time to $10^{-12}\Delta t$ (or floating-point stagnation),
+and requires a section residual no larger than $10^{-9}$ m. A discontinuous or
+unresolved crossing fails and requests a smaller timestep. No position or momentum
+projection is applied.
+
+The accepted duration is broadcast before the ordinary particle kernels run. Both
+half drifts, the kick, reference-frame update and output clock use that duration.
+Trial reference sampling does not write monitor records. The magnetic Boris kick
+retains momentum-norm conservation to roundoff; event-dependent time selection
+is not a claim of global symplecticity. Accumulated transverse orbit error remains
+independent of the final plane residual.
+
+Space-charge coupling, multiple-container completion, ongoing emission and RF
+event ordering require further validation and are excluded from this first
+implementation. See [TURNS restrictions](../user-guide/tracking.qmd#turns).
 
 ## Experimental discrete RF tracking
 
@@ -139,8 +170,9 @@ bounds, not an established asymptotic convergence rate or full-cycle accuracy cl
 
 At DT/2 and DT/4 the maximum position differences against matched old-LF2 runs
 are 0.507 and 0.186 micrometres. At DT/4 the final energy difference is -1.93 eV.
-The return is sampled at a timestep endpoint, not interpolated to the exact turn
-plane. Particle E/B diagnostic arrays are not populated by this event path; field
+Those historical accelerating-turn comparisons sampled the return at a timestep
+endpoint. The current localized `TURNS` mode excludes RF; accelerating runs use
+their time/step schedule or `EKINSTOP`. Particle E/B diagnostic arrays are not populated by this event handler; field
 diagnostics require separate explicit sampling. Timesteps must resolve individual
 gap crossings without an intervening unobserved recrossing.
 

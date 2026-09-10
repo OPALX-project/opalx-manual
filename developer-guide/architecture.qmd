@@ -14,6 +14,9 @@ flowchart LR
   Input[Input file] --> Parser[OPAL parser]
   Parser --> Registry[OpalData registry]
   Registry --> Track[TrackCmd and TrackRun]
+  Registry --> Cof[Named CofCmd]
+  Cof --> Launch[ClosedOrbitInitialState]
+  Launch --> Track
   Track --> Tracker[ParallelTracker]
   Tracker --> Orbit[OrbitThreader and elements]
   Tracker --> Bunch[PartBunch and particle containers]
@@ -34,14 +37,16 @@ device kernels must have a valid device representation.
 
 ## Linear transfer-map calculation
 
-On the linear-map development branch, responsibilities are separated as follows:
+Linear-map responsibilities are separated as follows:
 
+::: {.table-responsive tabindex="0" role="region" aria-label="Linear-map components"}
 | Component | Responsibility |
 |---|---|
 | `Structure/LinearTransferMap.h` | Matrix result, boundary reference states, frames and diagnostics; no tracking logic. |
 | `Algorithms/ExternalFieldRayTracker` | Typed dispatch for Boris/LF2, fixed-step RK4 and fixed-step DOP853; shared host-side field evaluation and stage-aware support subdivision for map reference and private rays. |
 | `Algorithms/LinearTransferMapBuilder` | Explicit `Settings`, frame transport, reference segmentation, private-ray launches, finite-difference/Richardson solve and ordered composition. Returns segment owners without attaching results. |
 | `Algorithms/OrbitThreader` | Reference pass, overlap bookkeeping, invoking the builder, attaching results to runtime elements and printing the combined map. |
+:::
 
 `Algorithms/LinearTransferMap.h` remains a forwarding include for compatibility.
 The ray calculator uses external-field interfaces, not analytic element maps or
@@ -60,15 +65,14 @@ secondary-species threading remain Boris. `RungeKuttaTableau.h` contains the RK
 coefficients, without changing TRACK's production steppers. DOP853 currently uses
 only its eighth-order integration formula, not an adaptive solver or dense output.
 
-For the [closed-orbit proposal](https://github.com/OPALX-project/OPALX/issues/544#issuecomment-5523893372),
-the numerical builder and ray tracker are reusable without creating a particle bunch or
-invoking OrbitThreader's output/attachment machinery. The current `Result::combined` includes
-every unique segment, including field-free gaps, but maps between transported reference frames
-in `(x,x',y,y',zeta,delta)` coordinates. It is **not yet** the proposal's four-dimensional
-entrance-frame, fixed-energy one-turn function or its derivative. COF must supply exit-section
-termination, entrance-frame and kinetic-momentum coordinate transformations, the closure residual,
-and checks of geometric closure and TRACK consistency. The solver and that one-turn service
-are separate future work; Richardson refinement does not provide them implicitly.
+`LinearTransferMapBuilder::Result::combined` includes every unique segment,
+including field-free gaps, and maps between transported reference frames in
+`(x,x',y,y',zeta,delta)` coordinates. COF instead uses `OneTurnMap` for a
+four-dimensional, fixed-energy return in section-frame mechanical coordinates
+`(x,px,y,py)`. The two calculations share `ExternalFieldRayTracker`, but have
+different boundaries and coordinates. `ClosedOrbitSolver` differentiates the
+return map and solves its closure residual; it does not extract a transverse
+block from the six-dimensional combined map.
 
 ## Linear Maps
 
@@ -89,23 +93,58 @@ states to `LinearTransferMapBuilder`. The builder constructs finite-difference
 segment maps with private rays and returns ordered maps plus their combined
 product.
 
-## Closed Orbit Finder
+## Closed Orbit Finder {#closed-orbit-finder}
 
 ```{mermaid}
 flowchart TD
-  Cof[COF block] --> Ring[RING sequence]
-  Cof --> Beam[Explicit-energy BEAM]
-  Cof --> Solver[Fixed-energy solver]
-  Solver --> Return[One-turn return function]
-  Return --> Residual[Closure residual]
-  Residual --> Update[Newton correction]
-  Update --> Solver
-  Solver --> Output[Orbit and summary files]
+  Cof[Named CofCmd] --> Setup[RING and explicit-energy BEAM validation]
+  Setup --> Solver[ClosedOrbitSolver]
+  Solver --> Return[OneTurnMap]
+  Return --> Rays[ExternalFieldRayTracker]
+  Rays --> Fields[Native element fields and apertures]
+  Return --> Residual[Closure residual and central differences]
+  Residual --> Solver
+  Solver --> Eigen[LinearMapEigenAnalysis]
+  Eigen --> State[ClosedOrbitInitialState retained by CofCmd]
+  State --> JSON[Optional exact JSON file]
+  State --> Track[TrackCmd and TrackRun compatibility checks]
+  Track --> Tracker[ParallelTracker launch frame and reference]
 ```
 
-`COF` is a command block for static magnetic rings. It reuses the ring geometry
-and ray-tracking services but builds a fixed-energy closure problem rather than
-a particle-bunch tracking run.
+`CofCmd` derives from `Action`. A named statement executes at its semicolon and
+retains an independent `ClosedOrbitInitialState` by value. There is no nested
+tracking parser or `ENDCOF`. `findResult` requires a successfully completed named
+command. A fresh execution clears any previous result before starting.
+
+The command validates static magnetic elements, nominal end-to-start geometry,
+beam energy and charge, and the absence of global processes. It initializes one
+empty `PartBunch` collectively for element reference data, without loading
+distributions or solving self-fields. Monitors are skipped before their output
+initialization. The scalar solve runs on rank zero; result diagnostics, launch
+coordinates and failure status are broadcast before the command returns.
+
+`OneTurnMap` localizes the directed return to the fixed section. The Newton
+solver uses central differences and verifies convergence with a fresh return;
+`LinearMapEigenAnalysis` then classifies the full four-dimensional derivative.
+No production bunch is created for trial rays. Optional JSON output is written
+only on rank zero.
+
+`TrackCmd` copies a compatible named launch into its tracking state. `TrackRun`
+rechecks compatibility and requires one fresh, fully emitted beam with a generated
+distribution. `ParallelTracker` uses the solved laboratory reference and rigid
+orbit-local frame, independently of the sampled centroid. Species, mass, charge,
+momentum and ring name are checked, but no lattice or field fingerprint is stored.
+The [handover rules](../user-guide/tracking.qmd#opalx-initial-orbit) describe the
+user-visible restrictions.
+
+COF uses the selected section normal and the host ray integrator; TRACK uses
+its production Boris integration and a return plane normal to the launch
+momentum. Their timestep convergence must be established separately. For explicit
+`TURNS`, `DirectedTurnCounter` and `track_reference::advanceInBeamline` localize
+the final reference return by reintegration. The terminal timestep is shared
+collectively and used for the whole bunch. The current implementation requires
+one fully emitted container, no self-fields, and the supported static lattice;
+it does not project particle coordinates onto the return plane.
 
 ## Tune Computation
 
@@ -120,7 +159,7 @@ flowchart TD
   Lomb --> Files[Summary, samples, and spectrum CSVs]
 ```
 
-The spectral tune path is a diagnostic mode. It tracks two serial rays per
+Spectral tune computation is a diagnostic mode. It tracks two serial rays per
 launch row in static cyclotron sector fields and writes CSV diagnostics; it does
 not build the normal linear-map matrices.
 

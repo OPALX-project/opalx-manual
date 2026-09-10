@@ -112,7 +112,8 @@ length. The reference search is bounded and reports an error if no one-circuit
 return is found.
 
 `TRACK,LINE=<ring>` supports directed-return tracking for `RING` runs.
-The separate `COF` block also requires `LINE` to name a `RING`, because it builds
+The separate [named `COF` command](../tracking.qmd#opalx-cof-command) also
+requires `LINE` to name a `RING`, because it builds
 a fixed-energy return problem from the ring's ordered static magnetic elements.
 
 See [geometry, fringe support and ring return](../../physics/linear-transfer-maps.qmd#fringe-geometry-ring-return)

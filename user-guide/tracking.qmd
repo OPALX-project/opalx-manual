@@ -22,9 +22,11 @@ ENDTRACK;
 `ENDTRACK` are accepted until the block closes.
 
 ::: {.feature-opalx}
+::: {.table-responsive tabindex="0" role="region" aria-label="TRACK parameters"}
 | Parameter | Default | Current behavior |
 |---|---:|---|
-| `LINE` | required | Name of the `LINE` to track. |
+| `LINE` | required | Name of the `LINE` or `RING` to track. |
+| `INITIALORBIT` | omitted | Name of a completed `COF` result; see [orbit handover](#opalx-initial-orbit). |
 | `BEAM` | `UNNAMED_BEAM` | Single beam name. Set it explicitly for normal runs. |
 | `BEAMS` | empty | Ordered beam-name array. A non-empty array takes precedence over `BEAM`. |
 | `SOURCES` | empty | Accepted for compatibility but ignored; sources come from each selected `BEAM`. |
@@ -32,12 +34,13 @@ ENDTRACK;
 | `MAXSTEPS` | `{10}` | Per-segment integration-step limits. Negative values are rejected; values are converted to integers. |
 | `ZSTART` | `0` m | Starting reference position. |
 | `ZSTOP` | `{1e6}` m | Stop-position schedule. |
-| `T0` | `0` s | Accepted and stored, but not currently forwarded to `ParallelTracker`; source timing uses `EMISSIONSOURCE.T0`. |
-| `DTSCINIT` | `1e-12` s | Accepted adaptive-integrator setting; not used by the current parallel path. |
-| `DTAU` | `-1` | Accepted adaptive-integrator accuracy setting; not used by the current parallel path. |
+| `T0` | `0` s | With `INITIALORBIT`, inherited from COF; an explicit value must match. Otherwise stored but not forwarded to `ParallelTracker`; source timing uses `EMISSIONSOURCE.T0`. |
+| `DTSCINIT` | `1e-12` s | Accepted adaptive-integrator setting; not used by current parallel tracking. |
+| `DTAU` | `-1` | Accepted adaptive-integrator accuracy setting; not used by current parallel tracking. |
 | `TIMEINTEGRATOR` | `RK4` | Accepts `RK-4`, `RK4`, `LF-2`, `LF2`, or `MTS`, but does not currently select the `ParallelTracker` integration kernel. |
 | `STEPSPERTURN` | `720` | Nominal steps per turn for spectral tune analysis; otherwise inactive in normal tracking. |
-| `MAP_ORDER` | `1` | Stored compatibility value for map tracking; inactive in the current parallel path. |
+| `EKINSTOP` | `0` (disabled) | Positive reference kinetic-energy target in GeV for [single-gap cyclotron acceleration](cyclotron.qmd#accelerated-beam). |
+:::
 
 `DT`, `MAXSTEPS`, and `ZSTOP` may contain different numbers of entries. OPALX
 extends each shorter array by repeating its final value until all three have
@@ -93,6 +96,7 @@ legacy form is:
 TRACK, LINE=name, BEAM=name, DT={...}, MAXSTEPS={...}, ZSTOP={...};
 ```
 
+::: {.table-responsive tabindex="0" role="region" aria-label="Legacy TRACK parameters"}
 | Parameter | Legacy OPAL behavior |
 |---|---|
 | `LINE` | Beamline or sequence to track. |
@@ -102,6 +106,7 @@ TRACK, LINE=name, BEAM=name, DT={...}, MAXSTEPS={...}, ZSTOP={...};
 | `MAXSTEPS` | Maximum-step array; default `{10}`. |
 | `ZSTART` | Starting reference-particle position in metres. |
 | `ZSTOP` | Longitudinal thresholds at which the next schedule segment becomes active. |
+:::
 
 If the schedule arrays have different lengths, the final supplied value is
 reused for the remaining segments.
@@ -112,6 +117,7 @@ reused for the remaining segments.
 `RUN` starts or continues particle tracking with the current bunch state.
 
 ::: {.feature-opalx}
+::: {.table-responsive tabindex="0" role="region" aria-label="RUN parameters"}
 | Parameter | Default | Current behavior |
 |---|---:|---|
 | `METHOD` | required | Only `PARALLEL` is accepted. |
@@ -120,6 +126,11 @@ reused for the remaining segments.
 | `TURNS` | omitted; `1` for spectral tunes | Optional `RING` return-count stopping condition. |
 | `TRACKBACK` | `FALSE` | Accepted compatibility value; reverse tracking is not currently applied. |
 | `SCFIELDUPDATE` | `MIDPOINT` | Space-charge evaluation point within the drift--kick--drift step: `MIDPOINT` or `PRESTEP`. |
+| `SPECTRALTUNES` | `FALSE` | Run the separate [spectral tune diagnostic](cyclotron.qmd#tune-calculation). |
+| `TUNESAMPLE` | `50` | Positive integer sampling stride for spectral tune rays. |
+| `TUNEINTEGRATOR` | `RK4` | Spectral-ray integrator: `BORIS`, `LF2`, `RK4`, or `DOP853`. |
+| `TUNESECTOR` | `SM0` | Cyclotron sector defining the spectral launch plane and centre. |
+:::
 
 `RUN` does not register `BEAM`, `BEAMS`, `SOURCES`, or `DISTRIBUTION`.
 Selection belongs on `TRACK` and each `BEAM`; distribution objects are reached
@@ -134,10 +145,12 @@ RUN, METHOD="PARALLEL", FIELDSOLVER=FS1,
      SCFIELDUPDATE="PRESTEP";
 ```
 
+::: {.table-responsive tabindex="0" role="region" aria-label="Space-charge update ordering"}
 | Value | Space-charge positions | Step ordering |
 |---|---|---|
 | `MIDPOINT` | $R_{n+1/2}$ | Half drift, self-field solve, external-field evaluation, Boris kick, half drift |
 | `PRESTEP` | $R_n$ | Self-field solve, half drift, external-field evaluation, Boris kick, half drift |
+:::
 
 `MIDPOINT` is the default OPALX ordering. `PRESTEP` reproduces the historical
 OPAL space-charge sampling point: the gathered self-fields are carried with
@@ -155,14 +168,21 @@ change and repeat the timestep-convergence study for the observables of interest
 `TURNS` is an optional stopping condition for tracking a `RING`.
 
 When `TURNS=N` is specified explicitly, OPALX counts directed crossings of the
-ring return plane and stops each active particle container after `N` complete
-returns. `N` must be a positive integer.
+ring return plane and stops at the `N`th complete return of the reference particle.
+`N` must be a positive integer.
 
-For each particle container, the fixed return plane passes through the launch
+The fixed return plane passes through the launch
 reference position and is normal to the initial reference momentum. The initial
-point and an opposite-direction crossing do not count. OPALX records a return at
-the first integration endpoint beyond the plane; it does not interpolate the
-crossing or shorten the final step.
+point and an opposite-direction crossing do not count. Earlier turns are counted
+at integration endpoints. For the final requested return, OPALX locates the
+forward crossing by reintegrating the reference from the start of the last step,
+then advances the whole bunch through that shortened timestep. The reference,
+particle coordinates, and final statistics/HDF5 output therefore share the same
+time. The reference's signed distance from the plane must be below 1 nm.
+
+This localizes the reference crossing; it does not force the reference or each
+particle back to its launch coordinates. Transverse orbit error and bunch motion
+remain independent quantities.
 
 When `TURNS` is omitted, no turn-count stopping condition is enabled. Tracking
 instead follows the `ZSTOP` and `MAXSTEPS` schedule defined by `TRACK`.
@@ -175,6 +195,12 @@ Explicit turn-count tracking currently has the following restrictions:
   explicit `TURNS` value currently does not activate a turn-count stop.
 - Exactly one `DT`, `MAXSTEPS`, and `ZSTOP` segment must be defined.
 - Restart tracking is not supported.
+- One beam/container and `FIELDSOLVER, TYPE=NONE` are required. Space-charge
+  and multiple-container terminal events are not yet supported.
+- Emission must already be complete when tracking starts.
+- The lattice may contain static drifts, markers, monitors, multipoles, SBENDs,
+  RBENDs, solenoids, and cyclotron sectors. RF cavities and other time-dependent
+  elements are not supported for localized `TURNS`.
 - `TURNS` cannot be combined with `EKINSTOP`.
 
 For an explicit turn count, OPALX disables the `ZSTOP` limit and may increase
@@ -198,6 +224,7 @@ RUN, METHOD="PARALLEL-T", BEAM=beam1, FIELDSOLVER=Fs1,
      DISTRIBUTION=Dist1;
 ```
 
+::: {.table-responsive tabindex="0" role="region" aria-label="Legacy RUN parameters"}
 | Parameter | Legacy OPAL behavior |
 |---|---|
 | `METHOD` | `PARALLEL-T` selects OPAL-T tracking. |
@@ -206,6 +233,7 @@ RUN, METHOD="PARALLEL-T", BEAM=beam1, FIELDSOLVER=Fs1,
 | `BEAM` | Beam definition used for the run. |
 | `BOUNDARYGEOMETRY` | Boundary geometry used for particle termination. |
 | `TRACKBACK` | Selects OPAL-T reverse-time tracking. |
+:::
 
 A later `RUN` continues from the current bunch state unless the input
 explicitly reinitializes the bunch.
@@ -231,17 +259,16 @@ tracking communication object.
 
 `COF` finds a four-dimensional, fixed-energy orbit of a **static magnetic RING**.
 It is separate from `TRACK`; it emits no particles, runs no collective physics,
-and does not change the selected `BEAM` or subsequent tracking initial conditions.
-Use exactly one local `RUN`, then `ENDCOF`:
+and does not change the selected `BEAM`. A named command executes at its terminating
+semicolon and retains its result in memory. There is no inner `RUN` or `ENDCOF`:
 
 ```opal
 // MYRING is a geometrically closed RING; B0 is a fully defined BEAM.
-COF, LINE=MYRING, BEAM=B0, DT=4.113195129977025e-11,
-     MAXSTEPS=8000, MAXPATH=40, TIMEINTEGRATOR="RK4";
-  RUN, METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
-       FDSTEP={1e-5,1e-6,1e-5,1e-6}, SCALES={1,0.4,1,0.4},
-       XTOL=1e-10, PTOL=1e-10, OUTPUT="closed-orbit";
-ENDCOF;
+ic: COF, LINE=MYRING, BEAM=B0, DT=4.113195129977025e-11,
+     MAXSTEPS=8000, MAXPATH=40, TIMEINTEGRATOR="RK4",
+     METHOD="NEWTON", X=0, PX=-0.00024, Y=0, PY=0,
+     FDSTEP={1e-5,1e-6,1e-5,1e-6}, SCALES={1,0.4,1,0.4},
+     XTOL=1e-10, PTOL=1e-10;
 ```
 
 The numerical values above illustrate the 72 MeV cyclotron, not universal ring
@@ -250,19 +277,21 @@ for a 72 MeV proton: BEAM `ENERGY` is **total energy in GeV**, not kinetic energ
 Existing BEAM requirements (`NALLOC`, `SOURCES`, etc.) still apply, but COF does
 not load or emit the linked source distributions.
 
-### Outer COF controls
+### Tracking controls on COF
 
+::: {.table-responsive tabindex="0" role="region" aria-label="COF tracking controls"}
 | Attribute | Default | Meaning |
 |---|---|---|
 | `LINE`, `BEAM` | required | Root `RING` and one charged massive `BEAM` with explicit `PC`, `ENERGY` or `GAMMA`. |
 | `DT` | `1e-12` s | One positive scalar ray timestep, not a schedule. |
-| `MAXSTEPS` | `200000` | Positive integer budget per return; reaching it without a return fails. |
+| `MAXSTEPS` | `200000` | Positive integer budget per return, at most `1e9`; reaching it without a return fails. |
 | `MAXPATH` | required | Positive maximum search path in metres; normally greater than one circumference. |
-| `TIMEINTEGRATOR` | `RK4` | Shared ray integrator: `RK4`, `DOP853`, `BORIS`, or alias `LF2`. |
+| `TIMEINTEGRATOR` | `RK4` | Ray integrator: `RK4`, `DOP853`, `BORIS`, or alias `LF2`. DOP853 uses a fixed-step formula, without adaptive step selection. |
 | `T0` | `0` s | Initial ray time. Fields must nevertheless be static. |
 | `SECTION` | root RING frame | Optional global `{X,Y,Z,THETA,PHI,PSI}` in metres and radians, using element-pose rotation conventions. |
 | `GEOMTOL` | `1e-9` m | Nominal last-element exit to first-element entrance position tolerance. |
 | `ANGLETOL` | `1e-10` rad | Maximum mismatch angle between corresponding nominal frame axes. |
+:::
 
 Each ray starts on the section's local `z=0` plane and returns in the local
 positive-z direction after a negative-side excursion. There is no teleportation,
@@ -272,20 +301,22 @@ orbit and ignores misalignments; tracked fields retain native misalignments.
 The user must choose a meaningful section and sufficiently small `DT`, especially
 for self-intersecting trajectories.
 
-### COF-local RUN controls
+### Solver controls on COF
 
+::: {.table-responsive tabindex="0" role="region" aria-label="COF solver controls"}
 | Attribute | Default | Meaning |
 |---|---|---|
 | `METHOD`, `DIMENSION`, `JACOBIAN` | `NEWTON`, `4`, `CENTRAL` | Only these choices are supported. |
 | `X`, `PX`, `Y`, `PY` | `0` | Initial section-frame guess; positions in metres, mechanical momenta in `p/(mc)`, **not slopes**. |
-| `MAXIT` | `20` | Maximum accepted Newton iterations. |
+| `MAXIT` | `20` | Positive integer maximum of accepted Newton iterations, at most `1e9`. |
 | `XTOL`, `PTOL` | `1e-10`, `1e-10` | Componentwise position and momentum tolerances for both residual and undamped correction. |
 | `FDSTEP` | `{1e-6,1e-6,1e-6,1e-6}` | Four positive absolute derivative steps in the coordinate units. |
 | `SCALES` | `{1,1,1,1}` | Four positive coordinate scales for Newton and eigenanalysis. |
 | `DAMPING` | `TRUE` | Backtracking; when false only a residual-reducing full Newton step is accepted. |
-| `OUTPUT` | input basename + `_cof` | Output prefix; existing result files are rejected, not overwritten. |
+| `OUTPUT` | omitted | Optional exact JSON filename. No file is written when omitted; existing files are rejected. |
+:::
 
-Supported field elements initially are `DRIFT`, `MARKER`, static `MULTIPOLE`
+Currently supported field elements are `DRIFT`, `MARKER`, static `MULTIPOLE`
 (including its quadrupole/sextupole definitions), native `SBEND`, `RBEND`, and
 `CYCLOTRONSECTOR`. Passive monitors are skipped without initialising their output
 files. Other types, including RF even at zero voltage, are rejected. Native
@@ -300,23 +331,67 @@ use their straight axes. This assumes a local orbit neighbourhood with an
 unambiguous nearby design path, not intersecting beam-pipe solids. Cyclotron
 sectors retain their native domain predicates. Field selection is unchanged.
 The selected beam cannot have global processes. No RF/6D closure, space charge,
-restart, energy continuation, named result reuse, or automatic integer tune and
+restart, energy continuation, or automatic integer tune and
 plane assignment is provided. Unsupported attributes such as `ZSTOP`, `BEAMS`,
 `FIELDSOLVER`, and `ENERGYSTART` are errors, not ignored compatibility settings.
 
 ### Results and parallel behavior
 
-Successful runs write `OUTPUT.txt` (settings, iteration diagnostics, orbit,
-matrix and eigenanalysis), `OUTPUT.json` (coordinates, residual, matrix, complex
-eigenvalues, numerical stability and fractional modes), and `OUTPUT-orbit.csv`
-(one-turn lab positions/momenta, time and path). Failed solves may leave a text
-diagnostic or partial output; choose a fresh output prefix before retrying.
+Each named solve retains its full laboratory launch position [m], momentum
+[p/(mc)], section, time, species, energy and numerical diagnostics independently.
+`OUTPUT="orbit.json"` writes exactly that JSON file; there are no text or orbit-CSV
+sidecars. With `OUTPUT` omitted, COF writes no files. Standalone COF inputs also
+suppress the process timing file; ordinary TRACK output remains unchanged.
+Solver failures stop execution before a result can be consumed. The
+[COF JSON format](../reference/file-formats.qmd#cof-result-json) specifies the
+coordinates, matrix and launch metadata. No filename extension is added.
 
-The solve runs on rank zero; diagnostic result text and failure status are
-broadcast before returning. Only rank zero writes COF result files. One empty
-setup container is constructed collectively per block to preserve existing
-element reference-charge semantics, not per trial. No production particle
-tracking or field solve is performed.
+The solve runs on rank zero. The launch state, diagnostics and failure status are
+broadcast before returning. Only rank zero writes an explicit result file.
+See the [COF architecture](../developer-guide/architecture.qmd#closed-orbit-finder)
+for implementation details.
+
+### Initialise TRACK from a named orbit {#opalx-initial-orbit}
+
+```opal
+// ic is a completed named COF; B0 has a generated, orbit-local distribution.
+FS0: FIELDSOLVER, TYPE=NONE, NX=16, NY=16, NZ=16;
+TRACK, LINE=MYRING, BEAM=B0, INITIALORBIT=ic,
+       DT=1e-12, MAXSTEPS=200000;
+  RUN, METHOD="PARALLEL", FIELDSOLVER=FS0, TURNS=1;
+ENDTRACK;
+```
+
+TRACK checks the lattice name, particle species, mass, charge and reference
+momentum against the stored result. Keep the lattice and field definitions
+unchanged between solve and handover; recompute COF after changing them. The
+name check does not detect changes to fields or geometry under the same name.
+TRACK inherits the COF time; an explicit conflicting `T0` is an error.
+`INITIALORBIT` refers to the result held in memory by that named command; it
+does not read a JSON file.
+
+Generated particle positions and source offsets are in the orbit-local frame,
+whose origin is the solved position and whose +z axis follows the solved momentum.
+Particle momenta are full p/(mc) vectors in that frame, including their longitudinal
+reference momentum. The distribution spread and centroid offsets are retained;
+they do not replace the solved reference.
+
+The initial handover supports one fresh beam, `ZSTART=0`, and completed emission.
+`FROMFILE` and `EMITTEDFROMFILE` are rejected because their existing absolute
+coordinate convention would make placement ambiguous. Restart and spectral tune
+mode cannot use `INITIALORBIT`. Space-charge matching is not performed by COF;
+an orbit-centred bunch is not necessarily a self-consistently matched bunch.
+For space-charge tracking, omit `TURNS` and use the `TRACK` stopping schedule.
+
+The handover transfers the launch state, not COF's timestep or integration
+settings. COF's ray integrator and TRACK's production Boris integration can
+give different closure errors at the same `DT`. Check TRACK convergence
+independently. Their return planes can also differ: COF uses the selected
+section normal, while TRACK uses the solved launch momentum as its normal.
+
+Several COFs may precede TRACK. `INITIALORBIT=ic1` selects `ic1` even if `ic2` was
+computed later. Existing input blocks must move their local RUN attributes onto
+the named COF statement, remove `ENDCOF`, and use an exact filename for OUTPUT.
 
 Convergence proves closure of the numerical return map, not physical stability.
 Off-unit-circle eigenpairs have null stable-tune values in JSON. Fractional modes

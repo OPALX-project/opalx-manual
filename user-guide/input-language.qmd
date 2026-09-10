@@ -90,6 +90,7 @@ The complete lexical, expression, array, selection, and constraint rules are in
 |---|---|---|
 | Action | `OPTION, INFO=TRUE;` | Execute a registered command immediately. |
 | Named definition | `Beam1: BEAM, PARTICLE=ELECTRON, ...;` | Clone a registered class, assign attributes, and store it under a name. |
+| Named action | `ic: COF, LINE=R1, BEAM=B1, MAXPATH=40;` | Execute a closed-orbit solve immediately and retain its result under a name. |
 | Typed value | `REAL length = 0.5;` | Define a scalar, string, Boolean, or vector value for later expressions. |
 | Immediate assignment | `length = 0.5;` | Evaluate the right-hand expression when the assignment is parsed. |
 | Expression assignment | `momentum := beta * gamma;` | Store an expression that can be reevaluated when its dependencies change. |
@@ -144,7 +145,7 @@ run. Define dependencies before the object that refers to them.
 | `BEAM` | Defines particle species, reference energy or momentum, current, frequency, allocation, source list, and global processes. | [Beam](beam.qmd) |
 | `DISTRIBUTION` | Defines how initial positions, momenta, or emission times are sampled or read from a file. | [Distribution](beam-distributions.qmd#distribution) |
 | `EMISSIONSOURCE` | Couples one distribution to offsets, timing, emission energy, and image-charge settings. | [Emission source](beam-distributions.qmd#emissionsource) |
-| `EMISSIONSOURCELIST` | Stores an ordered, non-empty list of named emission sources for `BEAM.SOURCES` or `TRACK.SOURCES`. | [Emission-source list](beam-distributions.qmd#emissionsourcelist) |
+| `EMISSIONSOURCELIST` | Stores an ordered, non-empty list of named emission sources for `BEAM.SOURCES`. | [Emission-source list](beam-distributions.qmd#emissionsourcelist) |
 | `FIELDSOLVER` | Selects the Poisson backend, mesh, decomposition, boundary conditions, optional binning, and image-charge mode. | [Field solver](field-solver/index.qmd) |
 | `BINNING` | Configures the longitudinal histogram used by binned space charge. | [Binning](structures/index.qmd#binning) |
 
@@ -159,6 +160,8 @@ user-guide section.
 |---|---|---|
 | `LINE` | Orders named elements into the lattice selected by `TRACK.LINE`. | [Beam Lines](beam-lines/index.qmd) |
 | `DRIFT` | Field-free propagation over a finite length. | [DRIFT](elements.qmd#drift) |
+| `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | Parameter guide pending. |
+| `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | Parameter guide pending. |
 | `CONSTANTEFIELDCAVITY` | Applies a spatially uniform, constant electric field inside the element. | [CONSTANTEFIELDCAVITY](elements.qmd#constant-electric-field-cavity) |
 | `QUADRUPOLE` | Defines a thick normal or skew quadrupole. | [QUADRUPOLE](elements.qmd#quadrupole) |
 | `MULTIPOLE` | Defines a thick hard-edge multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |
@@ -207,6 +210,7 @@ not merely describe a later simulation object.
 
 | Action | Short explanation | Maintained guide |
 |---|---|---|
+| `COF` | Finds a fixed-energy orbit in a static magnetic `RING`; a named result can initialize `TRACK.INITIALORBIT`. | [Closed-orbit command](tracking.qmd#opalx-cof-command) |
 | `OPTION` | Sets global logging, output, random-number, space-charge, load-balancing, and synchronization behavior. | [Runtime options](options.qmd) |
 | `TITLE` | Sets the calculation title. | [Control statements](control-statements/index.qmd#title-statement) |
 | `CALL` | Temporarily reads and executes another input file, then resumes the caller. | [Control statements](control-statements/index.qmd#call-statement) |
@@ -227,12 +231,15 @@ defined before a later statement refers to them. Named definitions are stored
 in the main object directory; actions are cloned, parsed, and executed
 immediately. Before an action executes, OPALX updates objects whose expression
 dependencies changed.
+Named actions such as `ic: COF, ...;` also execute immediately; the name retains
+the successful result for later use.
 
 Within a normal simulation the practical order is:
 
 1. Set `OPTION` and define reusable values.
 2. Define distributions, emission sources, an emission-source list, and a beam.
-3. Define elements and assemble a `LINE`.
+3. Define elements and assemble a `LINE` or `RING`.
 4. Define optional `BINNING` and the selected `FIELDSOLVER`.
-5. Enter `TRACK`, issue `RUN`, and close the block with `ENDTRACK`.
+5. For a static ring, optionally solve a named `COF`, then enter `TRACK` with
+   `INITIALORBIT` to use that launch state. Issue `RUN` and close with `ENDTRACK`.
 6. Finish with `QUIT`.
