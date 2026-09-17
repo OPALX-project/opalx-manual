@@ -39,8 +39,8 @@ distribution_html_path = SITE / "user-guide/beam-distributions.html"
 if distribution_html_path.file?
   distribution_html = File.read(distribution_html_path)
   distribution_anchors = %w[
-    emissionsource emissionsourcelist distribution gauss multivariategauss flattop opalflattop
-    fromfile emittedfromfile reproducibility-limitations
+    emissionsource emissionsourcelist distribution uniform gauss multivariategauss flattop
+    opalflattop fromfile emittedfromfile reproducibility-limitations
   ]
   distribution_anchors.each do |anchor|
     errors << "beam-distributions render is missing ##{anchor}" unless distribution_html.match?(/\bid=["']#{Regexp.escape(anchor)}["']/)
@@ -49,8 +49,9 @@ if distribution_html_path.file?
     "emissionsource" => /data-number=["']\d+\.1["']/,
     "emissionsourcelist" => /data-number=["']\d+\.2["']/,
     "distribution" => /data-number=["']\d+\.3["']/,
-    "gauss" => /data-number=["']\d+\.3\.1["']/,
-    "emittedfromfile" => /data-number=["']\d+\.3\.6["']/
+    "uniform" => /data-number=["']\d+\.3\.1["']/,
+    "gauss" => /data-number=["']\d+\.3\.2["']/,
+    "emittedfromfile" => /data-number=["']\d+\.3\.7["']/
   }.each do |anchor, numbering|
     section = distribution_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "beam-distributions ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)
@@ -67,7 +68,7 @@ field_solver_html_path = SITE / "user-guide/field-solver/index.html"
 if field_solver_html_path.file?
   field_solver_html = File.read(field_solver_html_path)
   field_solver_anchors = %w[
-    solver-backends solver-none solver-fft solver-open solver-cg fieldsolver-parameters
+    solver-backends solver-none solver-fft solver-open solver-p3m solver-cg fieldsolver-parameters
     mesh-pic-cycle boundary-conditions open-periodic-boundaries generic-dirichlet-boundaries
     space-charge-modes monolithic-mode binned-mode explicit-image-charges
     shifted-greens-correction compatibility-selection accuracy-cost
@@ -78,7 +79,8 @@ if field_solver_html_path.file?
   {
     "solver-backends" => /data-number=["']\d+\.1["']/,
     "solver-none" => /data-number=["']\d+\.1\.1["']/,
-    "solver-cg" => /data-number=["']\d+\.1\.4["']/,
+    "solver-p3m" => /data-number=["']\d+\.1\.4["']/,
+    "solver-cg" => /data-number=["']\d+\.1\.5["']/,
     "fieldsolver-parameters" => /data-number=["']\d+\.2["']/,
     "generic-dirichlet-boundaries" => /data-number=["']\d+\.4\.2["']/,
     "shifted-greens-correction" => /data-number=["']\d+\.5\.4["']/,
@@ -105,9 +107,9 @@ elements_html_path = SITE / "user-guide/elements.html"
 if elements_html_path.file?
   elements_html = File.read(elements_html_path)
   element_anchors = %w[
-    common-element-syntax drift constant-electric-field-cavity quadrupole multipole multipolet
-    solenoid rfcavity travelingwave cyclotronsector laser monitor marker probe bends verticalffamagnet
-    variable-rf-cavity element-limitations
+    common-element-syntax drift constant-electric-field-cavity constant-focusing quadrupole multipole
+    multipolet solenoid rfcavity travelingwave cyclotronsector laser monitor marker probe bends
+    verticalffamagnet variable-rf-cavity element-limitations
   ]
   element_anchors.each do |anchor|
     errors << "elements render is missing ##{anchor}" unless elements_html.match?(/\bid=["']#{Regexp.escape(anchor)}["']/)
@@ -116,13 +118,14 @@ if elements_html_path.file?
     "common-element-syntax" => /data-number=["']\d+\.1["']/,
     "drift" => /data-number=["']\d+\.2["']/,
     "constant-electric-field-cavity" => /data-number=["']\d+\.3["']/,
-    "rfcavity" => /data-number=["']\d+\.8["']/,
-    "travelingwave" => /data-number=["']\d+\.9["']/,
-    "cyclotronsector" => /data-number=["']\d+\.10["']/,
-    "laser" => /data-number=["']\d+\.11["']/,
-    "bends" => /data-number=["']\d+\.15["']/,
-    "variable-rf-cavity" => /data-number=["']\d+\.17["']/,
-    "element-limitations" => /data-number=["']\d+\.18["']/
+    "constant-focusing" => /data-number=["']\d+\.4["']/,
+    "rfcavity" => /data-number=["']\d+\.9["']/,
+    "travelingwave" => /data-number=["']\d+\.10["']/,
+    "cyclotronsector" => /data-number=["']\d+\.11["']/,
+    "laser" => /data-number=["']\d+\.12["']/,
+    "bends" => /data-number=["']\d+\.16["']/,
+    "variable-rf-cavity" => /data-number=["']\d+\.18["']/,
+    "element-limitations" => /data-number=["']\d+\.19["']/
   }.each do |anchor, numbering|
     section = elements_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "elements ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)

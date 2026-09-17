@@ -10,7 +10,7 @@ The following objects are registered in the current OPALX configurator.
 
 | Family | Registered objects |
 |---|---|
-| RF and electric fields | `RFCAVITY`, `TRAVELINGWAVE`, `CONSTANTEFIELDCAVITY`, `VARIABLE_RF_CAVITY` |
+| RF and electric fields | `RFCAVITY`, `TRAVELINGWAVE`, `CONSTANTEFIELDCAVITY`, `CONSTANTFOCUSING`, `VARIABLE_RF_CAVITY` |
 | Transport | `DRIFT`, `QUADRUPOLE`, `RBEND`, `SBEND`, `SOLENOID` |
 | Multipoles and specialized magnets | `MULTIPOLE`, `MULTIPOLET`, `VERTICALFFAMAGNET` |
 | Sources and interactions | `LASER` |

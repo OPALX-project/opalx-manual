@@ -89,6 +89,7 @@ distribution_sections = [
   ["## `EMISSIONSOURCE` {#emissionsource}", "emissionsource"],
   ["## `EMISSIONSOURCELIST` {#emissionsourcelist}", "emissionsourcelist"],
   ["## `DISTRIBUTION` {#distribution}", "distribution"],
+  ["### `UNIFORM` {#uniform}", "uniform"],
   ["### `GAUSS` {#gauss}", "gauss"],
   ["### `MULTIVARIATEGAUSS` {#multivariategauss}", "multivariategauss"],
   ["### `FLATTOP` {#flattop}", "flattop"],
@@ -125,6 +126,7 @@ field_solver_sections = [
   ["### `NONE` {#solver-none}", "solver-none"],
   ["### `FFT` {#solver-fft}", "solver-fft"],
   ["### `OPEN` {#solver-open}", "solver-open"],
+  ["### `P3M` {#solver-p3m}", "solver-p3m"],
   ["### `CG` {#solver-cg}", "solver-cg"],
   ["## `FIELDSOLVER` parameters {#fieldsolver-parameters}", "fieldsolver-parameters"],
   ["## Mesh and particle-in-cell cycle {#mesh-pic-cycle}", "mesh-pic-cycle"],
@@ -162,7 +164,10 @@ if field_solver_page.file?
 
   {
     "disabled CG backend" => "Cannot use CGSolver yet, not fully implemented.",
-    "unavailable P3M backend" => "`P3M` is not an accepted `FIELDSOLVER.TYPE`",
+    "open P3M backend" => "`TYPE=P3M`; all `BCFFT*=OPEN`",
+    "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
+    "P3M cutoff requirement" => "finite, positive cutoff radius `RCUT`",
+    "P3M binning restriction" => "`P3M` requires `BINS=NONE`",
     "mandatory 3D decomposition" => "`PARFFTX`, `PARFFTY`, and `PARFFTZ` are all",
     "uniform boundary restriction" => "Mixed boundary conditions",
     "generic Dirichlet limitation" => "this is **not a usable mode**",
@@ -312,6 +317,7 @@ element_sections = [
   ["## `DRIFT` {#drift}", "drift"],
   ["## `CONSTANTEFIELDCAVITY` {#constant-electric-field-cavity}",
    "constant-electric-field-cavity"],
+  ["## `CONSTANTFOCUSING` {#constant-focusing}", "constant-focusing"],
   ["## `QUADRUPOLE` {#quadrupole}", "quadrupole"],
   ["## `MULTIPOLE` {#multipole}", "multipole"],
   ["## `MULTIPOLET` {#multipolet}", "multipolet"],
@@ -505,13 +511,13 @@ source_audited_inputs = {
     DUMPBINSFREQ TABLEPRINTFREQ
   ],
   "user-guide/field-solver/index.qmd" => %w[
-    TYPE BINS NX NY NZ PARFFTX PARFFTY PARFFTZ BCFFTX BCFFTY BCFFTZ GREENSF BBOXINCR
+    TYPE BINS NX NY NZ PARFFTX PARFFTY PARFFTZ BCFFTX BCFFTY BCFFTZ GREENSF RCUT BBOXINCR
     BCHARGE ZEROFACE_R0Z SHIFTED_GREENS_FUNCTION ZEROFACEPLANEDUMP ZEROFACE_MAXSTEPS
   ],
   "user-guide/elements.qmd" => %w[
     TYPE APERTURE L ELEMEDGE WAKEF PARTICLEMATTERINTERACTION X Y Z THETA PHI PSI
     DX DY DZ DTHETA DPHI DPSI OUTFN DELETEONTRANSVERSEEXIT
-    GEOMETRY NSLICES EX EY EZ K1 DK1 K1S DK1S KN DKN KS DKS
+    GEOMETRY NSLICES EX EY EZ STRENGTH RADIUS K1 DK1 K1S DK1S KN DKN KS DKS
     TP LFRINGE RFRINGE HAPERT VAPERT MAXFORDER ROTATION EANGLE BBLENGTH ANGLE
     MAXXORDER VARRADIUS ENTRYOFFSET SCALING_MODEL FMAPFN FAST
     VOLT DVOLT FREQ LAG DLAG APVETO RMIN RMAX VMIN VMAX BSCALE TRIMCOIL BMAX SLPTC PDIS GAPWIDTH PHI0 DESIGNENERGY

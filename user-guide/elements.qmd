@@ -20,6 +20,7 @@ Regression coverage is stated separately from parser registration.
 |---|---|---|
 | `DRIFT` | Field-free transport | none |
 | `CONSTANTEFIELDCAVITY` | Uniform electric field | none |
+| `CONSTANTFOCUSING` | Collective linear focusing for DIH studies | none |
 | `QUADRUPOLE` | Normalized quadrupole | none |
 | `MULTIPOLE` | Normalized dipole/quadrupole arrays | none |
 | `MULTIPOLET` | Physical multipole coefficients with fringe fields | optional time model |
@@ -106,6 +107,45 @@ Gun: CONSTANTEFIELDCAVITY,
 
 The field is applied for local $0<z\le L$ in the particle kernel. Use
 `RFCAVITY` or `TRAVELINGWAVE` when an oscillating mapped RF field is required.
+
+## `CONSTANTFOCUSING` {#constant-focusing}
+
+`CONSTANTFOCUSING` adds linear three-dimensional focusing about the current
+bunch centroid. It was introduced primarily for disorder-induced-heating (DIH)
+test cases.
+
+```opal
+Focus: CONSTANTFOCUSING,
+    L=1.0e-2, ELEMEDGE=0.0,
+    STRENGTH=1.5, RADIUS=1.774e-3;
+```
+
+| Parameter | Default | Unit | Current behavior |
+|---|---:|---:|---|
+| `STRENGTH` | `1` | none | Multiplies the initial field scale. |
+| `RADIUS` | `0` | m | Reference beam radius; a positive value is required. |
+
+On its first application, the element fixes
+
+$$
+\overline{\mathbf E}_{\mathrm{abs}}
+=\frac{1}{N}\sum_{i=1}^{N}
+\begin{pmatrix}|E_{i,x}|\\|E_{i,y}|\\|E_{i,z}|\end{pmatrix},
+\qquad
+g=\frac{\mathrm{STRENGTH}}{\mathrm{RADIUS}}
+\left\lVert\overline{\mathbf E}_{\mathrm{abs}}\right\rVert_2,
+$$
+
+then adds
+
+$$
+\mathbf E_i \mathrel{+}=g\left(\mathbf R_i-\langle\mathbf R\rangle\right).
+$$
+
+The gradient $g$ remains fixed, while the bunch centroid is recomputed. The
+field is applied only for element-local $0\le z<L$ and does not affect the
+reference particle. With positive `STRENGTH`, it focuses electrons; the force
+direction reverses with particle charge.
 
 ## `QUADRUPOLE` {#quadrupole}
 
