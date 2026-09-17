@@ -60,6 +60,7 @@ and cathode-plane corrections are additional modes described below.
 | `NONE` | No solve | Available no-op | External fields only |
 | `FFT` | Periodic in all three axes | Available | A periodically repeated charge distribution |
 | `OPEN` | Isolated free space | Available | Finite bunches; recommended default |
+| `P3M` | Open or periodic in all three axes | Available, monolithic only | Open or periodic P3M calculations |
 | `CG` | Intended potential solve with field boundary conditions | **Unavailable** | Parser-visible, but construction deliberately fails |
 
 : {tbl-colwidths="[12, 24, 22, 42]"}
@@ -108,6 +109,28 @@ Both choices are forwarded only to the `OPEN` backend. Establish mesh
 convergence for the selected kernel rather than assuming identical finite-grid
 results.
 
+### `P3M` {#solver-p3m}
+
+`P3M` supports open and periodically repeated domains. Select one uniform
+boundary configuration and set a finite, positive cutoff radius `RCUT` in
+metres:
+
+| Domain | Boundary settings |
+|---|---|
+| Open | `BCFFTX=OPEN`, `BCFFTY=OPEN`, `BCFFTZ=OPEN` |
+| Periodic | `BCFFTX=PERIODIC`, `BCFFTY=PERIODIC`, `BCFFTZ=PERIODIC` |
+
+```opal
+FSP3M: FIELDSOLVER, TYPE=P3M,
+    NX=64, NY=64, NZ=64,
+    PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+    BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+    RCUT=2.5e-4, BBOXINCR=2.0;
+```
+
+`P3M` at the moment requires `BINS=NONE` and cannot be combined with either 
+cathode-plane.
+
 ### `CG` {#solver-cg}
 
 ::: {.callout-warning title="Not usable on current master"}
@@ -116,21 +139,19 @@ results.
 Dirichlet boundary setting therefore has no runnable backend at present.
 :::
 
-`P3M` is not an accepted `FIELDSOLVER.TYPE` on current master. Historical or
-implementation notes that mention it do not describe a released OPALX input.
-
 ## `FIELDSOLVER` parameters {#fieldsolver-parameters}
 
 | Parameter | Default | Accepted values / unit | Current effect |
 |---|---:|---|---|
-| `TYPE` | required | `NONE`, `FFT`, `OPEN`, `CG` | Selects the backend described above. |
-| `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. |
+| `TYPE` | required | `NONE`, `FFT`, `P3M`, `OPEN`, `CG` | Selects the backend described above. |
+| `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. `P3M` requires `NONE`. |
 | `NX`, `NY`, `NZ` | none | positive integer cell counts | Number of mesh points in $x$, $y$, and $z$. The parser stores real values; use integers. |
 | `PARFFTX` | `FALSE` | Boolean | Domain decomposition in $x$. Must currently be `TRUE`. |
 | `PARFFTY` | `FALSE` | Boolean | Domain decomposition in $y$. Must currently be `TRUE`. |
 | `PARFFTZ` | `TRUE` | Boolean | Domain decomposition in $z$. Must currently be `TRUE`. |
 | `BCFFTX`, `BCFFTY`, `BCFFTZ` | `OPEN` | `OPEN`, `PERIODIC`, `DIRICHLET` | Mesh boundary selection. All three values must match. See [Boundary conditions](#boundary-conditions). |
 | `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | Green-function discretization for `TYPE=OPEN`; otherwise ineffective. |
+| `RCUT` | `0 m` | positive length | Required and positive for `TYPE=P3M`; leave at `0` for every other type. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
@@ -151,7 +172,7 @@ flowchart LR
     RUN[RUN.FIELDSOLVER] --> PB[Particle bunch]
     PB --> FC[One moving field layout]
     PB --> BFS[Self-field controller]
-    TYPE[FIELDSOLVER.TYPE] --> BACKEND[NONE / FFT / OPEN / CG]
+    TYPE[FIELDSOLVER.TYPE] --> BACKEND[NONE / FFT / P3M / OPEN / CG]
     BINS[FIELDSOLVER.BINS] --> PATH[Monolithic / binned]
     SOURCE[EMISSIONSOURCE] --> CORR[No correction / image / shifted Green]
     BFS --> BACKEND
@@ -183,11 +204,14 @@ Use matching solver and boundary settings:
 |---|---|
 | Isolated finite bunch | `TYPE=OPEN`; all `BCFFT*=OPEN` |
 | Periodically repeated box | `TYPE=FFT`; all `BCFFT*=PERIODIC` |
+| Open P3M domain | `TYPE=P3M`; all `BCFFT*=OPEN` |
+| Periodic P3M domain | `TYPE=P3M`; all `BCFFT*=PERIODIC` |
 | No self-field | `TYPE=NONE`; all `BCFFT*=OPEN` is conventional |
 
 The three axes must use the same boundary value. The boundary attributes set
 mesh periodicity, but they do not change `FFT` into an open solver or `OPEN`
-into a periodic solver; select the matching `TYPE` explicitly.
+into a periodic solver. `P3M` explicitly supports either uniformly open or
+uniformly periodic boundaries.
 
 ### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}
 
@@ -212,6 +236,8 @@ source can additionally request one cathode-plane correction.
 the entire bunch. It applies no rest-frame transformation and does not create a
 self-magnetic field. This is the least expensive mode and is appropriate only
 when that electrostatic approximation is adequate.
+
+`P3M` is available only in this mode.
 
 Explicit image charges can be included in this path. A requested shifted-Green
 correction is not applied without binning; OPALX emits a warning and proceeds
@@ -329,14 +355,16 @@ same `ZEROFACE_MAXSTEPS` convention.
 |---|---|---|---|
 | Disable self-fields | `NONE`; conventionally `OPEN` boundaries | `BINS=NONE` | none |
 | Periodic electrostatics | `FFT`; all `PERIODIC` | monolithic or binned | none |
+| Periodic P3M | `P3M`; all `PERIODIC` | monolithic | none |
 | Isolated, nearly mono-velocity bunch | `OPEN`; all `OPEN` | monolithic | optional explicit images |
+| Open P3M | `P3M`; all `OPEN` | monolithic | none |
 | Isolated bunch with velocity spread | `OPEN`; all `OPEN` | named `BINS` | none or explicit images |
 | Emission near a grounded plane | `OPEN`; all `OPEN` | named `BINS` | shifted Green recommended for separation from the plane |
 
 : {tbl-colwidths="[25, 24, 20, 31]"}
 
-Do not select `CG`, generic `DIRICHLET`, or `P3M` for a current production
-input. Do not combine cathode corrections with `FFT` periodic physics.
+Do not select `CG` or generic `DIRICHLET` for a current production input. Do
+not combine cathode corrections with periodic physics or `P3M`.
 
 ## Accuracy, cost, and reproducibility {#accuracy-cost}
 
@@ -346,6 +374,7 @@ input. Do not combine cathode corrections with `FFT` periodic physics.
   A visually smooth field is not a convergence test.
 - Vary `BBOXINCR`: too little padding places particles close to the mesh edge;
   too much padding lowers resolution for fixed mesh dimensions.
+- For `P3M`, check convergence in both mesh resolution and `RCUT`.
 - For binned runs, vary the `BINNING` controls and check that observables do not
   depend materially on the chosen partition.
 - Compare correction cutoffs and confirm that fields are negligible before

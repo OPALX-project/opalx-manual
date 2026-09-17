@@ -79,17 +79,17 @@ may use the same distribution, each with independent offsets and start time.
 name: DISTRIBUTION, TYPE=distribution_type, ...;
 ```
 
-OPALX accepts exactly `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
+OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 `OPALFLATTOP`, `FROMFILE`, and `EMITTEDFROMFILE`.
 
 ### Available input parameters {.unnumbered}
 
 | Parameter | Default / unit | Used by | Runtime effect |
 |---|---|---|---|
-| `TYPE` | required | all | Selects one of the six types above. |
+| `TYPE` | required | all | Selects one of the seven types above. |
 | `NPARTDIST` | `0`, particles | all | Requested macroparticle count. Use a positive integer except where `EMITTEDFROMFILE` explicitly selects all file records. |
 | `FNAME` | empty, path | file types | Input particle file. Relative paths are resolved from the OPALX input file. |
-| `SIGMAX`, `SIGMAY`, `SIGMAZ` | `0 m` | Gaussian types; transverse flat-top types | Spatial widths; flat-top `SIGMAX` and `SIGMAY` are ellipse semi-axes. |
+| `SIGMAX`, `SIGMAY`, `SIGMAZ` | `0 m` | `UNIFORM`; Gaussian types; transverse flat-top types | Ellipsoid semi-axes for `UNIFORM`, Gaussian widths, or transverse flat-top semi-axes. |
 | `SIGMAPX`, `SIGMAPY`, `SIGMAPZ` | `0`, $\beta\gamma$ | Gaussian types | RMS normalized-momentum widths. |
 | `CORR` | empty array | `MULTIVARIATEGAUSS` | Fifteen off-diagonal correlation coefficients. |
 | `SIGMAT` | `0 s` | flat-top types; optional emitted-file window | Default RMS width for both pulse edges. |
@@ -107,6 +107,29 @@ OPALX accepts exactly `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 Non-file distributions require `PC`, `ENERGY`, or `GAMMA` on `BEAM`.
 `FROMFILE` and `EMITTEDFROMFILE` contain absolute normalized momenta and reject
 those three beam-energy attributes.
+
+### `UNIFORM` {#uniform}
+
+`UNIFORM` samples positions uniformly by volume inside an ellipsoid with
+semi-axes $a=\mathrm{SIGMAX}$, $b=\mathrm{SIGMAY}$, and
+$c=\mathrm{SIGMAZ}$:
+
+$$
+\frac{x^2}{a^2}+\frac{y^2}{b^2}+\frac{z^2}{c^2}\leq 1.
+$$
+
+All three semi-axes must be positive. Every particle receives the same
+normalized momentum $(0,0,\bar p_z)$ from the beam reference momentum, so the
+sample has no momentum spread. Source `R0*` and `P0*` offsets are added after
+sampling.
+
+```text
+U: DISTRIBUTION, TYPE=UNIFORM, NPARTDIST=10000,
+   SIGMAX=1e-3, SIGMAY=2e-3, SIGMAZ=3e-3;
+```
+
+Use `EMISSIONMODEL=NONE` and `T0=0`; other emission models and delayed
+injection are not supported.
 
 ### `GAUSS` {#gauss}
 

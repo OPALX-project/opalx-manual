@@ -8,6 +8,8 @@ last-reviewed: "2026-09-05"
 
 OPALX keeps the statement-driven OPAL object model at its boundary while using
 IPPL and Kokkos for distributed, performance-portable particle and field work.
+The [Space-Charge Solver Architecture](space-charge-solver-architecture.qmd)
+chapter expands the solver-specific ownership and execution flow.
 
 ```{mermaid}
 flowchart LR

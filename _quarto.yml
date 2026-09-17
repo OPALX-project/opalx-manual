@@ -80,6 +80,7 @@ book:
     - part: "Developer Guide"
       chapters:
         - developer-guide/architecture.qmd
+        - developer-guide/space-charge-solver-architecture.qmd
         - developer-guide/build-test-ci.qmd
         - developer-guide/adding-features.qmd
         - developer-guide/documentation-workflow.qmd

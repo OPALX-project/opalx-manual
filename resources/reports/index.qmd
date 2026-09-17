@@ -16,6 +16,7 @@ Use this archive's search to find titles and text across a growing collection.
 
 | Date | Entry | Kind | Status |
 |---|---|---|---|
+| 2026-09-07 | [Space-charge solver architecture diagrams](2026/space-charge-solver-architecture-diagrams.qmd) | Architecture diagrams | Current |
 | 2026-07-14 | [CUDA extended-lambda linkage bug](2026/cuda-extended-lambda-linkage-bug.qmd) | Bug investigation | Resolved with workaround |
 | 2026-07-06 | [Implicit `this` capture in IPPL field assignment](2026/ippl-implicit-this-capture.qmd) | Bug investigation | Resolved in IPPL #561 |
 | 2026-04-30 | [OpalElement layout proposal](2026/opal-element-layout-proposal.qmd) | Design report | Experimental |
