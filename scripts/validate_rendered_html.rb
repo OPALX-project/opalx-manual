@@ -198,6 +198,33 @@ else
   errors << "render is missing physics/field-solver/index.html"
 end
 
+space_charge_architecture_html_path =
+  SITE / "developer-guide/space-charge-solver-architecture.html"
+if space_charge_architecture_html_path.file?
+  space_charge_architecture_html = File.read(space_charge_architecture_html_path)
+  %w[
+    space-charge-architecture-overview space-charge-class-architecture
+    space-charge-solver-flow
+  ].each do |anchor|
+    unless space_charge_architecture_html.match?(/\bid=["']#{Regexp.escape(anchor)}["']/)
+      errors << "space-charge architecture render is missing ##{anchor}"
+    end
+  end
+  %w[
+    2026-09-07-opalx-space-charge-class-diagram.pdf
+    2026-09-07-opalx-space-charge-solver-flow.pdf
+  ].each do |document|
+    unless space_charge_architecture_html.include?(document)
+      errors << "space-charge architecture render is missing document link: #{document}"
+    end
+  end
+  unless space_charge_architecture_html.scan(/class=["'][^"']*mermaid-js/).length == 2
+    errors << "space-charge architecture render must contain exactly two Mermaid diagrams"
+  end
+else
+  errors << "render is missing developer-guide/space-charge-solver-architecture.html"
+end
+
 reports_html_path = SITE / "resources/presentations-reports.html"
 if reports_html_path.file?
   reports_html = File.read(reports_html_path)

@@ -167,7 +167,7 @@ if field_solver_page.file?
     "open P3M backend" => "`TYPE=P3M`; all `BCFFT*=OPEN`",
     "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
     "P3M cutoff requirement" => "finite, positive cutoff radius `RCUT`",
-    "P3M binning restriction" => "`P3M` requires `BINS=NONE`",
+    "P3M binning restriction" => "`P3M` requires `NONE`",
     "mandatory 3D decomposition" => "`PARFFTX`, `PARFFTY`, and `PARFFTZ` are all",
     "uniform boundary restriction" => "Mixed boundary conditions",
     "generic Dirichlet limitation" => "this is **not a usable mode**",
@@ -402,6 +402,54 @@ if worked_inputs_page.file?
   }.each do |description, required_text|
     errors += error("worked-inputs is missing #{description}") unless worked_inputs_text.include?(required_text)
   end
+end
+
+space_charge_architecture_page = ROOT / "developer-guide/space-charge-solver-architecture.qmd"
+if space_charge_architecture_page.file?
+  space_charge_architecture_text = space_charge_architecture_page.read
+  %w[
+    space-charge-architecture-overview space-charge-class-architecture
+    space-charge-solver-flow
+  ].each do |anchor|
+    unless space_charge_architecture_text.include?("{##{anchor}}")
+      errors += error("space-charge architecture is missing ##{anchor}")
+    end
+  end
+  unless space_charge_architecture_text.scan(/^```\{mermaid\}$/).length == 2
+    errors += error("space-charge architecture must contain exactly two Mermaid diagrams")
+  end
+  %w[
+    2026-09-07-opalx-space-charge-class-diagram.pdf
+    2026-09-07-opalx-space-charge-solver-flow.pdf
+  ].each do |document|
+    unless space_charge_architecture_text.include?("{{< meta documents-base-url >}}/reports/2026/design/#{document}")
+      errors += error("space-charge architecture is missing document link: #{document}")
+    end
+  end
+  architecture_page = ROOT / "developer-guide/architecture.qmd"
+  unless architecture_page.file? && architecture_page.read.include?("space-charge-solver-architecture.qmd")
+    errors += error("architecture overview is missing the space-charge architecture link")
+  end
+else
+  errors += error("missing space-charge solver architecture chapter")
+end
+
+space_charge_architecture_report =
+  ROOT / "resources/reports/2026/space-charge-solver-architecture-diagrams.qmd"
+if space_charge_architecture_report.file?
+  {
+    "resources/reports/index.qmd" =>
+      "2026/space-charge-solver-architecture-diagrams.qmd",
+    "resources/presentations-reports.qmd" =>
+      "reports/2026/space-charge-solver-architecture-diagrams.html"
+  }.each do |relative, required_link|
+    catalog = ROOT / relative
+    unless catalog.file? && catalog.read.include?(required_link)
+      errors += error("#{relative} is missing the space-charge architecture entry")
+    end
+  end
+else
+  errors += error("missing space-charge architecture report page")
 end
 
 implicit_capture_report = ROOT / "resources/reports/2026/ippl-implicit-this-capture.qmd"
