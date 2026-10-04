@@ -1,5 +1,11 @@
 # BeamBeam Static Gaussian 1 V/m Reproducer
 
+> Historical material, not a current input recipe. The retained deck uses the
+> former `COPY=TRUE` interface and the old static solver-frame model.
+> Do not run it as a validation of the current moving-primary implementation.
+> See [the Beam-Beam chapter](../index.qmd) for the anisotropic model, current
+> input interface, numbered experiments, and qualified CAIN results.
+
 This directory contains the files needed to reproduce the BeamBeam static
 Gaussian-pair validation shown in the OPALX physics manual.
 

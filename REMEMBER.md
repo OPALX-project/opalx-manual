@@ -54,12 +54,12 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Incremental bare-ring eligibility review on 2026-09-16 | Add parameter guides for `COLLIMATOR` and `CONSTANTFOCUSING`; complete the remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Incremental bare-ring/passive-observation review on 2026-09-16 | Validate source-frame and COF-to-TRACK convergence; add a clean `MIDPOINT` versus `PRESTEP` benchmark |
-| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Incremental work on 2026-09-09 | Classify the remaining current studies as proposal, validated result, or obsolete |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused BEAMBEAM interface review on 2026-10-04 | Recheck experimental restrictions at merge; complete remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Beam-Beam chapter review on 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Beam-Beam experiments 1–4 evidence review on 2026-10-04 | Preserve comparison manifests and align full-population production birth timing |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | Focused HTML/source checks on 2026-09-16; see log | Restore the documents checkout and verify full PDF publication |
+| `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | Full HTML/source and 8 browser checks on 2026-10-04; see log | Restore the documents checkout and verify full PDF publication |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -377,3 +377,35 @@ Use this template for subsequent entries:
   emission/restart/collective-field validation.
 - Next trigger: completion of production space-charge convergence or changes to
   ring diagnostic/integration eligibility.
+
+### 2026-10-04 - DOC-USER/DOC-PHYS/DOC-SANDBOX: Beam-Beam element and chapter 38
+
+- Requested source checkout: `/Users/adelmann/git/opalx-beambeam`, base
+  `98e3426d9251c8c9ba6cb6172f3381978c651963`, with existing uncommitted CUDA
+  field-clear, regression, and sandbox reorganization changes preserved.
+  Manual base: `f4ccaf4157205289249c6e865761a57dd37b61a5` (initially clean).
+- Reviewed: OpalBeamBeam, BeamBeamInteraction/definitions, interaction manager,
+  ParallelTracker scope guard, CartesianPIC3D/RelativisticFieldComposer,
+  current benchmark inputs, sandbox note, and retained comparison JSON files.
+- Changed: added BEAMBEAM parameter/reference entries and navigation; replaced
+  chapter 38 with the current mirrored-primary/quasi-static model, passive timed
+  witnesses, units/equations, fixed longitudinal window and dynamic transverse
+  mesh policy, manufactured verification, CAIN results and CPU/A100 comparison.
+  Preserved the spherical electrostatic reproducer as explicitly historical.
+- Evidence: separated fine historical 4096x256x128 results, October standard
+  256x256x128 reproduction, and matched 64x64x128 CPU/A100 results. Sub-percent
+  analytic-model agreement is not claimed as sub-percent CAIN agreement;
+  weak-component discrepancies and unknown original-deck alignment are explicit.
+- Verification: source/asset validator passes all 58 chapters; full HTML render
+  and six report-page renders pass. Eight browser tests pass, including new
+  BEAMBEAM navigation and desktop/mobile figure/equation checks. Chapter 38
+  numbering and rendered equations inspected; chapter-local scrolling fixes
+  narrow-screen overflow. Diff and whitespace checks pass. The rendered-link
+  checker reports only 58 pre-existing download links to the unbuilt book PDF,
+  with zero other errors. No PDF build or new physics simulations in this pass.
+- Open items: original CAIN input/emittance alignment, production exact-birth
+  migration, full fine-grid rerun after merge, and existing PDF/publication
+  checks. Frozen-source approximation intentionally remains. Existing complete-page
+  review dates on multi-element User Guide/reference pages are unchanged.
+- Next trigger: merge/release source changes or new converged CAIN evidence.
+  Documentation only; no commit or push authorized.

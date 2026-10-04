@@ -19,6 +19,7 @@ Regression coverage is stated separately from parser registration.
 | Type | Regression use | External data |
 |---|---|---|
 | `DRIFT` | Field-free transport | none |
+| `BEAMBEAM` | Experimental mirrored-primary interaction and passive witnesses | optional particle input files |
 | `CONSTANTEFIELDCAVITY` | Uniform electric field | none |
 | `CONSTANTFOCUSING` | Collective linear focusing for DIH studies | none |
 | `QUADRUPOLE` | Normalized quadrupole | none |
@@ -85,6 +86,95 @@ D1: DRIFT, L=0.5, ELEMEDGE=0.0;
 | `L` | unset | Drift length in metres; use a positive value. |
 | `GEOMETRY` | unset | Parsed boundary-geometry name, but not transferred by the current `DRIFT` implementation. |
 | `NSLICES` | `1` | Map-tracking compatibility value; inactive in the current `PARALLEL` tracking path. |
+
+## `BEAMBEAM` {#beambeam}
+
+`BEAMBEAM` defines a single-pass interaction between a tracked primary bunch
+and its counter-propagating mirrored primary. Selected additional particle
+containers are passive witnesses: they receive the primary fields but do not
+contribute charge to this interaction. The mirror is not an additional `BEAM`.
+
+::: {.callout-important}
+## Experimental, restricted collision model
+
+Use one `BEAMBEAM` in a single-pass `LINE`, with an `OPEN` field solver.
+Multiple interaction occurrences and `RING`/`TURNS` tracking are rejected.
+The frozen/rigid-source approximation is intentional; this is not a general
+self-consistent simulation of two independently evolving bunches.
+:::
+
+```opal
+IP1: BEAMBEAM,
+    L=0.32, ELEMEDGE=0.01,
+    APERTURE="CIRCLE(0.30)",
+    COPY_TIME=1.0e-30,
+    BBRIGID=TRUE,
+    WITNESS_CONTAINERS="1,2",
+    VISUALIZE=FALSE;
+```
+
+This definition places the IP at $s=0.17\,\mathrm m$. The aperture diameter is
+$0.30\,\mathrm m$; its radius is $0.15\,\mathrm m$. This is an element fragment:
+define the beams, distributions, field solver, and `TRACK` separately.
+
+::: {.table-responsive tabindex="0" role="region" aria-label="BEAMBEAM parameters"}
+
+| Parameter | Default | Unit | Meaning |
+|---|---:|---|---|
+| `L` | unset | m | Physical element length; use a positive value. The IP is its placed midpoint. |
+| `COPY_TIME` | `0` | s | Positive absolute simulation-time threshold enabling the mirrored field during an active interaction. **Zero disables the mirror**, rather than activating it immediately. Negative values are rejected. |
+| `BBRIGID` | `FALSE` | boolean | Suppress the primary's BeamBeam collective kick, but retain deposition and the mesh field for witnesses. Ordinary motion and external fields remain active. |
+| `WITNESS_CONTAINERS` | `"NONE"` | string | Comma-separated indices in `TRACK.BEAMS`, e.g. `"1,2"`. Source index 0 is forbidden; indices must be below 53 and exist in the run. |
+| `VISUALIZE` | `FALSE` | boolean | Enable the ASCII interaction-window visualization, independently of field activation. |
+| `GEOMETRY` | unset | string | Accepted compatibility attribute; the current implementation does not apply a named boundary geometry through it. |
+
+: {tbl-colwidths="[23, 12, 10, 55]"}
+
+:::
+
+Use a small positive `COPY_TIME` to enable the mirror at the first positive-time
+active solve. `COPY`, `IP_S`, and `RETIRE_TIME` are not supported controls.
+
+### Beams and timed witnesses {#beambeam-witnesses}
+
+The list `BEAMS={PrimaryElectrons, WitnessElectrons, WitnessPositrons}` assigns
+indices 0, 1, and 2. Define separate witness `BEAM` objects with
+`PARTICLE=ELECTRON` and `PARTICLE=POSITRON` respectively, each using a distinct
+distribution object. Set
+`ORBITTHREADER=FALSE` on passive witness beams to reuse the primary reference-orbit
+map; their physical momenta and trajectories are still independent.
+
+Use [`EMITTEDFROMFILE`](beam-distributions.qmd#emittedfromfile) for individual
+birth times. Positions are in metres, momenta in $p/(m_e c)$, and birth times in
+seconds. Set the emission-source position and `T0` to align the input clock
+with primary overlap at the IP. A common `FROMFILE`/`T0` injection is not
+equivalent to individually timed births.
+
+### Field region and restrictions {#beambeam-domain}
+
+Physical length and aperture are **not** the numerical field box. The current
+longitudinal field window is fixed internally to IP $\pm10$ mm. Transversely,
+the mesh uses a padded, non-shrinking primary-plus-witness envelope and a
+cell-aspect constraint.
+
+For `ELEMEDGE` placement, the interaction owns collective-field policy before
+the primary reaches that window: ordinary space charge is suppressed while
+inactive. Once the primary tail passes the downstream boundary, the interaction
+completes, witness gathering stops, and ordinary space charge remains suppressed.
+Completion does not delete particles; normal transport, external fields, and
+aperture handling continue.
+
+Use `TYPE=OPEN` with open boundaries; the validated relativistic setup uses
+`GREENSF=INTEGRATED` and one velocity bin. Do not combine this fixed-domain
+interaction with cathode/image-charge Dirichlet planes or `FFT2D5`. A larger
+physical aperture does not establish adequate field resolution. Check the
+witness trajectories against the numerical longitudinal region.
+
+`BB-DIAG` messages identify `Inactive`, `Active`, and `Completed` and report
+source, copy, and witness status. Per-container outputs follow the normal
+[diagnostic conventions](diagnostics-output.qmd). See
+[Beam-Beam physics](../physics/beam-beam/index.qmd) for equations, the precise
+activation rule, model limitations, and CAIN validation.
 
 ## `CONSTANTEFIELDCAVITY` {#constant-electric-field-cavity}
 

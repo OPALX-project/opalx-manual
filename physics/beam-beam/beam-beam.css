@@ -1,0 +1,11 @@
+/* Keep full equations and comparison tables readable on narrow screens. */
+.beambeam-physics .math.display,
+.beambeam-physics table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.beambeam-physics code {
+  overflow-wrap: anywhere;
+}

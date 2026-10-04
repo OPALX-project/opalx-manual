@@ -315,6 +315,7 @@ elements_page = ROOT / "user-guide/elements.qmd"
 element_sections = [
   ["## Common element syntax {#common-element-syntax}", "common-element-syntax"],
   ["## `DRIFT` {#drift}", "drift"],
+  ["## `BEAMBEAM` {#beambeam}", "beambeam"],
   ["## `CONSTANTEFIELDCAVITY` {#constant-electric-field-cavity}",
    "constant-electric-field-cavity"],
   ["## `CONSTANTFOCUSING` {#constant-focusing}", "constant-focusing"],
@@ -360,6 +361,23 @@ if elements_page.file?
   }.each do |description, required_text|
     errors += error("elements is missing #{description}") unless elements_text.include?(required_text)
   end
+end
+
+beambeam_text = (ROOT / "physics/beam-beam/index.qmd").read
+%w[sec-beam-beam-model sec-beam-beam-mirror sec-beam-beam-window
+   sec-beam-beam-track12 sec-beam-beam-analytic-solution sec-beam-beam-results
+   sec-beam-beam-architecture sec-beam-beam-limitations].each do |anchor|
+  errors += error("Beam-Beam physics is missing #{anchor}") unless beambeam_text.include?("{##{anchor}}")
+end
+beambeam_element = (ROOT / "user-guide/elements.qmd").read.split("## `BEAMBEAM` {#beambeam}", 2).last.to_s.split("\n## `", 2).first.to_s
+%w[COPY_TIME BBRIGID WITNESS_CONTAINERS VISUALIZE GEOMETRY].each do |attribute|
+  errors += error("BEAMBEAM parameter table is missing #{attribute}") unless beambeam_element.include?("| `#{attribute}` |")
+end
+%w[user-guide/input-language.qmd reference/elements.qmd].each do |relative|
+  errors += error("#{relative} is missing the BEAMBEAM catalog link") unless (ROOT / relative).read.include?("elements.qmd#beambeam")
+end
+if [beambeam_text, beambeam_element].any? { |text| text.match?(/\bCOPY\s*=\s*TRUE/i) }
+  errors += error("current BEAMBEAM documentation must use COPY_TIME, not obsolete COPY=TRUE")
 end
 
 worked_inputs_page = ROOT / "getting-started/worked-inputs.qmd"
