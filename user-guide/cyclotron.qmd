@@ -128,7 +128,7 @@ requested kinetic energy. The energy is not clamped to the target value. The
 current energy-stop mode requires a non-restarted `RING`, one positive `DT`
 segment, no explicit `RUN,TURNS`, and a single cyclotron particle container.
 
-## Closed Orbit Finder
+## Closed Orbit Finder {#cyclotron-closed-orbit-finder}
 
 `COF` finds a fixed-energy closed orbit for a static magnetic `RING`. It is a
 named single-statement command, separate from `TRACK`. All tracking and solver

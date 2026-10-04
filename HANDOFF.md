@@ -1,10 +1,8 @@
-# COF manual update, 2026-09-10
+# Manual CI repair, 2026-10-04
 
-- Goal: reconcile the COF and related TRACK documentation with `/Users/adelmann/git/opalx` at `288d4327c`.
-- Manual: `/Users/adelmann/git/opalx-manual`, base `4548fd0`; four existing modified pages preserved in `/tmp/opalx-manual-cof-baseline`.
-- Source audit complete: named COF command, retained laboratory launch state, INITIALORBIT validation, exact optional JSON output, final-turn localization and restrictions.
-- Editing staged copies of tracking, cyclotron, beam-lines, input-language, command/file references, architecture, physics, limitations, validator, and maintenance register.
-- Decisions: distinguish fixed-section COF from TRACK's momentum-normal return plane and production integrator; remove invalid space-charge TURNS example; preserve experimental status and existing physics caveats.
-- Checks: five CTest suites, nine executable checks (including one/two-rank equality), source validation, 57-chapter HTML, five report pages, six browser tests and desktop/mobile COF checks pass. Initial executable checker failed on missing baseline; temporary copy uses saved verified JSON and passes. New table wrappers remove mobile overflow. Full PDF build stalled at chapter 19 twice, including an isolated-browser retry; task-owned processes stopped. Link validator only reports missing book PDF (57 links); documents checkout absent.
-- Additional source cross-check: removed stale TRACK.MAP_ORDER, added EKINSTOP and spectral controls, registered COF/COLLIMATOR/CONSTANTFOCUSING in inventories. Detailed guides for the latter two remain pending.
-- Documentation update complete. Remaining publication/environment work is recorded in REMEMBER.md: resolve local PDF rendering, restore documents checkout and moved regression baseline. No commit or push requested.
+- Goal: temporarily disable PDF generation as requested, restoring HTML-only publication after failed job 111513849489 in run 37228778262.
+- Manual base: d142b91, initially clean main. User authorized commit and push to main after verification.
+- Evidence: source/document validation, HTML, eight browser checks and report renders passed in CI. PDF failed in Quarto's SVG-to-PDF filter because rsvg-convert was unavailable. Duplicate closed-orbit-finder identifier also reported.
+- Changes: BUILD_PDF=false gates all five PDF setup/render/validation steps; hide the book PDF download; retain librsvg2-bin before the gated render for future re-enabling; document the pause and prerequisites. Distinct cyclotron COF heading ID fixes the warning without changing the architecture anchor.
+- Verification complete: source validator, full 58-chapter HTML, six report pages, eight browser tests, strict links across 64 HTML pages and workflow gate/order checks pass. No book-PDF download links remain. No PDF build run after the pause request.
+- Status: changes verified and ready for the authorized commit and push; maintenance record in REMEMBER.md. Restore PDF only on request by enabling BUILD_PDF and book.downloads together; keep librsvg2-bin before rendering.

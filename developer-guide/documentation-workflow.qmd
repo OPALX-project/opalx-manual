@@ -22,6 +22,38 @@ The `opalx` profile targets the production `OPALX-project/opalx-manual` and
 `_quarto.yml.local` and set its `documents-base-url`. The local file is ignored
 by Git.
 
+## PDF publication (paused)
+
+The build workflow currently publishes HTML only. `BUILD_PDF` is `"false"` in
+`.github/workflows/build.yml`, so PDF dependencies, rendering and validation are
+skipped. `_quarto.yml` sets `book.downloads: []` to hide the unavailable book
+download. External report PDFs remain available through their existing links.
+
+To restore PDF publication, set `BUILD_PDF` to `"true"` and restore
+`book.downloads: [pdf]`. Keep the conversion tools installed before the render
+step. Explicit local PDF builds remain available with the prerequisites below.
+
+The PDF build needs a TeX distribution, headless Chrome for Mermaid diagrams,
+and `rsvg-convert` for SVG figures. Install the conversion and inspection tools
+before rendering; HTML rendering does not exercise SVG-to-PDF conversion.
+
+On Ubuntu, as used by the build workflow:
+
+```bash
+sudo apt-get update
+sudo apt-get install --yes librsvg2-bin poppler-utils
+```
+
+On macOS with Homebrew, the corresponding packages are `librsvg` and `poppler`.
+With TeX installed, prepare the diagram renderer and build the book explicitly:
+
+```bash
+quarto install chrome-headless-shell --no-prompt
+rsvg-convert --version
+quarto render --profile opalx --to pdf --no-clean
+ruby scripts/validate_rendered_pdf.rb
+```
+
 ## Linking binary documents
 
 Place OPALX presentations, reports, examples, and datasets in the category-first

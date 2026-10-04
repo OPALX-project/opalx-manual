@@ -59,7 +59,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Beam-Beam experiments 1–4 evidence review on 2026-10-04 | Preserve comparison manifests and align full-population production birth timing |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | Full HTML/source and 8 browser checks on 2026-10-04; see log | Restore the documents checkout and verify full PDF publication |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | HTML-only publication review on 2026-10-04; see log | Restore the documents checkout; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -183,10 +183,20 @@ quarto render --profile opalx --to html
 npm ci
 npm run test:browser
 quarto render resources/reports --profile opalx --to html
-quarto render --profile opalx --to pdf --no-clean
 ruby scripts/validate_rendered_html.rb
-ruby scripts/validate_rendered_pdf.rb
 git diff --check
+```
+
+PDF publication is temporarily disabled at the user's request. Keep
+`BUILD_PDF: "false"` in `.github/workflows/build.yml` and `book.downloads: []`
+in `_quarto.yml` until it is requested again. The PDF setup, render and
+validation steps are gated together. When re-enabling, restore `[pdf]` downloads
+and keep `librsvg2-bin` installed before rendering; it supplies the missing
+`rsvg-convert` executable that caused the October 4 CI failure. Then also run:
+
+```sh
+quarto render --profile opalx --to pdf --no-clean
+ruby scripts/validate_rendered_pdf.rb
 ```
 
 Check the resulting site for broken internal links, missing document downloads,
@@ -409,3 +419,26 @@ Use this template for subsequent entries:
   review dates on multi-element User Guide/reference pages are unchanged.
 - Next trigger: merge/release source changes or new converged CAIN evidence.
   Documentation only; no commit or push authorized.
+
+### 2026-10-04 - DOC-HEALTH: pause PDF publication
+
+- Manual base: `d142b91`; OPALX source not changed.
+- Investigated GitHub Actions run `37228778262`, job `111513849489`.
+  Source/document checks, HTML, eight browser tests and report renders passed.
+  Quarto failed in SVG-to-PDF conversion because `rsvg-convert` was unavailable;
+  this differs from the older local chapter-19 browser-rendering stall.
+- User decision: temporarily disable PDF generation. Set `BUILD_PDF="false"`,
+  gate all PDF setup/render/validation steps, hide the book PDF download, and
+  retain strict HTML link validation and publication. External document links
+  remain unchanged. The paused PDF setup now installs `librsvg2-bin` before
+  rendering, ready for a future re-enabling.
+- Also assigned a distinct cyclotron COF heading ID to remove the duplicate
+  identifier warning while preserving the architecture anchor and its links.
+- Verification: workflow gate/order checks, source validation, full 58-chapter
+  HTML render, six report-page renders, all eight browser tests, strict link
+  validation across 64 rendered pages, and whitespace checks passed. No book-PDF
+  download links remain. No PDF build was run after the pause instruction.
+  Local Quarto is 1.9.37; CI uses 1.9.38. User authorized commit and push to main
+  after verification.
+- Next trigger: an explicit request to restore PDF publication, or the next
+  HTML publication failure.

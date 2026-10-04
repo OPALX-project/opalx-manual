@@ -14,7 +14,8 @@ book:
     collapse-level: 1
   repo-branch: main
   repo-actions: [edit, issue]
-  downloads: [pdf]
+  # PDF publication is temporarily paused with BUILD_PDF in the build workflow.
+  downloads: []
   search: true
   page-footer:
     left: "OPALX is developed by an international accelerator-science community."

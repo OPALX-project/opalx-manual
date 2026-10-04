@@ -17,6 +17,8 @@ concurrency:
 
 env:
   QUARTO_PROFILE: opalx
+  # Temporarily paused; restore book.downloads in _quarto.yml when re-enabling.
+  BUILD_PDF: "false"
 
 jobs:
   build:
@@ -67,26 +69,32 @@ jobs:
         run: quarto render resources/reports --profile "${QUARTO_PROFILE}" --to html
 
       - name: Install TinyTeX
+        if: env.BUILD_PDF == 'true'
         uses: r-lib/actions/setup-tinytex@v2
 
       - name: Install headless Chrome for PDF diagrams
+        if: env.BUILD_PDF == 'true'
         run: quarto install chrome-headless-shell --no-prompt
 
-      - name: Render A4 PDF
-        run: quarto render --profile "${QUARTO_PROFILE}" --to pdf --no-clean
-
-      - name: Install PDF inspection tools
+      - name: Install PDF conversion and inspection tools
+        if: env.BUILD_PDF == 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install --yes poppler-utils
+          sudo apt-get install --yes librsvg2-bin poppler-utils
+          rsvg-convert --version
+
+      - name: Render A4 PDF
+        if: env.BUILD_PDF == 'true'
+        run: quarto render --profile "${QUARTO_PROFILE}" --to pdf --no-clean
 
       - name: Validate rendered links and profile URLs
         run: ruby scripts/validate_rendered_html.rb
 
       - name: Validate rendered PDF hierarchy
+        if: env.BUILD_PDF == 'true'
         run: ruby scripts/validate_rendered_pdf.rb
 
-      - name: Upload HTML and PDF artifacts
+      - name: Upload documentation artifacts
         uses: actions/upload-artifact@v4
         with:
           name: opalx-documentation-${{ env.QUARTO_PROFILE }}
