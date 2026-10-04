@@ -26,12 +26,13 @@ expected_headings = [
   ["#{chapter}.1", "EMISSIONSOURCE"],
   ["#{chapter}.2", "EMISSIONSOURCELIST"],
   ["#{chapter}.3", "DISTRIBUTION"],
-  ["#{chapter}.3.1", "GAUSS"],
-  ["#{chapter}.3.2", "MULTIVARIATEGAUSS"],
-  ["#{chapter}.3.3", "FLATTOP"],
-  ["#{chapter}.3.4", "OPALFLATTOP"],
-  ["#{chapter}.3.5", "FROMFILE"],
-  ["#{chapter}.3.6", "EMITTEDFROMFILE"],
+  ["#{chapter}.3.1", "UNIFORM"],
+  ["#{chapter}.3.2", "GAUSS"],
+  ["#{chapter}.3.3", "MULTIVARIATEGAUSS"],
+  ["#{chapter}.3.4", "FLATTOP"],
+  ["#{chapter}.3.5", "OPALFLATTOP"],
+  ["#{chapter}.3.6", "FROMFILE"],
+  ["#{chapter}.3.7", "EMITTEDFROMFILE"],
   ["#{chapter}.4", "Reproducibility and current limitations"]
 ]
 

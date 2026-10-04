@@ -161,7 +161,7 @@ user-guide section.
 | `LINE` | Orders named elements into the lattice selected by `TRACK.LINE`. | [Beam Lines](beam-lines/index.qmd) |
 | `DRIFT` | Field-free propagation over a finite length. | [DRIFT](elements.qmd#drift) |
 | `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | Parameter guide pending. |
-| `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | Parameter guide pending. |
+| `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | [CONSTANTFOCUSING](elements.qmd#constant-focusing) |
 | `CONSTANTEFIELDCAVITY` | Applies a spatially uniform, constant electric field inside the element. | [CONSTANTEFIELDCAVITY](elements.qmd#constant-electric-field-cavity) |
 | `QUADRUPOLE` | Defines a thick normal or skew quadrupole. | [QUADRUPOLE](elements.qmd#quadrupole) |
 | `MULTIPOLE` | Defines a thick hard-edge multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |

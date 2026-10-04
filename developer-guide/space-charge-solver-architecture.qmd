@@ -1,0 +1,485 @@
+---
+title: "Space-Charge Solver Architecture"
+description: "Understand space-charge solver setup, ownership, runtime dispatch, and the CartesianPIC3D and FFT2D5 execution flows."
+audience: developer
+status: current
+last-reviewed: "2026-09-17"
+toc-depth: 2
+---
+
+This chapter is a compact map of the space-charge implementation. It describes
+software responsibilities and data flow, not the numerical derivation of the
+solvers. User-facing configuration is documented under
+[Field Solvers](../user-guide/field-solver/index.qmd).
+
+The HTML manual renders the editable Mermaid sources. Each section also links
+to an A3 PDF for a readable full-size or printed view.
+
+## Architecture at a glance {#space-charge-architecture-overview}
+
+| Layer | Responsibility | Main types |
+|---|---|---|
+| Setup | Convert parser objects into a validated configuration and construct one run-lifetime solver. | `TrackRun`, `buildSpaceChargeConfig()`, `makeSpaceChargeSolver()` |
+| Tracker boundary | Build per-step activity and frame state, then call the stable solver interface. | `ParallelTracker`, `SpaceChargeSolveContext`, `SpaceChargeSolver` |
+| Algorithm | Execute the selected three-dimensional or 2.5D space-charge method. | `CartesianPIC3DAlgorithm`, `FFT2D5Algorithm` |
+| Poisson backend | Adapt OPALX field storage to the selected IPPL Poisson implementation. | `PoissonSolver` and its open, periodic, P3M, and null adapters |
+| Particle data | Own particle containers, Cartesian-domain state, and shared bunch state. | `PartBunch`, `ParticleContainer`, `BunchStateHandler` |
+
+`TrackRun` owns the configured `SpaceChargeSolver` and the bunch for the
+duration of the run. `ParallelTracker` borrows both and creates a
+`SpaceChargeSolveContext` for each requested field update. The solver owns
+exactly one `SpaceChargeAlgorithm` and records completed backend solves and
+redistributions.
+
+`CartesianPIC3DAlgorithm` owns the 3D field storage, domain updater, transfer
+helpers, and one Poisson adapter. It may also own bin traversal and P3M
+short-range interaction objects. `FFT2D5Algorithm` uses all tracking-active
+containers and lazily creates its reference path, staging fields, and transverse
+slice solvers.
+
+## Class and ownership structure {#space-charge-class-architecture}
+
+The solid diamonds in the diagram indicate ownership. Solid arrows show
+borrowed access, dashed arrows show setup or call-time dependencies, and hollow
+triangles show inheritance.
+
+[Download the full-size class diagram PDF]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-class-diagram.pdf)
+
+::: {.content-visible when-format="html"}
+```{mermaid}
+%%| label: fig-space-charge-class-architecture
+%%| fig-cap: "Space-charge setup, runtime ownership, algorithms, and Poisson adapters."
+---
+title: OPALX Space Charge - Class Diagram
+config:
+  theme: base
+  htmlLabels: true
+  fontFamily: Helvetica, Arial, sans-serif
+  themeVariables:
+    fontFamily: Helvetica, Arial, sans-serif
+    primaryColor: "#FFFFFF"
+    primaryTextColor: "#334155"
+    primaryBorderColor: "#526277"
+    lineColor: "#526277"
+---
+classDiagram
+    direction LR
+    accTitle: OPALX space-charge class diagram
+    accDescr: Solver setup, runtime dispatch, CartesianPIC3D Dirichlet-plane configuration, Poisson adapters, and FFT2D5 ownership.
+    %% Setup, runtime dispatch, ownership, and explicit IPPL solver adapters
+
+    namespace Setup {
+        class TrackRun:::setup {
+            execute()
+        }
+        class ConfigBuilder:::setup {
+            <<functions>>
+            buildSpaceChargeConfig() SpaceChargeConfig
+        }
+        class SpaceChargeConfig:::setup {
+            <<variant>>
+            CartesianPIC3DConfig
+            FFT2D5Config
+        }
+        class Factory:::setup {
+            <<functions>>
+            makeSpaceChargeSolver() SpaceChargeSolver
+        }
+    }
+
+    namespace Runtime {
+        class ParallelTracker:::runtime {
+            +computeSpaceChargeFields()
+        }
+        class SpaceChargeSolveContext:::runtime {
+            borrowedTrackingActivity
+            stepState
+            spatialFrameTransforms
+        }
+        class SpaceChargeSolver:::runtime {
+            cumulativeWorkCounts
+            +solve(context)
+        }
+        class SpaceChargeAlgorithm:::runtime {
+            <<abstract>>
+            +solve(context) SpaceChargeSolveResult
+        }
+    }
+
+    namespace Bunch {
+        class PartBunch:::bunch {
+            ownedCartesianDomain
+            sharedBunchStateHandler
+        }
+        class ParticleContainer:::bunch {
+            R
+            P
+            E
+            B
+            Q
+            dt
+        }
+    }
+
+    namespace CartesianPIC3D {
+        class CartesianPIC3DAlgorithm:::pic {
+            CartesianPIC3DConfig
+            borrowedPrimaryParticles
+            sharedConstBunchState
+            makeSolvePlan(step)
+            solveWholeBunch()
+            solveBinned()
+            solvePass()
+        }
+        class DirichletPlaneConfig:::pic {
+            DirichletPlaneType kind
+            double planeZ
+            size_t maximumSteps
+            size_t planeDumpFrequency
+            +enabled() bool
+        }
+        class CartesianPIC3DFieldStorage:::pic {
+            borrowedCartesianDomain
+            rhoAndBackendE
+            accumulatedEAndB
+            mirrorScratch
+        }
+        class CartesianDomainUpdater:::pic {
+            borrowedParticleContainers
+            +updateForSolve()
+        }
+        class ParticleMeshFieldTransfer:::pic {
+            +depositCharge()
+            +gatherVector()
+        }
+        class RelativisticFieldComposer:::pic {
+            +accumulate()
+            +gatherElectrostatic()
+            +gatherAccumulated()
+        }
+        class ParticleBinTraversal:::pic {
+            ownedAdaptBinsBase
+            +prepareBins()
+            +nextNonemptyBin() ParticleBin
+        }
+    }
+
+    namespace IPPLAdapters3D {
+        class PoissonSolver:::ippl {
+            <<abstract>>
+            borrowedFieldBinding
+            +solve(PoissonSolveRequest, PoissonSolveOptions)
+            +warmup()
+            +rebuildAfterLayoutChange(fields)
+            +capabilities() PoissonSolverCapabilities
+            #solveImpl(request)*
+            #rebuildImpl(fields)*
+        }
+        class PoissonSolverCapabilities:::ippl {
+            isNoOp
+            supportsShiftedGreenFunction
+            normalizeChargeByCellVolume
+            subtractNeutralizingBackground
+            diagnosticFlags
+        }
+        class P3MShortRangeInteraction:::ippl {
+            cutoff
+            +apply(particles)
+        }
+        class OpenPoissonAdapter:::ippl {
+            ownedNativeOpenSolver3D
+            staticCapabilities
+        }
+        class PeriodicPoissonAdapter:::ippl {
+            ownedNativePeriodicSolver3D
+            staticCapabilities
+        }
+        class P3MMeshPoissonAdapter:::ippl {
+            ownedNativeTruncatedGreenSolver3D
+            staticCapabilities
+        }
+        class NullPoissonAdapter:::ippl {
+            ownedNativeNullSolver3D
+            staticCapabilities
+        }
+    }
+
+    namespace FFT2D5 {
+        class FFT2D5Algorithm:::fft {
+            FFT2D5Config
+            borrowedParticleContainers
+            sharedConstBunchState
+            ensureInitialized()
+            scatterToGrid()
+            solvePoissons()
+            calculateLineDensity()
+            gatherFromGrid()
+        }
+        class ReferencePath:::fft
+        class FFT2D5FieldStorage:::fft {
+            owned3DStagingFields
+            ownedSliceMeshAndLayout
+        }
+        class Slice:::fft {
+            ownedChargeDensity2D
+            ownedElectricField2D
+            ownedNativeOpenSolver2D
+        }
+    }
+
+    %% Setup and runtime
+    TrackRun ..> ConfigBuilder : setup reads parser objects
+    ConfigBuilder ..> SpaceChargeConfig : builds and validates
+    TrackRun ..> Factory : setup
+    Factory ..> SpaceChargeConfig : visits
+    Factory ..> SpaceChargeSolver : constructs
+    TrackRun *-- SpaceChargeSolver
+    TrackRun *-- PartBunch
+    TrackRun *-- ParallelTracker : via Tracker
+    ParallelTracker --> SpaceChargeSolver : borrows
+    ParallelTracker --> PartBunch : borrows
+    ParallelTracker ..> SpaceChargeSolveContext : builds per call
+    SpaceChargeSolver ..> SpaceChargeSolveContext : reads
+    SpaceChargeSolver *-- "1" SpaceChargeAlgorithm
+    PartBunch o-- "1..*" ParticleContainer : shared ownership
+
+    %% Algorithm inheritance
+    SpaceChargeAlgorithm <|-- CartesianPIC3DAlgorithm
+    SpaceChargeAlgorithm <|-- FFT2D5Algorithm
+
+    %% CartesianPIC3D ownership and field access
+    CartesianPIC3DAlgorithm --> ParticleContainer : borrows primary
+    CartesianPIC3DAlgorithm ..> DirichletPlaneConfig : config.dirichletPlane
+    CartesianPIC3DAlgorithm *-- CartesianPIC3DFieldStorage
+    CartesianPIC3DAlgorithm *-- CartesianDomainUpdater
+    CartesianPIC3DAlgorithm *-- ParticleMeshFieldTransfer
+    CartesianPIC3DAlgorithm *-- RelativisticFieldComposer
+    CartesianPIC3DAlgorithm *-- PoissonSolver
+    CartesianPIC3DAlgorithm *-- "0..1" ParticleBinTraversal
+    CartesianPIC3DAlgorithm *-- "0..1" P3MShortRangeInteraction
+    PoissonSolver --> CartesianPIC3DFieldStorage : borrows rho and E
+    RelativisticFieldComposer ..> ParticleMeshFieldTransfer : gathers
+
+    note for DirichletPlaneConfig "Homogeneous Dirichlet plane; planeZ in metres<br/>kind: None, ImageCharge, ShiftedGreen<br/>maximumSteps = 0: never expires"
+
+    %% IPPL adapter construction, metadata, and inheritance
+    note for PoissonSolver "makePoissonSolver(config, fields)<br/>Free function in PoissonSolver.cpp<br/>FFT and binding helpers in PoissonSolver.h"
+    PoissonSolver ..> PoissonSolverCapabilities : exposes adapter metadata
+    PoissonSolver <|-- OpenPoissonAdapter
+    PoissonSolver <|-- PeriodicPoissonAdapter
+    PoissonSolver <|-- P3MMeshPoissonAdapter
+    PoissonSolver <|-- NullPoissonAdapter
+    P3MShortRangeInteraction ..> ParticleContainer : adds E after final gather
+
+    %% FFT2D5 ownership and particle access
+    FFT2D5Algorithm --> ParticleContainer : borrows all, solves active
+    FFT2D5Algorithm *-- "0..1" ReferencePath : lazy initialization
+    FFT2D5Algorithm *-- "0..1" FFT2D5FieldStorage : lazy initialization
+    FFT2D5FieldStorage *-- "NZ" Slice
+
+    %% Colours follow the draw.io section palette.
+    classDef setup fill:#F8FAFC,stroke:#63758B,color:#33475E
+    classDef runtime fill:#F7F9FD,stroke:#607B9C,color:#244A76
+    classDef bunch fill:#FAFAF8,stroke:#788270,color:#485340
+    classDef pic fill:#F5FAF8,stroke:#5D8678,color:#205C4A
+    classDef ippl fill:#F7FAFC,stroke:#6E89A5,color:#35566F
+    classDef fft fill:#FAF8FC,stroke:#8A759F,color:#61447D
+
+```
+:::
+
+## Per-call solver flow {#space-charge-solver-flow}
+
+A field update begins in `ParallelTracker`. If the configured particle
+threshold is met, the tracker assembles the per-call context and
+`SpaceChargeSolver` dispatches to the algorithm selected during setup.
+
+The Cartesian path updates or reuses its domain, selects the Poisson backend,
+and executes either a whole-bunch or binned solve before restoring tracker
+coordinates. The FFT2D5 path operates on the active containers, solves its
+transverse slices, applies the selected longitudinal model, and then restores
+tracker coordinates. Both return work counts to the stable solver interface.
+
+[Download the full-size solver-flow PDF]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-solver-flow.pdf)
+
+::: {.content-visible when-format="html"}
+```{mermaid}
+%%| label: fig-space-charge-solver-flow
+%%| fig-cap: "Per-call dispatch and execution flow for CartesianPIC3D and FFT2D5."
+---
+title: OPALX Space Charge - Solver Flow
+config:
+  theme: base
+  htmlLabels: true
+  fontFamily: Helvetica, Arial, sans-serif
+  themeVariables:
+    fontFamily: Helvetica, Arial, sans-serif
+    lineColor: "#526277"
+    edgeLabelBackground: "#FFFFFF"
+  flowchart:
+    curve: linear
+    nodeSpacing: 24
+    rankSpacing: 30
+    padding: 12
+---
+flowchart TB
+    accTitle: OPALX space-charge solver flow
+    accDescr: Runtime dispatch to CartesianPIC3D or FFT2D5, including Dirichlet-plane methods, binning, and field gathering.
+    %% Per-call dispatch, CartesianPIC3D and FFT2D5 solve paths
+
+    subgraph Runtime["Runtime"]
+        T(["ParallelTracker<br/>computeSpaceChargeFields()"])
+        G{"Total particles &gt; MINBINEMITTED?"}
+        Skip(["Return before calling solver"])
+        C("Build step state, frame transforms<br/>and container activity")
+        Dispatch("SpaceChargeSolver.solve(context)<br/>Validate activity and dispatch")
+        Algorithm{"Configured algorithm"}
+
+        T --> G
+        G -->|No| Skip
+        G -->|Yes| C
+        C --> Dispatch
+        Dispatch --> Algorithm
+    end
+
+    subgraph PIC["CartesianPIC3DAlgorithm · primary container"]
+        Entry("Build plan from DirichletPlaneConfig<br/>Apply maximumSteps expiry<br/>Clear E/B; enter solve axes")
+        Domain{"Domain mode"}
+        Dynamic("Update bounds, layouts and particles<br/>Optional MPI ORB redistribution")
+        Fixed("Use BunchStateHandler fixed bounds<br/>OPEN only; no Dirichlet plane<br/>ORB disabled")
+        Early{"NONE backend or<br/>at most one primary particle?"}
+        Backend{"3D Poisson backend"}
+        P3M("Uniform OPEN or PERIODIC boundaries<br/>One whole-bunch mesh solve")
+        PP("Gather E and add short-range<br/>particle-particle interaction")
+        FFT("Uniform PERIODIC boundaries<br/>Neutralizing background<br/>No Dirichlet plane")
+        Open("Uniform OPEN boundaries<br/>STANDARD or INTEGRATED Green function")
+        Bins{"Particle binning configured?"}
+
+        subgraph WholeBunch["Whole-bunch solve"]
+            Whole{"Dirichlet plane method<br/>OPEN only"}
+            Direct("Primary charge deposit<br/>One Poisson solve<br/>Gather E")
+            Image("Primary + mirrored opposite charge<br/>One Poisson solve<br/>Gather E")
+            Shift("Primary pass + shifted-image pass<br/>Two Poisson solves<br/>Accumulate and gather E/B")
+
+            Whole -->|None| Direct
+            Whole -->|ImageCharge| Image
+            Whole -->|ShiftedGreen| Shift
+        end
+
+        subgraph Binned["Binned solve"]
+            Rebin("Rebin: VELOCITYZ or GAMMAZ<br/>Fixed bins or adaptive merging<br/>Clear mesh E/B accumulators")
+            Loop("For each globally nonempty bin<br/>Compute mean momentum and gamma")
+            DirichletPlane{"Dirichlet plane method<br/>OPEN only"}
+            BinDirect("Primary pass<br/>One Poisson solve per bin")
+            BinImage("Primary pass + explicit image pass<br/>Two Poisson solves per bin")
+            BinShift("Primary pass + shifted-image pass<br/>Two Poisson solves per bin")
+            Compose("Each selected pass<br/>Deposit, stretch mesh, solve<br/>Lorentz-compose E/B; restore spacing")
+            More{"More nonempty bins?"}
+            Gather("Gather accumulated E/B once<br/>onto all primary particles")
+
+            Rebin --> Loop
+            Loop --> DirichletPlane
+            DirichletPlane -->|None| BinDirect
+            DirichletPlane -->|ImageCharge| BinImage
+            DirichletPlane -->|ShiftedGreen| BinShift
+            BinDirect --> Compose
+            BinImage --> Compose
+            BinShift --> Compose
+            Compose --> More
+            More -->|Yes| Loop
+            More -->|No| Gather
+        end
+
+        Restore("Restore R/P<br/>Rotate E/B to tracker axes")
+        Finish("Normal: refresh reference-frame domain and migrate<br/>Fixed: keep solve mesh and refresh primary moments")
+
+        Entry --> Domain
+        Domain -->|Normal| Dynamic
+        Domain -->|Fixed| Fixed
+        Dynamic --> Early
+        Fixed --> Early
+        Early -->|No| Backend
+        Backend -->|P3M| P3M
+        Backend -->|FFT| FFT
+        Backend -->|OPEN| Open
+        P3M --> PP
+        FFT --> Bins
+        Open --> Bins
+        Bins -->|No| Whole
+        Bins -->|Yes| Rebin
+        Early -->|Yes| Restore
+        PP --> Restore
+        Direct --> Restore
+        Image --> Restore
+        Shift --> Restore
+        Gather --> Restore
+        Restore --> Finish
+    end
+
+    subgraph FFT2D5["FFT2D5Algorithm · all tracking-active containers"]
+        Start25("Require one MPI rank and serial decomposition<br/>No BINS, Dirichlet plane or fixed domain")
+        Init25("First call: load ReferencePath<br/>Allocate persistent fields and<br/>NZ native 2D OPEN solvers")
+        Frame25("Clear active E/B; enter solve axes<br/>Convert to Frenet-Serret coordinates<br/>and boost for deposit")
+        Scatter25{"SCATTERLONGITUDINALLY"}
+        Trilinear("Trilinear CIC<br/>Across adjacent slices")
+        Bilinear("Bilinear CIC<br/>Into a single slice")
+        Solve25("Combine active-container charge<br/>Normalize and solve every transverse OPEN slice")
+        Ghost25("CLOSEDRING: longitudinal boundaries<br/>TRUE: wrap charge and ghost slices<br/>FALSE: zero field and line-density end ghosts")
+        Mode25{"PIPEMODE"}
+        None25("Skip line-density calculation<br/>No longitudinal field contribution")
+        Open25("Line-density gradient<br/>Open longitudinal model")
+        Circular25("Line-density gradient<br/>Cylindrical-pipe longitudinal model")
+        Plates25("Line-density gradient<br/>Parallel-plates longitudinal model")
+        Gather25("Gather transverse E; unboost to E/B<br/>Apply longitudinal model<br/>Undo Frenet-Serret transform")
+        Finish25("Restore active R/P and tracker-axis E/B<br/>Refresh active-container moments")
+
+        Start25 --> Init25
+        Init25 --> Frame25
+        Frame25 --> Scatter25
+        Scatter25 -->|TRUE| Trilinear
+        Scatter25 -->|FALSE| Bilinear
+        Trilinear --> Solve25
+        Bilinear --> Solve25
+        Solve25 --> Ghost25
+        Ghost25 --> Mode25
+        Mode25 -->|NONE| None25
+        None25 --> Gather25
+        Mode25 -->|OPEN| Open25
+        Open25 --> Gather25
+        Mode25 -->|CIRCULAR| Circular25
+        Circular25 --> Gather25
+        Mode25 -->|PLATES| Plates25
+        Plates25 --> Gather25
+        Gather25 --> Finish25
+    end
+
+    Result(["Return work counts | SpaceChargeSolver updates cumulative diagnostics"])
+
+    Algorithm -->|CartesianPIC3DConfig| Entry
+    Algorithm -->|FFT2D5Config| Start25
+    Finish --> Result
+    Finish25 --> Result
+
+    %% Colours follow the draw.io section palette.
+    classDef runtime fill:#FFFFFF,stroke:#607B9C,color:#1E293B;
+    classDef runtimeAccent fill:#E7EFFA,stroke:#607B9C,color:#1E293B;
+    classDef pic fill:#FFFFFF,stroke:#5D8678,color:#1E293B;
+    classDef picDecision fill:#E4F1EB,stroke:#5D8678,color:#1E293B;
+    classDef fft fill:#FFFFFF,stroke:#8A759F,color:#1E293B;
+    classDef fftDecision fill:#EEE8F7,stroke:#8A759F,color:#1E293B;
+
+    class C,Dispatch runtime;
+    class T,G,Skip,Algorithm,Result runtimeAccent;
+    class Entry,Dynamic,Fixed,P3M,PP,FFT,Open,Direct,Image,Shift,Rebin,Loop,BinDirect,BinImage,BinShift,Compose,Gather,Restore,Finish pic;
+    class Domain,Early,Backend,Bins,Whole,DirichletPlane,More picDecision;
+    class Start25,Init25,Frame25,Trilinear,Bilinear,Solve25,Ghost25,None25,Open25,Circular25,Plates25,Gather25,Finish25 fft;
+    class Scatter25,Mode25 fftDecision;
+
+    style Runtime fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
+    style PIC fill:#F5FAF8,stroke:#9CBFB3,color:#205C4A,stroke-dasharray:5 4;
+    style WholeBunch fill:#F5FAF8,stroke:#C3D9D0,color:#205C4A;
+    style Binned fill:#F5FAF8,stroke:#C3D9D0,color:#205C4A;
+    style FFT2D5 fill:#FAF8FC,stroke:#BCAED0,color:#61447D,stroke-dasharray:5 4;
+    linkStyle default stroke:#526277,stroke-width:1.2px;
+```
+:::

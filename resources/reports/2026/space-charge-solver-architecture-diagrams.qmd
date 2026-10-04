@@ -1,0 +1,27 @@
+---
+title: "Space-Charge Solver Architecture Diagrams"
+description: "Full-size class and execution-flow diagrams for the current OPALX space-charge solver architecture."
+audience: developer
+status: current
+last-reviewed: "2026-09-17"
+number-sections: false
+---
+
+[Return to the Presentations and Reports catalog](../../presentations-reports.html)
+
+**Diagram date:** 2026-09-07  
+**Kind:** Architecture diagrams
+
+[Download the class diagram]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-class-diagram.pdf)
+
+[Download the solver-flow diagram]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-solver-flow.pdf)
+
+The class diagram records setup, run-time ownership, bunch data, the
+`CartesianPIC3D` implementation, IPPL Poisson adapters, and the `FFT2D5`
+implementation. The flow diagram follows one requested space-charge update
+from `ParallelTracker` through algorithm dispatch, field solution, coordinate
+restoration, and diagnostic accounting.
+
+The editable Mermaid versions and a concise architecture overview are in the
+[Space-Charge Solver Architecture](../../../developer-guide/space-charge-solver-architecture.html)
+chapter.
