@@ -54,12 +54,12 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Incremental work on 2026-09-09 | Perform a complete command, element, option, and file-format audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Incremental work on 2026-09-09 | Add a clean `MIDPOINT` versus `PRESTEP` timestep-convergence benchmark |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Incremental bare-ring eligibility review on 2026-09-16 | Add parameter guides for `COLLIMATOR` and `CONSTANTFOCUSING`; complete the remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Incremental bare-ring/passive-observation review on 2026-09-16 | Validate source-frame and COF-to-TRACK convergence; add a clean `MIDPOINT` versus `PRESTEP` benchmark |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Incremental work on 2026-09-09 | Classify the remaining current studies as proposal, validated result, or obsolete |
-| `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental work on 2026-09-05 | Recheck diagrams against current class ownership and call paths |
-| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Initial rules and focused cleanup on 2026-09-07 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | CI investigated on 2026-09-07 | Confirm the workflow for the latest manual revision, then repeat weekly |
+| `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
+| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
+| `DOC-HEALTH` | Check links, metadata, HTML, PDF, and interactive controls | Every manual change and at least weekly | Focused HTML/source checks on 2026-09-16; see log | Restore the documents checkout and verify full PDF publication |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -247,6 +247,94 @@ the missing step in CI after an authorized push.
   and `PRESTEP` using the production field reconstruction.
 - Next trigger: completion of that comparison or the next field-solver change.
 
+### 2026-09-10 - DOC-USER/DOC-PHYS/DOC-ARCH: named COF and TRACK launch
+
+- OPALX revision: `288d4327c`, including named COF handover and final-turn
+  localization from `2db119cda`. This was a focused audit of the current source,
+  not a complete audit of all changes since the previous maintenance entry.
+- Manual base: `4548fd0`. Preserved and completed the four existing edits in
+  tracking, user cyclotron, physics cyclotron, and linear transfer maps.
+- Reviewed: `CofCmd`, `ClosedOrbitInitialState`, `TrackCmd`, `TrackRun`,
+  `ParallelTracker`, directed return timing, the JSON writer, parser registration,
+  and relevant tests and sandbox evidence.
+- Changed: named single-statement COF, optional exact JSON output and its schema,
+  `INITIALORBIT` compatibility and frame conventions, COF-versus-TRACK numerical
+  distinctions, final-return restrictions, architecture and inventories. Removed
+  obsolete `TRACK.MAP_ORDER`, added current spectral controls and `EKINSTOP`, and
+  corrected the space-charge example to omit unsupported `TURNS` stopping.
+  Registered `COLLIMATOR` and `CONSTANTFOCUSING` in the input catalog with detailed
+  parameter guides explicitly pending. Corrected obsolete LaTeX font commands
+  and made the affected parameter tables scroll within narrow viewports.
+- Verification: source validator, full 57-chapter HTML render, five report-page
+  renders, six existing browser tests, and focused desktop/mobile checks passed.
+  All seven architecture diagrams render. Five COF/reference-return CTest suites
+  and nine executable interface checks passed. Handover reference coordinates,
+  momentum and time were identical on one and two MPI ranks; failure propagation
+  and existing-output protection were also checked on two ranks. Diff reviewed.
+- Test environment: the executable checker referenced a missing historical
+  baseline. A temporary copy used `output/named-cof-verified/export/first.json`
+  instead; source and sandbox files were not modified. Reproduction results are
+  in `/tmp/opalx-manual-cof-validation-restored-20260910/summary.json`.
+- Publication checks: the optional document-manifest audit could not run because
+  `/Users/adelmann/git/opalx-documents` is absent. After rendering report pages,
+  HTML link validation reported only the missing full-book PDF (57 links).
+  The full PDF build again stalled at chapter 19 before LaTeX. A retry with an
+  isolated Chrome profile reached the same point; its browser debugging endpoint
+  did not respond. Both task-owned attempts were stopped. PDF validation remains
+  incomplete; no PDF success or download availability is claimed.
+- Open items: complete the remaining manual/API baseline; audit the two newly
+  catalogued elements in detail; restore moved sandbox baseline references;
+  retain the experimental COF stability and independent TRACK-convergence caveats.
+  No GPU validation or new numerical convergence study was performed here.
+- Next trigger: a COF/TRACK interface or numerical change, completion of the
+  convergence studies, or the next monthly review. No commit or push performed.
+
+### 2026-09-10 - DOC-USER/DOC-PHYS: RF ring and field output units
+
+- OPALX: working tree at `288d4327cedc742e8bf4c32878070d32a2f5e15e`.
+- Manual base: `174a60ccd9b797f6cff51c75daefaacd45344b07`.
+- Reviewed: VariableRFCavity field support, physical-time midpoint sampling,
+  runtime registration, analytic RING/TURNS eligibility and HDF5 field writer.
+- Changed: existing user element/tracking guides, physics element chapter and
+  EBDUMP option units. The ideal RF field has no fringe or transverse focusing;
+  constant polynomial models use seconds and explicit phase. Static COF
+  restrictions remain. HDF5 particle electric fields use V/m, magnetic fields T.
+- Verification: RF unit suite and actual executable relink passed; live six-gap
+  ring reference closes within 3.03 pm and device/reference disagreement is
+  at most 20.9 pm in the one-particle calibration. Manual validator and three
+  focused HTML renders/anchor checks passed; diff checked. Existing broader
+  publication limitations recorded above remain unchanged.
+- Open items: large-bunch periodic tracking and tune convergence remain under
+  investigation. Uniform spatial density is not preserved by the current
+  finite-emittance moment-matched launch. Sinusoidal frequency-model integral
+  normalization has a separate defect; constant polynomial models are unaffected.
+  Proposed BOUNDARYDT is not implemented and is not documented as available.
+- Next trigger: validated large-bunch results or a change to ring numerics.
+  No commit or push performed.
+
+### 2026-09-11 - DOC-PHYS: source-moment time centring
+
+- OPALX: working tree at `288d4327cedc742e8bf4c32878070d32a2f5e15e`.
+- Manual base: `174a60ccd9b797f6cff51c75daefaacd45344b07`.
+- Reviewed: the first Boris drift, mean-momentum solve alignment, binned mean
+  momentum/gamma, density normalization, longitudinal mesh stretch and direct
+  relativistic field composition. This was a focused accuracy qualification,
+  not a complete page or subsystem audit; page review date is unchanged.
+- Changed: physics overview now distinguishes midpoint positions from the
+  unchanged source momenta. It states the source-moment condition on the
+  second-order claim and gives the implemented E/B conversion formulas.
+- Verification: seven continuum ellipsoid sensitivity tests and five independent
+  composition tests pass without OPALX execution. Manual validator passes all
+  57 chapters; focused physics-overview HTML render and generated text/equation
+  checks pass; diff reviewed. Prior full-PDF/documents limitations remain.
+- Open items: source-direction lag has a small first-order coefficient in the
+  low-beta ring, but changing gamma, PIC discretization, source evolution and
+  accumulated tune error need tracking convergence. The proposed independent
+  particle-boundary mode remains unimplemented and awaits explicit API approval;
+  no new option is documented as available. No production numerics changed.
+- Next trigger: implementation approval and numerical validation, or the next
+  source-frame/space-charge change. No commit or push performed.
+
 Use this template for subsequent entries:
 
 ```markdown
@@ -260,3 +348,32 @@ Use this template for subsequent entries:
 - Open items: unresolved questions or `none`
 - Next trigger: date, release, or source event
 ```
+
+
+### 2026-09-16 - DOC-USER/DOC-PHYS: bare rings and passive observations
+
+- OPALX base: `288d4327cedc742e8bf4c32878070d32a2f5e15e`, including current
+  uncommitted tracking and diagnostic changes. Manual base:
+  `174a60ccd9b797f6cff51c75daefaacd45344b07`.
+- Scope: focused sections in `user-guide/tracking.qmd` and
+  `physics/overview/index.qmd`, reviewed against TrackRun, ParallelTracker,
+  BorisStepControl, PassiveProbe, PassiveRingProbe and their unit tests.
+- Changed: boundary retries require NONE; ordinary collective PIC stepping is
+  independent of diagnostic selection. Documented passive directed-plane
+  interpolation, units, frame conventions, missing IDs, crossing-count meaning,
+  equal rounded timestamps and accuracy limits. Bare analytic-ring callbacks
+  now use prepared occurrence order to avoid allocation-dependent frame roundoff;
+  charged and cyclotron callback ordering is preserved. Removed the overly broad spin
+  restriction from TURNS documentation; the boundary controller still excludes
+  spin. Preserved unrelated local edits and complete-page review dates.
+- Verification: source validator passes all 57 chapters; focused tracking and
+  physics overview HTML renders pass; generated anchors and mathematics checked.
+  Source tests cover the internal diagnostic; no new public input syntax added.
+- Numerical study evidence remains in OPALX sandbox/Regression-Tests/tune-shift-ring
+  (BARE_RING_MILESTONE.md and CYCLOTRON_GUARD.md); this documentation does not
+  promote an uncompleted space-charge tune study or claim GPU hardware validation.
+- Open items: broader page audits and existing full-PDF/publication checks remain
+  outside this focused pass. Extend diagnostic eligibility only with appropriate
+  emission/restart/collective-field validation.
+- Next trigger: completion of production space-charge convergence or changes to
+  ring diagnostic/integration eligibility.

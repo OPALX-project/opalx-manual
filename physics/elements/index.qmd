@@ -12,3 +12,68 @@ runtime semantics require more than the generic placement conventions.
 {{< include bend.qmd >}}
 
 {{< include multipole.qmd >}}
+
+
+## Ideal time-dependent RF cavity {#variable-rf-cavity-model}
+
+`VARIABLE_RF_CAVITY` prescribes a uniform longitudinal electric field in its
+straight element frame. Let $A(t)$ be the amplitude-model output in MV/m,
+$f(t)$ the frequency-model output in MHz, and $\phi(t)$ the phase-model output
+in radians, with $t$ and the integration variable $\tau$ in seconds. For
+constant or polynomial frequency models, the implemented field is
+
+$$
+\mathbf E_{\mathrm{RF}}(\mathbf r,t)
+=\widehat{\mathbf z}\,10^6 A(t)\,
+\sin\!\left[2\pi\,10^6\int_0^t f(\tau)\,d\tau+\phi(t)\right]
+\chi_{\mathcal C}(\mathbf r),
+\qquad \mathbf B_{\mathrm{RF}}=0,
+$$
+
+in V/m and T respectively. The support indicator is one on
+
+$$
+\mathcal C=\{(x,y,z):\ 0\le z<L,\ |x|\le W/2,\ |y|\le H/2\},
+$$
+
+and zero elsewhere; $L$, $W$, and $H$ are the full cavity dimensions in metres.
+The longitudinal entrance and both transverse faces are included, while the
+longitudinal exit is excluded. The field is added to any existing external
+and self-fields. Particle-loss apertures are a separate tracking operation.
+The [input guide](../../user-guide/elements.qmd#element-time-dependence-definitions)
+describes the available time models and current integral limitations.
+
+This is an ideal prescribed-field buncher model, without an electromagnetic
+cavity-mode solution, fringe fields, or transverse RF focusing. Within the
+ordinary drift--kick--drift integrator, the device particle kernel and host
+reference evaluate the field at the physical midpoint $t+h/2$ of each step
+of duration $h$. Subdividing a step changes this sampling time consistently;
+it does not reset the RF phase each turn. See the
+[integration method](../overview/index.qmd#ring-boris-pic).
+
+For constant amplitude $E_0=10^6A$ in V/m and angular frequency
+$\omega=2\pi\,10^6f$ in rad/s, a particle with charge $q$ in C and approximately
+constant speed $v$ through the cavity gains
+
+$$
+\Delta K \simeq q E_0 L\,
+\operatorname{sinc}\!\left(\frac{\omega L}{2v}\right)
+\sin(\omega t_c+\phi),
+\qquad \operatorname{sinc}(u)=\frac{\sin u}{u},
+$$
+
+in joules, where $t_c$ is the time at the cavity centre. This finite transit-time
+formula is a useful weak-kick approximation, not a replacement for integrating
+the reference when its speed changes appreciably. A stationary synchronous
+particle requires zero integrated energy gain and an RF frequency
+$f_{\mathrm{RF}}=h_{\mathrm{RF}}/T_{\mathrm{rev}}$ in Hz, where $h_{\mathrm{RF}}$
+is an integer harmonic and $T_{\mathrm{rev}}$ is its measured return time in
+seconds. Choose the restoring phase using the ring's longitudinal dynamics
+and calibrate the finite-cavity reference motion. A chosen phase alone does
+not establish a self-consistent space-charge match.
+
+The automatic maximum-energy cavity phaser does not change this element's
+explicit phase model. `COF` remains a static magnetic, fixed-energy orbit
+calculation; it does not solve the RF-periodic six-dimensional synchronous
+orbit. Bare-orbit input and RF tracking must respect the
+[orbit handover constraints](../../user-guide/tracking.qmd#opalx-initial-orbit).

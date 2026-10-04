@@ -3,7 +3,7 @@ title: "Overview"
 description: "Relativistic equations of motion, split-step integration, frame handling, and tracker structure."
 audience: physics
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-09-10"
 ---
 ## Introduction {#sec.opalt.introduction}
 
@@ -81,16 +81,18 @@ momenta OPALX uses the Boris-Buneman algorithm [@langdon].
 
 ### Implemented split-step update
 
-The present OPALX tracker is the time-based `ParallelTracker` path. At the
-algorithmic level it implements a second-order leap-frog (`LF2`) style update
-with a Boris-Buneman momentum kick.
+The present OPALX tracker is the time-based `ParallelTracker`. It uses a
+leap-frog (`LF2`) style drift--kick--drift update with a Boris-Buneman momentum
+kick. Second-order accuracy requires appropriately centred, sufficiently smooth
+field data; the source-moment qualification below applies to binned space charge.
 
-For a particle state $(\mathbf{x}^n,\mathbf{P}^{n-1/2})$, where
-$\mathbf{P}=\gamma \mathbf{v}/c$, one full step is organized as:
+For a particle state $(\mathbf{x}^n,\mathbf{P}^{n})$, where
+$\mathbf{P}=\gamma \mathbf{v}/c$, positions are in metres and time is in
+seconds. One full drift--kick--drift step is organized as:
 
 $$
-\mathbf{x}^{n+1/2} = \mathbf{x}^{n} + \frac{\Delta t}{2}\frac{\mathbf{P}^{n-1/2}}
-{\sqrt{1 + |\mathbf{P}^{n-1/2}|^2}},
+\mathbf{x}^{n+1/2} = \mathbf{x}^{n} + \frac{c\Delta t}{2}\frac{\mathbf{P}^{n}}
+{\sqrt{1 + |\mathbf{P}^{n}|^2}},
 $$
 
 then fields are assembled at that half-step position,
@@ -104,18 +106,18 @@ $$
 then the Boris momentum update is applied,
 
 $$
-\mathbf{P}^{n+1/2}
+\mathbf{P}^{n+1}
 \xleftarrow{\;\frac{1}{2}\mathbf{E}\;}
 \xleftarrow{\;\mathbf{B}\;}
 \xleftarrow{\;\frac{1}{2}\mathbf{E}\;}
-\mathbf{P}^{n-1/2},
+\mathbf{P}^{n},
 $$
 
 and finally the second half drift is performed,
 
 $$
-\mathbf{x}^{n+1} = \mathbf{x}^{n+1/2} + \frac{\Delta t}{2}
-\frac{\mathbf{P}^{n+1/2}}{\sqrt{1 + |\mathbf{P}^{n+1/2}|^2}}.
+\mathbf{x}^{n+1} = \mathbf{x}^{n+1/2} + \frac{c\Delta t}{2}
+\frac{\mathbf{P}^{n+1}}{\sqrt{1 + |\mathbf{P}^{n+1}|^2}}.
 $$
 
 In the actual code this appears as:
@@ -126,7 +128,7 @@ In the actual code this appears as:
 4. `emitFromEmissionSources()`
 5. `computeExternalFields()`
 6. `timeIntegration2()`: Boris kick plus second half position push
-7. `incrementT()` and `updateReference()`
+7. advance the bunch clock and call `updateReference()`
 
 So the implemented method is not just “a Boris pusher in isolation”; it is a
 split PIC/tracking loop in which the field solve and external-element queries
@@ -143,28 +145,63 @@ mean momentum. Self-fields are computed there, then the particle positions and
 the computed $\mathbf{E}$ and $\mathbf{B}$ contributions are rotated back
 to the reference frame.
 
-For external fields, `computeExternalFields()` queries the `OrbitThreader`
-active-set model and then transforms each particle container from the current
-reference frame into the local frame of each active element. The element field
-is applied there, and the bunch is transformed back afterwards. This is why
-OPALX can handle overlapping field supports and explicit element placement
-without reducing the machine to a purely one-dimensional owner-in-$s$ model.
+With `SCFIELDUPDATE="MIDPOINT"`, the position drift leaves particle momenta at
+$\mathbf{P}^{n}$. The binned solve therefore obtains its mean momentum and mean
+Lorentz factor from these unchanged momenta. They determine the beam alignment,
+longitudinal mesh stretch and relativistic field conversion. For example, with
+rest-frame electric field $\mathbf{E}'$, source velocity $\mathbf{v}_s$ and its
+unit direction $\widehat{\mathbf{v}}_s$, the direct field conversion is
+
+$$
+\mathbf{E}_{sc}=\overline{\gamma}\mathbf{E}'
+ -(\overline{\gamma}-1)(\mathbf{E}'\cdot\widehat{\mathbf{v}}_s)
+  \widehat{\mathbf{v}}_s,
+\qquad
+\mathbf{B}_{sc}=\frac{\overline{\gamma}}{c^2}
+ \mathbf{v}_s\times\mathbf{E}',
+\qquad
+\mathbf{v}_s=\frac{c\langle\mathbf{P}^{n}\rangle}{\overline{\gamma}}.
+$$
+
+Here $\overline{\gamma}=\langle\sqrt{1+|\mathbf{P}^{n}|^2}\rangle$ is the bin
+mean Lorentz factor. Midpoint positions do not also centre these source moments
+in time. When source direction or energy changes, their lag can contribute a
+first-order error term; a small low-energy coefficient does not change that
+formal order. Establish accuracy by timestep convergence for the beam and
+fields being studied, including source-frame evolution.
+
+For external fields, compatible analytic rings select candidate elements from
+the particles' laboratory positions on the device. Other geometries retain the
+`OrbitThreader` path-length query. Each selected element uses its existing local
+coordinate transformation, support test, and device field kernel; overlapping
+fields are added before the Boris kick. Spatial selection is independent of
+whether the collective solver permits step retries.
+
+The moving reference frame is updated with a quaternion. For normalized old
+and new directions $\mathbf{u}$ and $\mathbf{v}$, its half-angle is computed as
+$\tfrac12\operatorname{atan2}(|\mathbf{u}\times\mathbf{v}|,
+\mathbf{u}\cdot\mathbf{v})$. This retains small resolved rotations when the dot
+product rounds to one; the existing $10^{-12}$ parallel/antiparallel threshold
+is unchanged. Reference and COF integration remain on the host; particle
+drifts, kicks, support checks, and coordinate transformations use Kokkos.
 
 ### Boris momentum update
 
 The implemented Boris kernel follows the standard relativistic
-Birdsall-Langdon form. In the notation of the code:
+Birdsall-Langdon form. With $q$ in coulombs, rest mass $m$ in kilograms,
+$\mathbf{E}$ in V/m, $\mathbf{B}$ in tesla, and normalized momentum
+$\mathbf{P}=\mathbf{p}/(mc)$:
 
 1. half electric impulse
    $$
-   \mathbf{P}^{-} = \mathbf{P}^{n-1/2} +
-   \frac{\Delta t}{2}\frac{q c}{m}\mathbf{E},
+   \mathbf{P}^{-} = \mathbf{P}^{n} +
+   \frac{\Delta t}{2}\frac{q}{m c}\mathbf{E},
    $$
 2. magnetic rotation with
    $$
    \gamma^- = \sqrt{1 + |\mathbf{P}^{-}|^2},
    \qquad
-   \mathbf{t} = \frac{\Delta t}{2}\frac{q c^2}{\gamma^- m}\mathbf{B},
+   \mathbf{t} = \frac{\Delta t}{2}\frac{q}{\gamma^- m}\mathbf{B},
    \qquad
    \mathbf{s} = \frac{2\mathbf{t}}{1 + |\mathbf{t}|^2},
    $$
@@ -176,12 +213,109 @@ Birdsall-Langdon form. In the notation of the code:
    $$
 3. second half electric impulse
    $$
-   \mathbf{P}^{n+1/2} = \mathbf{P}^{+} +
-   \frac{\Delta t}{2}\frac{q c}{m}\mathbf{E}.
+   \mathbf{P}^{n+1} = \mathbf{P}^{+} +
+   \frac{\Delta t}{2}\frac{q}{m c}\mathbf{E}.
    $$
 
-This is the update implemented in the `BorisPusher` used by
-`ParallelTracker`.
+`BorisPusher` implements the same update using its stored rest energy in eV
+and charge in elementary-charge units; its numerical coefficients therefore
+contain $c/\texttt{mass}$ and $c^2/\texttt{mass}$ instead of the SI coefficients
+above.
+
+::: {.feature-opalx}
+### Common-step boundary refinement for bare analytic rings {#ring-boris-pic}
+
+Eligible bare rings (`FIELDSOLVER, TYPE=NONE`) reuse the ordinary device
+drift--kick--drift sequence with shared subdivision of each nominal `DT`.
+For trial duration $h$, all particles first drift to the common midpoint time.
+The existing element kernels supply external fields there. A register-only
+Boris endpoint trial tests whether any particle changes element support between
+the start, midpoint and endpoint. The replicated reference is tested with the
+same external-field geometry. MPI combines these decisions so every rank
+accepts or bisects the same interval.
+
+Bare analytic rings apply selected element callbacks in the prepared lattice's
+occurrence order. This includes aperture and monitor callbacks, because their
+coordinate transformations also affect floating-point rounding. Using this order
+avoids changing the arithmetic sequence with element allocation addresses. It
+does not change field supports or formulas; charged and cyclotron tracking retain
+their established callback order. Bitwise identity across different execution
+backends or MPI decompositions is not implied.
+
+An accepted trial commits the ordinary Boris kick and second drift once. A
+rejected trial has not changed momentum: the uncommitted first drift is reversed
+and the shorter interval is tried again. Both child intervals remain scheduled.
+The `NONE` solver adapter retains the mean-momentum rotation but uses the tracking
+origin, avoiding position quantization from adding and subtracting accumulated
+path length. Fixed domains, image boundaries, and other solver configurations
+retain their established coordinate handling. Eligibility is listed in the
+[tracking guide](../../user-guide/tracking.qmd#ring-boundary-refinement).
+
+This controller is not applied to collective space-charge solves. Resolving
+every macroparticle's field-boundary event by repeating a whole-bunch PIC solve
+can be prohibitively expensive. The ordinary synchronized PIC sequence remains
+responsible for physical integration. Its accuracy must be established by
+timestep, mesh and particle-number convergence, independently of tune recording.
+
+The schedule first limits $h$ to one quarter of the shortest positive element
+body/support length divided by $c$. Further bisection stops at a root-relative
+numerical floor
+
+$$
+h_{\mathrm{floor}} = \max\!\left(10^{-12}\Delta t_0,
+ \frac{64\epsilon\max(1\,\mathrm{m},|\mathbf{R}_{\mathrm{ref}}|)}
+ {v_{\mathrm{ref}}}\right),
+$$
+
+where $\Delta t_0$ is the nominal interval, $\epsilon$ is double-precision
+machine epsilon, $\mathbf{R}_{\mathrm{ref}}$ is the laboratory reference
+position, and $v_{\mathrm{ref}}>0$ is its physical speed in m/s. The controller
+also bounds subdivision depth at 64 and work at one million trials per nominal
+interval. Unresolved crossings at the numerical floor are accepted. Compensated
+time accumulation retains the complete nominal interval.
+
+The underlying Boris update is second order for smooth, appropriately centred
+fields. State-dependent boundary selection does not itself establish that order
+at hard edges. Magnetic rotation preserves momentum magnitude with zero electric
+field up to roundoff. Refinement changes the step partition and floating-point
+operation order. Output frequencies and the global step counter count accepted
+substeps; `MAXSTEPS` counts completed nominal intervals.
+
+### Passive selected-particle section observations {#passive-ring-probes}
+
+Diagnostic crossings can be reconstructed from two accepted endpoints without
+altering the particle or the integration schedule. Let a fixed plane in laboratory
+coordinates be $g(\mathbf r)=\mathbf n\cdot(\mathbf r-\mathbf r_0)=0$.
+For a bracket with $g_n<0$ and $g_{n+1}\geq0$, define
+
+$$
+\alpha=\frac{-g_n}{g_{n+1}-g_n},\qquad
+t_c=t_n+\alpha(t_{n+1}-t_n),\qquad
+\mathbf u_c=(1-\alpha)\mathbf u_n+\alpha\mathbf u_{n+1},
+$$
+
+where $\mathbf u$ contains position [m] and mechanical momentum $\mathbf p/(mc)$
+at the same physical time. Positive interpolated momentum along the normal
+selects forward crossings. A negative-side excursion arms the next return, so
+the launch point, reverse crossing and near-plane jitter do not count as turns.
+Histories are keyed by fixed particle IDs; missing intervals are not interpolated.
+The count is the number of observed forward crossings of that plane, which is a
+turn count only when the selected section is crossed once per revolution.
+Positive substeps can have equal rounded absolute timestamps. Such endpoint
+pairs still define a spatial interpolation and share the recorded crossing time;
+strictly decreasing timestamps are rejected. No integration step is changed to
+make diagnostic times distinct.
+
+Linear interpolation is exact for constant drift and has second-order event
+error for a smooth transverse crossing. It does not correct transport errors or
+resolve multiple crossings hidden inside a timestep. Observation planes should
+be away from discontinuous fields and interpolation must be checked under
+timestep refinement. Space charge can remain nonzero in a magnet-free straight.
+The internal bare-ring benchmark records only selected endpoints and leaves the
+full population's physical advancement unchanged; it introduces no public input
+command. Cyclotron tracking does not activate this benchmark recorder.
+
+:::
 
 ### Integration class structure
 

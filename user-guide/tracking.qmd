@@ -3,7 +3,7 @@ title: "Tracking"
 description: "Configure TRACK and the experimental static-ring COF command in OPALX, or retained legacy OPAL tracking."
 audience: user
 status: current
-last-reviewed: "2026-09-09"
+last-reviewed: "2026-09-10"
 ---
 
 A tracking block selects a lattice and beam, defines its step schedule, starts
@@ -53,7 +53,9 @@ A segment ends when all active particle containers reach its `ZSTOP` or when
 its own `MAXSTEPS` budget is exhausted, whichever happens first. Unused steps
 are not transferred to the following segment. The maximum number of steps for
 the complete schedule is therefore the sum of the expanded `MAXSTEPS` array;
-the actual number can be smaller when a `ZSTOP` is reached early.
+the actual number can be smaller when a `ZSTOP` is reached early. For
+[ring boundary refinement](#ring-boundary-refinement), this budget counts
+completed nominal `DT` intervals; accepted internal substeps can be more numerous.
 
 For example:
 
@@ -163,6 +165,58 @@ is not specific to cyclotrons. It has no physical effect when
 `FIELDSOLVER.TYPE=NONE`. Treat a change of update point as a numerical-method
 change and repeat the timestep-convergence study for the observables of interest.
 
+### Analytic-ring boundary refinement {#ring-boundary-refinement}
+
+Compatible analytic `RING` lattices use spatial device field selection. With
+`FIELDSOLVER, TYPE=NONE`, eligible bare runs also subdivide a shared Boris step
+at element support boundaries, with or without `TURNS`. The ordinary element
+kernels and Boris kick remain on the device. A rejected trial repeats the
+uncommitted first drift at a smaller duration. This refinement is restricted
+to bare tracking; space-charge runs retain the ordinary Boris/PIC step sequence.
+See the [numerical method](../physics/overview/index.qmd#ring-boris-pic).
+
+Boundary refinement currently requires:
+
+- Static drifts, markers, monitors, dipoles, quadrupoles, analytic SBEND/RBEND
+  models, and [`VARIABLE_RF_CAVITY`](elements.qmd#variable-rf-cavity) elements
+  with finite positive dimensions; no misalignments or higher multipole
+  components. RF fields use the ordinary device kernel at each substep's
+  physical midpoint; their explicit time-model phase is retained.
+- One particle container, positive `DT`, completed emission, and no spin.
+- `FIELDSOLVER, TYPE=NONE`, with no binning or one fixed bin
+  (`MAXBINS=1`, `ADAPTIVEBINNING=FALSE`). Bin file and console-table output must
+  be disabled.
+- `OPTION, REPARTFREQ=0, CHECKPOINTFREQ=0`: no periodic ORB repartitioning or
+  checkpoint output; checkpoint restarts also retain fixed steps.
+- No image-charge correction and no fixed Cartesian domain.
+
+A bare-ring setup is:
+
+```opal
+OPTION, REPARTFREQ=0, CHECKPOINTFREQ=0;
+FSNone: FIELDSOLVER, TYPE=NONE,
+        NX=16, NY=16, NZ=16,
+        PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+        BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN;
+// MYRING and Beam0 (including its DISTRIBUTION and SOURCES) are already defined.
+TRACK, LINE=MYRING, BEAM=Beam0, DT=6.25e-11, MAXSTEPS=200000;
+  RUN, METHOD="PARALLEL", FIELDSOLVER=FSNone, TURNS=1;
+ENDTRACK;
+```
+
+The timestep above is a starting value, not a convergence criterion. The
+eligible `NONE` solver adapter retains its mean-momentum alignment but avoids
+translating a small bunch by the accumulated multi-turn path length. Other
+solver configurations retain their established coordinate handling.
+
+Compatible ring geometry still uses spatial field selection when a solver or
+run option prevents retries; the ordinary fixed-step Boris/PIC sequence then
+applies. The startup log reports the active mode and why refinement is disabled.
+Cyclotron sectors, field-map RF cavities and other unsupported geometries retain
+their existing element selection and integration. Field-debug builds additionally
+disable retries for unbinned solves. `PSDUMPFREQ`, `STATDUMPFREQ`, and the global
+step number count accepted substeps; refinement can increase output and work.
+
 ### `TURNS` {#turns}
 
 `TURNS` is an optional stopping condition for tracking a `RING`.
@@ -195,12 +249,18 @@ Explicit turn-count tracking currently has the following restrictions:
   explicit `TURNS` value currently does not activate a turn-count stop.
 - Exactly one `DT`, `MAXSTEPS`, and `ZSTOP` segment must be defined.
 - Restart tracking is not supported.
-- One beam/container and `FIELDSOLVER, TYPE=NONE` are required. Space-charge
-  and multiple-container terminal events are not yet supported.
+- One beam/container is required. Space charge is allowed: the bunch receives
+  its normal self-field solve and kick over the accepted, possibly shortened
+  step. The stopping plane is determined by the external-field reference,
+  not by the bunch centroid.
+- Boundary refinement excludes spin; the ordinary turn counter does not
+  add a spin restriction.
 - Emission must already be complete when tracking starts.
 - The lattice may contain static drifts, markers, monitors, multipoles, SBENDs,
-  RBENDs, solenoids, and cyclotron sectors. RF cavities and other time-dependent
-  elements are not supported for localized `TURNS`.
+  RBENDs, solenoids, cyclotron sectors, and `VARIABLE_RF_CAVITY` elements.
+  General field-map RF cavities and other time-dependent element types are
+  not supported for localized `TURNS`. This eligibility is separate from
+  the narrower conditions for [boundary refinement](#ring-boundary-refinement).
 - `TURNS` cannot be combined with `EKINSTOP`.
 
 For an explicit turn count, OPALX disables the `ZSTOP` limit and may increase
@@ -381,7 +441,7 @@ The initial handover supports one fresh beam, `ZSTART=0`, and completed emission
 coordinate convention would make placement ambiguous. Restart and spectral tune
 mode cannot use `INITIALORBIT`. Space-charge matching is not performed by COF;
 an orbit-centred bunch is not necessarily a self-consistently matched bunch.
-For space-charge tracking, omit `TURNS` and use the `TRACK` stopping schedule.
+Space-charge tracking may use either `TURNS` or the `TRACK` stopping schedule.
 
 The handover transfers the launch state, not COF's timestep or integration
 settings. COF's ray integrator and TRACK's production Boris integration can
@@ -403,9 +463,9 @@ does not suppress this warning or relax the unit-circle tolerance. See the
 ## Current OPALX step sequence {#opalx-step-sequence}
 
 With the default `SCFIELDUPDATE="MIDPOINT"`, `ParallelTracker` performs a half
-position push, assembles space-charge and external fields, emits particles,
-applies the Boris momentum update and second half push, advances time, and
-updates the reference state. With `SCFIELDUPDATE="PRESTEP"`, it assembles the
+position push, computes space-charge fields, emits any new particles, adds
+external fields, applies the Boris momentum update and second half push,
+advances time, and updates the reference state. With `SCFIELDUPDATE="PRESTEP"`, it assembles the
 self-field before the first half push while retaining midpoint external-field
 evaluation. See [Space-charge field update point](#space-charge-field-update).
 The [Physics Overview](../physics/overview/index.qmd) describes this split.

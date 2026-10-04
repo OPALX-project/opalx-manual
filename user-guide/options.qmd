@@ -61,7 +61,7 @@ Frequencies are measured in global tracking steps unless stated otherwise.
 | `STEPINFOFQ` | `1` | Per-step status frequency; values below zero become `0`, which disables the lines. |
 | `PRINTRANKDISTRFQ` | `0` | Per-rank particle-count table frequency; `0` disables it and negative values become `0`. |
 | `RHODUMP` | `FALSE` | Add the scalar charge-density field to supported HDF5 output. |
-| `EBDUMP` | `FALSE` | Add the electric and magnetic field at each particle to phase-space HDF5 output. |
+| `EBDUMP` | `FALSE` | Add the electric and magnetic field at each particle to phase-space HDF5 output: `Ex`, `Ey`, `Ez` in V/m and `Bx`, `By`, `Bz` in T. |
 | `RANKDUMP` | `FALSE` | Add each particle's current MPI rank to phase-space HDF5 output. |
 | `ENABLEHDF5` | `TRUE` | Enable HDF5 phase-space and loss output. |
 | `ENABLEVTK` | `TRUE` | Enable supported VTK geometry output. |

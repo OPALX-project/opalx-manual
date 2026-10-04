@@ -432,13 +432,20 @@ placement and field before production use.
 
 ## `VARIABLE_RF_CAVITY` {#variable-rf-cavity}
 
-`VARIABLE_RF_CAVITY` applies a hard-edge electric field whose phase, amplitude,
-and frequency are supplied by named time-dependence definitions.
+`VARIABLE_RF_CAVITY` applies an ideal, spatially uniform longitudinal electric
+field within a finite rectangular cavity. Named time-dependence definitions
+supply its amplitude, frequency, and explicit phase. It is registered for
+ordinary `PARALLEL` particle tracking and compatible analytic `RING` tracking,
+including the `TURNS` stopping condition.
 
 ```opal
+Amplitude: POLYNOMIAL_TIME_DEPENDENCE, P0=0.05;  // MV/m
+Frequency: POLYNOMIAL_TIME_DEPENDENCE, P0=3.0;   // MHz
+Phase: POLYNOMIAL_TIME_DEPENDENCE, P0=0.0;       // rad
 VC1: VARIABLE_RF_CAVITY, L=0.2, ELEMEDGE=0.0,
      PHASE_MODEL=Phase, AMPLITUDE_MODEL=Amplitude,
-     FREQUENCY_MODEL=Frequency, WIDTH=0.1, HEIGHT=0.1;
+     FREQUENCY_MODEL=Frequency, WIDTH=0.1, HEIGHT=0.1,
+     APERTURE="RECTANGLE(0.1,0.1)";
 ```
 
 | Parameter | Expected model output |
@@ -448,19 +455,48 @@ VC1: VARIABLE_RF_CAVITY, L=0.2, ELEMEDGE=0.0,
 | `FREQUENCY_MODEL` | Frequency in MHz. |
 | `WIDTH`, `HEIGHT`, `L` | Full cavity dimensions in metres. |
 
+The field support is $0\le z<L$, $|x|\le\mathrm{WIDTH}/2$, and
+$|y|\le\mathrm{HEIGHT}/2$ in the element frame. The entrance and transverse
+faces are included; the longitudinal exit is excluded. Outside this support
+the cavity adds no field. `WIDTH` and `HEIGHT` define field support; the
+generic `APERTURE` independently controls particle-loss checks. Set it
+explicitly when aperture losses should use the same dimensions.
+
+The time models receive the physical time in **seconds**. Device particle
+fields and host reference fields use the same Boris midpoint time,
+$t+\Delta t/2$, for each accepted step. The cavity adds only local $E_z$;
+it has no fringe fields or transverse RF focusing. Its phase is not changed
+by automatic cavity phasing. For a stationary bunch, choose the RF harmonic
+from the measured reference return time and set each cavity's phase using
+its actual transit time; a zero field at the entrance does not establish
+zero net energy gain through a finite cavity. See the
+[RF field model](../physics/elements/index.qmd#variable-rf-cavity-model).
+
+`COF` remains a fixed-energy static magnetic calculation and does not accept
+this element, even with zero amplitude. See the
+[tracking restrictions](tracking.qmd#ring-boundary-refinement) and
+[orbit handover requirements](tracking.qmd#opalx-initial-orbit).
+
 ### Time-dependence definitions {#element-time-dependence-definitions}
 
 `POLYNOMIAL_TIME_DEPENDENCE`
-: Defines $f(t)=\sum_i c_i t^i$ with time in ns. Use either `P0` through `P3`
+: Defines $f(t)=\sum_i c_i t^i$. When used by `VARIABLE_RF_CAVITY`, time is
+  in seconds, so coefficient $c_i$ has model-output units per $\mathrm{s}^i$.
+  Use either `P0` through `P3`
   or `COEFFICIENTS`, not both.
 
 `SINUSOIDAL_TIME_DEPENDENCE`
 : Sums components defined by `FREQUENCIES`, optional `PHASE_OFFSETS`,
   `AMPLITUDES`, and `DC_OFFSETS`. Arrays must describe compatible component
-  counts.
+  counts. With the cavity's time in seconds, `FREQUENCIES` are in Hz;
+  these are modulation frequencies, distinct from the MHz output expected
+  by `FREQUENCY_MODEL`. The current sinusoidal integral has an inconsistent
+  oscillating-amplitude normalization; use a polynomial frequency model
+  when the RF phase must be the integral of its specified frequency.
 
 `SPLINE_TIME_DEPENDENCE`
-: Interpolates `VALUES` at strictly increasing `TIMES` in ns. `ORDER=1`
+: Interpolates `VALUES` at strictly increasing `TIMES`, in seconds when used
+  by `VARIABLE_RF_CAVITY`. `ORDER=1`
   selects linear interpolation and `ORDER=3` selects cubic interpolation with
   quadratic smoothing. The `ORDER` attribute accepts only those two values.
 
