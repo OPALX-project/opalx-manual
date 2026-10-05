@@ -26,6 +26,7 @@ Regression coverage is stated separately from parser registration.
 | `MULTIPOLE` | Normalized dipole/quadrupole arrays | none |
 | `MULTIPOLET` | Physical multipole coefficients with fringe fields | optional time model |
 | `SOLENOID` | Mapped solenoid field | field map |
+| `FIELDMAP` | Static magnetic or electric field map; no maintained regression input | field map |
 | `RFCAVITY` | Standing-wave RF field | field map |
 | `TRAVELINGWAVE` | Traveling-wave RF field | field map |
 | `CYCLOTRONSECTOR` | PSI-style cyclotron sector field | field map and optional trim coils |
@@ -344,6 +345,60 @@ S1: SOLENOID,
 The element does not generate an analytic hard-edge solenoid when `FMAPFN` is
 missing. Keep the field map beside the input or use an unambiguous relative
 path.
+
+## `FIELDMAP` {#fieldmap}
+
+`FIELDMAP` places a static field map in the lattice. The map can hold a
+magnetic field, an electric field, or both. The element has no field of its
+own: the field comes from the map, and the map's z range sets the element's
+start and length.
+
+The element's local frame is the map's own coordinate frame. The 6D pose
+places the map's origin, which need not be the start of the map.
+
+```opal
+ASR61: FIELDMAP,
+    X=0.0699, Y=0.0, Z=2.9745,
+    THETA=0.349066, PHI=0.0, PSI=0.0,
+    FMAPFN="asr61_300d_track.g4blmap", BSCALE=-0.99528;
+```
+
+This places a G4beamline [`grid` map](appendix/field-maps/index.qmd#opalx-g4bl-grid)
+of a bending magnet with its origin at the given lab point, rotated by
+$20^\circ$ about $y$. The map covers $z=-1.38$ to $+1.38\,\mathrm m$ in its own
+frame, so the element starts $1.38\,\mathrm m$ before its origin and is
+$2.76\,\mathrm m$ long. The field is the map times $-0.99528$.
+
+::: {.table-responsive tabindex="0" role="region" aria-label="FIELDMAP parameters"}
+
+| Parameter | Default | Unit | Current behavior |
+|---|---:|---|---|
+| `FMAPFN` | unset | path | Required static field map. Accepted types are `2DMagnetoStatic`, `AstraMagnetoStatic`, and G4beamline [`cylinder`](appendix/field-maps/index.qmd#opalx-g4bl-cylinder) and [`grid`](appendix/field-maps/index.qmd#opalx-g4bl-grid) maps. Time-dependent maps are rejected; use `RFCAVITY` or `TRAVELINGWAVE` for those. |
+| `BSCALE` | `1` | none | Multiplier on the magnetic field. G4beamline maps are read in tesla as written, so `1` reproduces the map; this is the `current=` given where G4beamline places the map. `2DMagnetoStatic` and `AstraMagnetoStatic` maps are normalized to an on-axis peak of `1 T` unless their header turns that off; for them `BSCALE` is the peak field in tesla. |
+| `ESCALE` | `1` | none | Multiplier on the electric field, for a map that holds one (currently G4beamline `grid` maps only). This is the `gradient=` given where G4beamline places the map. No effect on a map without an electric field. |
+| `ZREVERSE` | `FALSE` | Boolean | Mirror the map in z and negate the longitudinal field, as when the magnet is turned around. This is G4beamline's `rotation=Y180`. Only G4beamline `cylinder` maps accept it. |
+
+: {tbl-colwidths="[16, 10, 10, 64]"}
+
+:::
+
+Restrictions:
+
+- Place `FIELDMAP` with a 6D pose (`X`, `Y`, `Z`, `THETA`, `PHI`, `PSI`).
+  `ELEMEDGE` is rejected. A line uses one placement form, so every other
+  element in the line must use a 6D pose too.
+- `L` is rejected; the length comes from the map.
+- A particle outside the map's transverse range gets no field from it. This is
+  not counted as a loss; use `APERTURE` to remove particles.
+- `APERTURE` is checked over the map's z range.
+- `AstraMagnetoStatic` maps have no transverse range. Give an `APERTURE` if the
+  beam can leave the region the map describes.
+- A file is loaded once per run, so one file cannot be used with both
+  `ZREVERSE` settings in the same run.
+- `COF` and localized `TURNS` do not accept `FIELDMAP`.
+- Every MPI rank holds its own copy of the map. See
+  [memory use](appendix/field-maps/index.qmd#opalx-g4bl-grid-memory) for the
+  size of a `grid` map.
 
 ## `RFCAVITY` {#rfcavity}
 

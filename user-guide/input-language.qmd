@@ -168,6 +168,7 @@ user-guide section.
 | `MULTIPOLE` | Defines a thick hard-edge multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |
 | `MULTIPOLET` | Defines a combined-function multipole with fringe and placement controls. | [MULTIPOLET](elements.qmd#multipolet) |
 | `SOLENOID` | Defines a solenoid from normalized strength or a field map. | [SOLENOID](elements.qmd#solenoid) |
+| `FIELDMAP` | Places a static magnetic or electric field map by a 6D pose; the map sets the length. | [FIELDMAP](elements.qmd#fieldmap) |
 | `RFCAVITY` | Defines a standing-wave or single-gap RF cavity, normally from a field map. | [RFCAVITY](elements.qmd#rfcavity) |
 | `TRAVELINGWAVE` | Defines a traveling-wave RF structure with cell and phase-advance controls. | [TRAVELINGWAVE](elements.qmd#travelingwave) |
 | `CYCLOTRONSECTOR` | Defines a PSI-style cyclotron sector field with optional named trim coils. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
