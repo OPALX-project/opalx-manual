@@ -55,7 +55,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions and BOX at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam parameter context, window distinction and subset wording on 2026-10-07; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -530,3 +530,20 @@ Use this template for subsequent entries:
   Create PRs from codex/beambeam-experiment-downloads in each repository and
   merge documents first. Public main download is not live until that merge;
   PDF remains paused.
+
+### 2026-10-07 - DOC-PHYS: focused BeamBeam wording cleanup
+
+- Manual base: `f57874b`; reviewed BeamBeam implementation in the requested
+  `/Users/adelmann/git/opalx-beambeam` checkout at `260b2825b`.
+- Added the user-provided context that the benchmark beam parameters
+  approximately match the gamma-gamma collider project at Sun Yat-sen University.
+  Replaced "artificial reference" with "small reference subset".
+- Clarified input-defined element geometry/IP versus the internally fixed
+  20 mm longitudinal field-window length. Checked fieldWindowLength,
+  fieldWindowBegin/End, resolve geometry and transverse-domain updates directly.
+  No change to source behavior, parameters or physics claims. Complete-page
+  review date remains unchanged because this was a focused edit.
+- Validation: 58-chapter source/document check, focused chapter HTML render,
+  all nine browser tests and 64-page rendered-link validation pass. Confirmed
+  all three edited passages in generated HTML; diff/whitespace checks pass.
+  No commit or push requested for these edits.

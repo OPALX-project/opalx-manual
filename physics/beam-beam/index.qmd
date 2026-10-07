@@ -65,6 +65,9 @@ Let $z=0$ denote the IP in the straight interaction frame. Primary centroids at
 $-d$ and $+d$ have **centroid separation $2d$**. Distinguish this from the
 individual centroid-to-IP distance when specifying field probes or cutoffs.
 
+The benchmark beam parameters below are chosen to approximately match the
+$\gamma\gamma$ collider project at Sun Yat-sen University.
+
 | Quantity | Benchmark value |
 |---|---:|
 | Primary kinetic energy $K_0$ | 245 MeV |
@@ -220,9 +223,14 @@ from the high-energy primary.
 
 ## Interaction window and mesh policy {#sec-beam-beam-window}
 
-The current numerical longitudinal window has fixed length
-$L_f=20$ mm and boundaries $s_\pm=s_{\mathrm{IP}}\pm L_f/2$.
-It is independent of physical aperture and element length.
+The input file determines the placed element's entrance $s_b$ and length $L$,
+and hence the interaction point $s_{\mathrm{IP}}=s_b+L/2$. Distinguish this
+input-defined element extent from the **numerical longitudinal field window**:
+the current implementation fixes its length internally to $L_f=20$ mm, with
+boundaries $s_\pm=s_{\mathrm{IP}}\pm L_f/2$. Thus the window's position follows
+the input-defined IP, but its length is not an input parameter and does not
+follow the element length or physical aperture. "Fixed" refers to this
+longitudinal extent; the transverse mesh bounds can grow as described below.
 Let $s_{\mathrm{tail}}$ be the minimum primary longitudinal coordinate.
 
 | State | Transition and collective behaviour |
@@ -286,7 +294,7 @@ and column header; use separate distribution objects for the two species.
 
 ### Controlled 12-witness comparison {#sec-beam-beam-track12}
 
-The artificial reference contains six electrons and six positrons born at
+The small reference subset contains six electrons and six positrons born at
 
 $$
 ct_b=(-0.9000,-0.5994,-0.3006,0,0.3006,0.5994)\ \mathrm{mm}.
