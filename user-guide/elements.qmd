@@ -19,6 +19,8 @@ Regression coverage is stated separately from parser registration.
 | Type | Regression use | External data |
 |---|---|---|
 | `DRIFT` | Field-free transport | none |
+| `COLLIMATOR` | Source registered; no maintained regression input | none |
+| `BOX` | Source registered; no maintained regression input | none |
 | `BEAMBEAM` | Experimental mirrored-primary interaction and passive witnesses | optional particle input files |
 | `CONSTANTEFIELDCAVITY` | Uniform electric field | none |
 | `CONSTANTFOCUSING` | Collective linear focusing for DIH studies | none |
@@ -60,7 +62,7 @@ and accepts the following common attributes.
 | `THETA`, `PHI`, `PSI` | `0 rad` | Absolute rotations about local $y$, $x$, and $z$. `PSI` is also the optional roll for `ELEMEDGE` placement. |
 | `DX`, `DY`, `DZ` | `0 m` | Local translational misalignment applied after placement. |
 | `DTHETA`, `DPHI`, `DPSI` | `0 rad` | Local rotational misalignment. |
-| `APERTURE` | `ELLIPSE(1,1)` equivalent | Transverse aperture string, for example `CIRCLE(0.02)`, `ELLIPSE(0.03,0.02)`, `RECTANGLE(0.03,0.02)`, or `SQUARE(0.02)`. Dimensions are full widths in metres. |
+| `APERTURE` | none | Transverse aperture string, for example `CIRCLE(0.02)`, `ELLIPSE(0.03,0.02)`, `RECTANGLE(0.03,0.02)`, or `SQUARE(0.02)`. Dimensions are full widths in metres. Without it, the element has no transverse limit. See [Particle removal](#particle-removal). |
 | `DELETEONTRANSVERSEEXIT` | `TRUE` | Requests particle deletion when an element reports a transverse aperture exit. |
 | `TYPE` | unset | Type-specific design selector; currently relevant to `RFCAVITY` below. |
 | `WAKEF`, `PARTICLEMATTERINTERACTION`, `OUTFN` | unset | Parsed common compatibility attributes, but not acted on by the eight element implementations on this page. |
@@ -70,6 +72,36 @@ and accepts the following common attributes.
 Exactly one placement strategy is required. Supplying both `ELEMEDGE` and an
 absolute pose fails; supplying neither also fails. `PSI` alone does not select
 absolute placement.
+
+### Particle removal: `APERTURE`, `COLLIMATOR`, and `BOX` {#particle-removal}
+
+Three inputs delete particles from the beam.
+
+| Input | Deletes particles | Where | Use it for |
+|---|---|---|---|
+| `APERTURE` | outside the given shape | any element | the beam pipe or the bore of a magnet or cavity |
+| [`COLLIMATOR`](#collimator) | outside its `APERTURE` | a field-free element that must have `APERTURE` and `L > 0` | an aperture restriction with no field, such as an iris |
+| [`BOX`](#box) | inside a block, $\lvert x\rvert <$ `WIDTH`/2 and $\lvert y\rvert <$ `HEIGHT`/2 | a field-free element, moved and tilted by its placement | a piece of material beside the beam, such as one collimator jaw |
+
+: {tbl-colwidths="[16, 30, 27, 27]"}
+
+`COLLIMATOR` is a `DRIFT` with an `APERTURE`; it only refuses to run without
+one. `BOX` is the reverse of an aperture: the beam passes around it, not
+through it.
+
+All three follow the same rules:
+
+- The check runs once per time step, after the particles are moved, in the
+  element's local frame. Only particles with $0 \le z < L$ in that frame are
+  checked.
+- A particle that moves more than `L` in one step can pass an element without
+  being checked. Keep the step length $\beta c\,\Delta t$ well below `L`.
+- The boundary itself counts as outside: a particle exactly on it is deleted
+  by `APERTURE` and `COLLIMATOR` and kept by `BOX`.
+- `DELETEONTRANSVERSEEXIT=FALSE` turns deletion off for that element.
+- No loss file is written. Deleted particles reduce `numParticles` in the
+  `.stat` file. With `--info 2`, the log reports how many particles were
+  marked for deletion in each step.
 
 ## `DRIFT` {#drift}
 
@@ -86,6 +118,64 @@ D1: DRIFT, L=0.5, ELEMEDGE=0.0;
 | `L` | unset | Drift length in metres; use a positive value. |
 | `GEOMETRY` | unset | Parsed boundary-geometry name, but not transferred by the current `DRIFT` implementation. |
 | `NSLICES` | `1` | Map-tracking compatibility value; inactive in the current `PARALLEL` tracking path. |
+
+## `COLLIMATOR` {#collimator}
+
+`COLLIMATOR` is a field-free element that deletes every particle outside its
+`APERTURE` while the particle is inside the element body. It behaves like a
+`DRIFT` with an `APERTURE`, but an input without `APERTURE` or with `L <= 0`
+is rejected.
+
+```opal
+C1: COLLIMATOR, L=0.1, ELEMEDGE=1.0, APERTURE="RECTANGLE(0.02,0.01)";
+```
+
+| Parameter | Default | Current behavior |
+|---|---:|---|
+| `L` | required | Body length in metres; must be positive. |
+| `APERTURE` | required | Opening that particles must stay inside, as described under [common element syntax](#common-element-syntax). Dimensions are full widths. |
+
+The collimator models no material: particles are either kept or deleted.
+See [Particle removal](#particle-removal) for how it differs from `BOX`.
+
+## `BOX` {#box}
+
+`BOX` is a field-free solid block that deletes every particle inside it. In
+the element's local frame the block covers
+$\lvert x\rvert <$ `WIDTH`/2, $\lvert y\rvert <$ `HEIGHT`/2, and
+$0 \le z <$ `L`. Use it for material that the beam should pass around, such
+as a collimator jaw.
+
+The block is centred on its local $z$ axis. To move it beside the beam, use
+the normal placement: `X`, `Y`, `Z` and the angles for pose placement, or
+`DX` and `DY` with `ELEMEDGE`. This jaw covers $0 < x < 20\,\mathrm{mm}$ and
+$\lvert y\rvert < 5\,\mathrm{mm}$, so the reference particle passes along its
+$-x$ face:
+
+```opal
+JAW: BOX, L=0.1, X=0.01, Z=0.5, WIDTH=0.02, HEIGHT=0.01;
+```
+
+Two blocks on either side of the beam form a jaw pair. This pair leaves a
+$10\,\mathrm{mm}$ horizontal gap:
+
+```opal
+JAW_L: BOX, L=0.1, X=-0.015, Z=0.5, WIDTH=0.02, HEIGHT=0.05;
+JAW_R: BOX, L=0.1, X= 0.015, Z=0.5, WIDTH=0.02, HEIGHT=0.05;
+```
+
+| Parameter | Default | Current behavior |
+|---|---:|---|
+| `L` | required | Block length along local $z$ in metres; must be positive. |
+| `WIDTH` | required | Full block width along local $x$ in metres; must be positive. |
+| `HEIGHT` | required | Full block height along local $y$ in metres; must be positive. |
+
+`BOX` does not accept `APERTURE`. OPALX treats an element as present along the
+reference trajectory only where the reference particle is inside the
+element's aperture, so the aperture of a block beside the beam must stay
+open. The block models no material: particles are either kept or deleted.
+See [Particle removal](#particle-removal) for how it differs from `APERTURE`
+and `COLLIMATOR`.
 
 ## `BEAMBEAM` {#beambeam}
 
