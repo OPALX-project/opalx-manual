@@ -161,7 +161,8 @@ user-guide section.
 | `LINE` | Orders named elements into the lattice selected by `TRACK.LINE`. | [Beam Lines](beam-lines/index.qmd) |
 | `DRIFT` | Field-free propagation over a finite length. | [DRIFT](elements.qmd#drift) |
 | `BEAMBEAM` | Experimental single-pass mirrored-primary interaction with optional passive witness containers. | [BEAMBEAM](elements.qmd#beambeam) |
-| `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | Parameter guide pending. |
+| `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | [COLLIMATOR](elements.qmd#collimator) |
+| `BOX` | Solid block that deletes particles inside it; requires positive `WIDTH`, `HEIGHT`, and `L`. | [BOX](elements.qmd#box) |
 | `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | [CONSTANTFOCUSING](elements.qmd#constant-focusing) |
 | `CONSTANTEFIELDCAVITY` | Applies a spatially uniform, constant electric field inside the element. | [CONSTANTEFIELDCAVITY](elements.qmd#constant-electric-field-cavity) |
 | `QUADRUPOLE` | Defines a thick normal or skew quadrupole. | [QUADRUPOLE](elements.qmd#quadrupole) |

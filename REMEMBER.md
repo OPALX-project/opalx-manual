@@ -54,7 +54,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused BEAMBEAM interface review on 2026-10-04 | Recheck experimental restrictions at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Beam-Beam chapter review on 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Beam-Beam experiments 1–4 evidence review on 2026-10-04 | Preserve comparison manifests and align full-population production birth timing |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -442,3 +442,29 @@ Use this template for subsequent entries:
   after verification.
 - Next trigger: an explicit request to restore PDF publication, or the next
   HTML publication failure.
+
+### 2026-10-07 - DOC-USER: BOX and COLLIMATOR elements
+
+- OPALX source: branch `box-element` at `4305ba5b2`. Manual base: `dc80f89`.
+- Reviewed: OpalBox, Box, OpalCollimator, Collimator,
+  `ElementBase::markOutsideAperture`, `ElementBase::isInsideAperture`,
+  `ParallelTracker::applyElementApertures`, the default aperture in
+  OpalElement.
+- Changed: added the `COLLIMATOR` and `BOX` sections, overview rows and
+  sidebar entries to the elements page, and a subsection comparing
+  `APERTURE`, `COLLIMATOR`, and `BOX`; corrected the `APERTURE` default (no
+  limit, not `ELLIPSE(1,1)`); linked both types from the input-language and
+  reference catalogs. Validators now require the new sections and anchors;
+  rendered section numbers after `DRIFT` moved up by two.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), eight browser tests, and
+  whitespace check passed. The `BOX` jaw-pair and `COLLIMATOR` examples
+  were run with OPALX; transmissions agreed with the Gaussian expectation.
+- Open items: `BOX` is not on OPALX master yet; merge this after the OPALX
+  pull request. The `document-fieldmap-element` branch also renumbers the
+  rendered sections; whichever merges second must recompute them. Gap found
+  but not fixed: the bends table says positive `HAPERT` installs a
+  rectangular aperture, but the source requires `HGAP > 0` and uses `HAPERT`
+  as the horizontal limit only. Page review dates are unchanged.
+- Next trigger: merge of the OPALX pull request, or a change to element
+  aperture handling.
