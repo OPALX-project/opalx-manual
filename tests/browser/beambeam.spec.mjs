@@ -1,5 +1,17 @@
 import { test, expect } from "@playwright/test";
 
+test("Beam-Beam offers the source-only experiment bundle without the historical section", async ({ page }) => {
+  await page.goto("/physics/beam-beam/index.html");
+  await expect(page.locator("#sec-beam-beam-1v-testcase")).toHaveCount(0);
+  const reproduction = page.locator("#sec-beam-beam-reproducibility");
+  const download = reproduction.getByRole("link", { name: "downloadable input-and-script bundle" });
+  await expect(download).toHaveAttribute("href", "https://github.com/OPALX-project/opalx-documents/blob/main/examples/2026/beam-beam/2026-10-06-beam-beam-experiments.tar.gz");
+  await expect(reproduction).toContainText("no generated results");
+  for (const number of [1, 2, 3, 4]) {
+    await expect(reproduction).toContainText(`sandbox/experiment-${number}`);
+  }
+});
+
 test("BEAMBEAM has a current element reference and physics link", async ({ page }) => {
   await page.goto("/user-guide/elements.html#beambeam");
   const section = page.locator("section#beambeam");
