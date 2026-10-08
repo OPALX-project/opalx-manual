@@ -515,6 +515,12 @@ require new Python or HDF5 dependencies in the short regression suite.
 
 ## Reproduction and evidence {#sec-beam-beam-reproducibility}
 
+The four studies are available together as a
+[downloadable input-and-script bundle]({{< meta documents-base-url >}}/examples/2026/beam-beam/2026-10-06-beam-beam-experiments.tar.gz).
+Use the **Download raw file** button on the linked page to save the archive.
+The bundle preserves the shared launchers and cross-experiment analytic helpers;
+it contains no generated results, plots, OPALX executable, or Python environment.
+
 The study workspace in the OPALX checkout is organized as:
 
 | Directory | Purpose |
@@ -532,6 +538,27 @@ settings above. Experiment 4 defaults to a primary-only lifecycle smoke;
 it does not track witnesses unless a full case is selected.
 The common `--merlin6` launcher option is not yet implemented.
 The independent `sandbox/OPALX-IMPACT` study is unchanged.
+
+Extract the archive at the root of an OPALX Git checkout, retaining its
+`sandbox/` directory structure. Check for existing experiment files first to
+avoid overwriting local work. The archive includes `sandbox/Experiments.md`
+and `sandbox/DOWNLOAD.md` with prerequisites and run instructions. Set
+`OPALX_PYTHON` to a Python interpreter with NumPy, SciPy, pandas, Matplotlib,
+and h5py installed, and select your built executable with `--opalx`:
+
+```bash
+tar -xzf /path/to/2026-10-06-beam-beam-experiments.tar.gz
+export OPALX_PYTHON=/path/to/python
+sandbox/experiment-1/run.sh --opalx /path/to/opalx --smoke
+sandbox/experiment-2/run.sh --opalx /path/to/opalx --smoke
+sandbox/experiment-3/run.sh --opalx /path/to/opalx
+sandbox/experiment-4/run.sh --opalx /path/to/opalx
+```
+
+These are scientific study dependencies, not new requirements for the short
+regression suite. Results and analysis are generated under each experiment's
+`results/` directory. Historical analyses that require omitted output files
+must first regenerate or separately obtain those files.
 
 The fine historical table comes from
 `experiment-2/results/legacy/opalx/timed/a100_4rank_400k_4096x256x128_twofield_816d11ff8/results/track12_comparison.json`,
@@ -551,29 +578,5 @@ comparing architectures, and complete identity/time-aligned output.
 Some obsolete raw field dumps and primary snapshots have been deleted to save
 space; their figures and comparison summaries remain. Regenerate missing raw
 diagnostics before claiming a fresh comparison.
-
-## Historical spherical electrostatic test {#sec-beam-beam-1v-testcase}
-
-The former version of this chapter described a static, spherical Gaussian pair
-in a common solver frame, without laboratory Lorentz boosts. It remains useful
-as a separate electrostatic limit, not as the current collider benchmark.
-For a spherical Gaussian with $R=|\mathbf r-\mathbf c|$ and
-$u=R/(\sqrt2\sigma)$,
-
-$$
-\phi_G(R)=\frac{Q}{4\pi\epsilon_0}\frac{\operatorname{erf}(u)}R,\qquad
-\mathbf E_G(R)=\frac{Q}{4\pi\epsilon_0}
-\frac{\operatorname{erf}(u)-\sqrt{2/\pi}(R/\sigma)e^{-R^2/(2\sigma^2)}}{R^3}
-(\mathbf r-\mathbf c).
-$$
-
-The central field vanishes. Two identical, symmetrically placed bunches have
-zero electric field at the IP; this is different from cancellation of magnetic
-fields for overlapping counter-propagating sources.
-The historical $\sigma=1$ mm, separation 10 mm, and
-$|Q|=1.112650055\times10^{-14}$ C example gives approximately 1 V/m at one
-bunch centre due to the other. The [retained reproducer](reproducers/README.md)
-uses obsolete input syntax and must not be presented as a runnable current
-`BEAMBEAM` example.
 
 :::

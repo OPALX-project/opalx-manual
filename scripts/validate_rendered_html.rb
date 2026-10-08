@@ -107,7 +107,7 @@ elements_html_path = SITE / "user-guide/elements.html"
 if elements_html_path.file?
   elements_html = File.read(elements_html_path)
   element_anchors = %w[
-    common-element-syntax drift beambeam constant-electric-field-cavity constant-focusing quadrupole multipole
+    common-element-syntax particle-removal drift collimator box beambeam constant-electric-field-cavity constant-focusing quadrupole multipole
     multipolet solenoid fieldmap rfcavity travelingwave cyclotronsector laser monitor marker probe bends
     verticalffamagnet variable-rf-cavity element-limitations
   ]
@@ -117,17 +117,19 @@ if elements_html_path.file?
   {
     "common-element-syntax" => /data-number=["']\d+\.1["']/,
     "drift" => /data-number=["']\d+\.2["']/,
-    "beambeam" => /data-number=["']\d+\.3["']/,
-    "constant-electric-field-cavity" => /data-number=["']\d+\.4["']/,
-    "constant-focusing" => /data-number=["']\d+\.5["']/,
-    "fieldmap" => /data-number=["']\d+\.10["']/,
-    "rfcavity" => /data-number=["']\d+\.11["']/,
-    "travelingwave" => /data-number=["']\d+\.12["']/,
-    "cyclotronsector" => /data-number=["']\d+\.13["']/,
-    "laser" => /data-number=["']\d+\.14["']/,
-    "bends" => /data-number=["']\d+\.18["']/,
-    "variable-rf-cavity" => /data-number=["']\d+\.20["']/,
-    "element-limitations" => /data-number=["']\d+\.21["']/
+    "collimator" => /data-number=["']\d+\.3["']/,
+    "box" => /data-number=["']\d+\.4["']/,
+    "beambeam" => /data-number=["']\d+\.5["']/,
+    "constant-electric-field-cavity" => /data-number=["']\d+\.6["']/,
+    "constant-focusing" => /data-number=["']\d+\.7["']/,
+    "fieldmap" => /data-number=["']\d+\.12["']/,
+    "rfcavity" => /data-number=["']\d+\.13["']/,
+    "travelingwave" => /data-number=["']\d+\.14["']/,
+    "cyclotronsector" => /data-number=["']\d+\.15["']/,
+    "laser" => /data-number=["']\d+\.16["']/,
+    "bends" => /data-number=["']\d+\.20["']/,
+    "variable-rf-cavity" => /data-number=["']\d+\.22["']/,
+    "element-limitations" => /data-number=["']\d+\.23["']/
   }.each do |anchor, numbering|
     section = elements_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "elements ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)

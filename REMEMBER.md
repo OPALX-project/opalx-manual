@@ -54,12 +54,12 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05 | Recheck BEAMBEAM restrictions and FIELDMAP at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Beam-Beam chapter review on 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
-| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Beam-Beam experiments 1–4 evidence review on 2026-10-04 | Preserve comparison manifests and align full-population production birth timing |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | HTML-only publication review on 2026-10-04; see log | Restore the documents checkout; re-enable PDF only when requested |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Native Git LFS archive round-trip and focused HTML/download recheck on 2026-10-07 | Use native Homebrew Git LFS for publication; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -440,6 +440,34 @@ Use this template for subsequent entries:
   download links remain. No PDF build was run after the pause instruction.
   Local Quarto is 1.9.37; CI uses 1.9.38. User authorized commit and push to main
   after verification.
+
+### 2026-10-06 - DOC-PHYS/DOC-SANDBOX: downloadable BeamBeam experiments
+
+- Manual base: `dc80f894cc203cf0ee4938baa2df75fa39317545`; documents base:
+  `0f35ab43b894fc04d228e63bc383e36a0dbc3d2a`. OPALX snapshot: `492bd6c08`,
+  including local study files fingerprinted individually in the archive.
+- Removed section 38.9 Historical spherical electrostatic test as requested;
+  did not delete the historical reproducer files or alter current model claims.
+  Added download/extraction instructions in section 38.8. Page review date is
+  unchanged because this was a focused edit, not a new physics audit.
+- User chose runnable inputs/scripts only. The combined 1,282,845-byte archive
+  contains all four experiments and shared dependencies, license and per-file
+  hashes (79 files); excludes results, plots, caches and reference presentation.
+  Stored in opalx-documents/examples/2026/beam-beam with manifest SHA-256 and
+  a reproducible packaging script; .gz is covered by existing LFS attributes.
+- Verification: source validator (58 chapters), documents validator (7 assets),
+  chapter HTML render, 64-page rendered-link validation and nine browser tests
+  pass. Byte-identical repeat archive
+  generation, every bundled source hash, excluded-output check, shell syntax
+  and all four extracted --prepare-only workflows pass. Preparation ran in a
+  temporary extraction with original Git metadata supplied for provenance;
+  no new OPALX simulations or changes to experiment sources were made.
+- Publication: no commit or push requested. Publish the archive before/with the
+  manual, otherwise its public link will not resolve. Existing document assets
+  were restored by public media URLs after Git LFS checkout failed; their hashes
+  match the original manifest. Check the local LFS client before committing or
+  pushing the archive. PDF publication remains paused.
+- Next trigger: authorized publication, or changes to bundled study inputs/helpers.
 - Next trigger: an explicit request to restore PDF publication, or the next
   HTML publication failure.
 
@@ -468,3 +496,79 @@ Use this template for subsequent entries:
   implementations". Page review dates are unchanged.
 - Next trigger: merge of the OPALX pull request, or a change to the field-map
   readers.
+
+### 2026-10-07 - DOC-USER: BOX and COLLIMATOR elements
+
+- OPALX source: branch `box-element` at `4305ba5b2`. Manual base: `dc80f89`.
+- Reviewed: OpalBox, Box, OpalCollimator, Collimator,
+  `ElementBase::markOutsideAperture`, `ElementBase::isInsideAperture`,
+  `ParallelTracker::applyElementApertures`, the default aperture in
+  OpalElement.
+- Changed: added the `COLLIMATOR` and `BOX` sections, overview rows and
+  sidebar entries to the elements page, and a subsection comparing
+  `APERTURE`, `COLLIMATOR`, and `BOX`; corrected the `APERTURE` default (no
+  limit, not `ELLIPSE(1,1)`); linked both types from the input-language and
+  reference catalogs. Validators now require the new sections and anchors;
+  rendered section numbers after `DRIFT` moved up by two.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), eight browser tests, and
+  whitespace check passed. The `BOX` jaw-pair and `COLLIMATOR` examples
+  were run with OPALX; transmissions agreed with the Gaussian expectation.
+- Open items: `BOX` is not on OPALX master yet; merge this after the OPALX
+  pull request. The `document-fieldmap-element` branch also renumbers the
+  rendered sections; whichever merges second must recompute them. Gap found
+  but not fixed: the bends table says positive `HAPERT` installs a
+  rectangular aperture, but the source requires `HGAP > 0` and uses `HAPERT`
+  as the horizontal limit only. Page review dates are unchanged.
+- Next trigger: merge of the OPALX pull request, or a change to element
+  aperture handling.
+
+### 2026-10-07 - DOC-HEALTH: post-reboot Git LFS recovery
+
+- Manual base: `dc80f894`; documents base: `0f35ab43`. Preserved yesterday's
+  section removal and source-only experiment download update; archive snapshot
+  and physics claims unchanged.
+- Reboot did not repair the default GitHub Desktop x86_64 Git LFS executable
+  selected by `/usr/local/bin/git-lfs`; version checks still crash/hang.
+  Native `/opt/homebrew/bin/git-lfs` version 3.7.1 works. Use
+  `PATH=/opt/homebrew/bin:$PATH` for the manual/documents Git commands.
+  No global configuration, PATH, or installed software was changed.
+- Verified archive clean/smudge round-trip with unchanged SHA-256, LFS fsck,
+  seven cataloged documents, 58-chapter source validation and focused HTML
+  render. Existing document binaries are clean under the working LFS filter.
+- All nine browser tests and link validation of 64 rendered pages pass;
+  whitespace/diff checks pass. No staging, commit, push or LFS upload.
+  The new archive's public link is not yet available. PDF remains paused.
+- Next trigger: authorized publication, using the native Git LFS client.
+
+### 2026-10-07 - DOC-SANDBOX: publication through review branches
+
+- User authorized commit and push. Documents commit `eece0a5` contains the
+  source-only archive, packaging script and manifest. Native Git LFS uploaded
+  the archive successfully through SSH; direct main push was rejected because
+  the repository requires a pull request. Use review branches, with the
+  documents change merged before the manual change.
+- Incorporated manual main `0063fde` (BOX/COLLIMATOR documentation). Resolved
+  the maintenance-register conflict by retaining both independent reviews.
+- Combined-tree full HTML and report renders, all nine browser tests and
+  64-page rendered-link validation pass. Documents branch is pushed; the GitHub
+  connector cannot open its PR (403, Resource not accessible by integration).
+  Create PRs from codex/beambeam-experiment-downloads in each repository and
+  merge documents first. Public main download is not live until that merge;
+  PDF remains paused.
+
+### 2026-10-07 - DOC-USER: merge main into document-fieldmap-element
+
+- Manual base: branch `771d624` merged with main `0bebf46`.
+- Changed: kept `FIELDMAP` next to the new `COLLIMATOR` and `BOX` entries in
+  the reference catalog and both validators. Recomputed the rendered section
+  numbers: everything after `SOLENOID` moves up by one from main
+  (`FIELDMAP` 12, `RFCAVITY` 13, bends 20, limitations 23). Kept all log
+  entries from both sides.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), nine browser tests, and
+  whitespace check passed.
+- Open items: none from the merge. `FIELDMAP` (OPALX PR #572) and `BOX`
+  (PR #580) are both on OPALX master, so the manual branch can be merged. The
+  common-attribute table still says "eight element implementations".
+- Next trigger: a change to the field-map readers.
