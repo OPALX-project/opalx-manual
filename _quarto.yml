@@ -2,9 +2,11 @@ project:
   type: book
   output-dir: _site
   pre-render:
+    - ruby scripts/generate_latest_changes.rb
     - ruby scripts/validate_manual.rb
 
 filters:
+  - filters/latest-changes.lua
   - filters/version-block-labels.lua
 
 book:

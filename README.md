@@ -29,9 +29,30 @@ quarto render --profile opalx --to html
 Binary documents and large datasets belong in `opalx-documents`. Pages refer
 to that repository only through the `documents-base-url` metadata value.
 
+## Latest Changes
+
+The front page shows the ten most recent non-merge commits reachable from the
+checked-out revision, directly below the "Find your path" contents overview.
+Each entry uses the commit subject, commit date, and a linked short hash.
+
+Quarto runs `ruby scripts/generate_latest_changes.rb` before rendering. Its
+output, `includes/_latest-changes.md`, is generated and must not be committed.
+The `filters/latest-changes.lua` filter inserts it into the front-page
+`latest-changes-list` placeholder during rendering. Do not replace the
+placeholder with an `include` shortcode: Quarto books resolve includes while
+discovering chapters, before the pre-render script can create the file.
+This keeps a clean checkout renderable without committing generated content.
+
+Links use the `manual-repository-url` metadata. No browser-side API request or
+additional gem is needed. A checkout without Git history shows a link to the
+full history instead; shallow clones display the history they have and warn.
+Use `git fetch --unshallow` to complete a shallow local checkout. CI fetches
+the full history automatically.
+
 ## Validation
 
 ```sh
+ruby tests/test_latest_changes.rb
 ruby scripts/validate_manual.rb
 ```
 

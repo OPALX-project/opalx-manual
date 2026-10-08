@@ -3,7 +3,7 @@ title: "OPALX Universe"
 description: "The unified entry point for OPALX users, physics researchers, and developers."
 audience: user
 status: current
-last-reviewed: "2026-07-24"
+last-reviewed: "2026-10-08"
 page-layout: full
 toc: false
 format:
@@ -126,6 +126,11 @@ check known limitations.
 [Troubleshoot OPALX](troubleshooting/common-problems.qmd)
 :::
 ::::
+
+## Latest Changes {#latest-changes .unnumbered}
+
+::: {#latest-changes-list}
+:::
 
 ::: {.resource-strip}
 **Live resources**

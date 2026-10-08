@@ -69,3 +69,13 @@ their pending-authorization statements.
 - Changes: BUILD_PDF=false gates all five PDF setup/render/validation steps; hide the book PDF download; retain librsvg2-bin before the gated render for future re-enabling; document the pause and prerequisites. Distinct cyclotron COF heading ID fixes the warning without changing the architecture anchor.
 - Verification complete: source validator, full 58-chapter HTML, six report pages, eight browser tests, strict links across 64 HTML pages and workflow gate/order checks pass. No book-PDF download links remain. No PDF build run after the pause request.
 - Status: changes verified and ready for the authorized commit and push; maintenance record in REMEMBER.md. Restore PDF only on request by enabling BUILD_PDF and book.downloads together; keep librsvg2-bin before rendering.
+
+## Front-page latest changes — 2026-10-08
+
+- Goal: show recent commit subjects below the front-page contents overview.
+- Existing attempt uses a pre-render Ruby generator and Lua insertion filter; retained.
+- Cause of missing local content: stale `_site/index.html`; focused HTML render now contains ten entries.
+- Added desktop/mobile browser regression comparing the displayed subjects with Git history.
+- Generator tests initially encountered sandbox Quarto cache access failure; rerunning with cache access.
+- No commit or push authorized. Next: finish checks and open the rebuilt page.
+- Completed: 26 generator/filter/integration tests (339 assertions), ten browser checks including desktop/mobile history visibility, full 58-chapter and six-report HTML renders, and rendered-link validation. Diff reviewed and whitespace check clean. Integration fixture now includes Quarto’s required `**/*.quarto_ipynb` rule. Local result ready; publication still requires authorized commit/push.
