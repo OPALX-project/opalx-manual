@@ -259,8 +259,9 @@ Explicit turn-count tracking currently has the following restrictions:
 - The lattice may contain static drifts, markers, monitors, multipoles, SBENDs,
   RBENDs, solenoids, cyclotron sectors, and `VARIABLE_RF_CAVITY` elements.
   General field-map RF cavities and other time-dependent element types are
-  not supported for localized `TURNS`. This eligibility is separate from
-  the narrower conditions for [boundary refinement](#ring-boundary-refinement).
+  not supported for localized `TURNS`, and neither is `FIELDMAP`. This
+  eligibility is separate from the narrower conditions for
+  [boundary refinement](#ring-boundary-refinement).
 - `TURNS` cannot be combined with `EKINSTOP`.
 
 For an explicit turn count, OPALX disables the `ZSTOP` limit and may increase

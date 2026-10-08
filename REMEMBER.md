@@ -54,7 +54,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -471,6 +471,32 @@ Use this template for subsequent entries:
 - Next trigger: an explicit request to restore PDF publication, or the next
   HTML publication failure.
 
+### 2026-10-05 - DOC-USER: FIELDMAP element and G4beamline field maps
+
+- OPALX source: branch `general-fieldmap-element` at `efa3966db`, with
+  uncommitted changes that add the out-of-memory message in
+  `Fieldmap::readMap()`. Manual base: `dc80f89`.
+- Reviewed: OpalFieldmapElement, FieldmapElement, Fieldmap factory and header
+  detection, G4BL2DMagnetoStatic, G4BL3DGrid, G4BLMapSyntax, the localized
+  `TURNS` and `COF` element lists.
+- Changed: added the `FIELDMAP` section, overview row and sidebar entry to the
+  elements page; added the G4beamline `cylinder` and `grid` formats and their
+  memory use to the field-map appendix; added `FIELDMAP` to the input-language
+  and reference catalogs; noted that localized `TURNS` rejects `FIELDMAP`.
+  Validators now require the new section, its parameters, catalog links and
+  appendix anchors; rendered section numbers after `SOLENOID` moved up by one.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), eight browser tests, and
+  whitespace check passed.
+- Open items: `FIELDMAP` is not on OPALX master yet; merge this after the OPALX
+  pull request. Gaps found but not fixed here: the `SOLENOID` table lacks
+  `ZREVERSE` (G4beamline `cylinder` maps on master); its `KS` row says the
+  value is converted using the reference rigidity, which should be checked
+  against `Solenoid`; the common-attribute table still says "eight element
+  implementations". Page review dates are unchanged.
+- Next trigger: merge of the OPALX pull request, or a change to the field-map
+  readers.
+
 ### 2026-10-07 - DOC-USER: BOX and COLLIMATOR elements
 
 - OPALX source: branch `box-element` at `4305ba5b2`. Manual base: `dc80f89`.
@@ -530,3 +556,19 @@ Use this template for subsequent entries:
   Create PRs from codex/beambeam-experiment-downloads in each repository and
   merge documents first. Public main download is not live until that merge;
   PDF remains paused.
+
+### 2026-10-07 - DOC-USER: merge main into document-fieldmap-element
+
+- Manual base: branch `771d624` merged with main `0bebf46`.
+- Changed: kept `FIELDMAP` next to the new `COLLIMATOR` and `BOX` entries in
+  the reference catalog and both validators. Recomputed the rendered section
+  numbers: everything after `SOLENOID` moves up by one from main
+  (`FIELDMAP` 12, `RFCAVITY` 13, bends 20, limitations 23). Kept all log
+  entries from both sides.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), nine browser tests, and
+  whitespace check passed.
+- Open items: none from the merge. `FIELDMAP` (OPALX PR #572) and `BOX`
+  (PR #580) are both on OPALX master, so the manual branch can be merged. The
+  common-attribute table still says "eight element implementations".
+- Next trigger: a change to the field-map readers.

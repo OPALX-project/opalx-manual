@@ -108,7 +108,7 @@ if elements_html_path.file?
   elements_html = File.read(elements_html_path)
   element_anchors = %w[
     common-element-syntax particle-removal drift collimator box beambeam constant-electric-field-cavity constant-focusing quadrupole multipole
-    multipolet solenoid rfcavity travelingwave cyclotronsector laser monitor marker probe bends
+    multipolet solenoid fieldmap rfcavity travelingwave cyclotronsector laser monitor marker probe bends
     verticalffamagnet variable-rf-cavity element-limitations
   ]
   element_anchors.each do |anchor|
@@ -122,13 +122,14 @@ if elements_html_path.file?
     "beambeam" => /data-number=["']\d+\.5["']/,
     "constant-electric-field-cavity" => /data-number=["']\d+\.6["']/,
     "constant-focusing" => /data-number=["']\d+\.7["']/,
-    "rfcavity" => /data-number=["']\d+\.12["']/,
-    "travelingwave" => /data-number=["']\d+\.13["']/,
-    "cyclotronsector" => /data-number=["']\d+\.14["']/,
-    "laser" => /data-number=["']\d+\.15["']/,
-    "bends" => /data-number=["']\d+\.19["']/,
-    "variable-rf-cavity" => /data-number=["']\d+\.21["']/,
-    "element-limitations" => /data-number=["']\d+\.22["']/
+    "fieldmap" => /data-number=["']\d+\.12["']/,
+    "rfcavity" => /data-number=["']\d+\.13["']/,
+    "travelingwave" => /data-number=["']\d+\.14["']/,
+    "cyclotronsector" => /data-number=["']\d+\.15["']/,
+    "laser" => /data-number=["']\d+\.16["']/,
+    "bends" => /data-number=["']\d+\.20["']/,
+    "variable-rf-cavity" => /data-number=["']\d+\.22["']/,
+    "element-limitations" => /data-number=["']\d+\.23["']/
   }.each do |anchor, numbering|
     section = elements_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "elements ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)

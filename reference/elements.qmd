@@ -11,7 +11,7 @@ The following objects are registered in the current OPALX configurator.
 | Family | Registered objects |
 |---|---|
 | RF and electric fields | `RFCAVITY`, `TRAVELINGWAVE`, `CONSTANTEFIELDCAVITY`, `CONSTANTFOCUSING`, `VARIABLE_RF_CAVITY` |
-| Transport | `DRIFT`, `QUADRUPOLE`, `RBEND`, `SBEND`, `SOLENOID` |
+| Transport | `DRIFT`, `QUADRUPOLE`, `RBEND`, `SBEND`, `SOLENOID`, [`FIELDMAP`](../user-guide/elements.qmd#fieldmap) |
 | Particle removal | [`COLLIMATOR`](../user-guide/elements.qmd#collimator), [`BOX`](../user-guide/elements.qmd#box) |
 | Multipoles and specialized magnets | `MULTIPOLE`, `MULTIPOLET`, `VERTICALFFAMAGNET` |
 | Sources and interactions | `LASER`, [`BEAMBEAM`](../user-guide/elements.qmd#beambeam) (experimental single-pass model) |

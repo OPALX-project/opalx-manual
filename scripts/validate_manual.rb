@@ -269,7 +269,7 @@ if input_language_page.file?
 
   %w[
     BEAM DISTRIBUTION EMISSIONSOURCE EMISSIONSOURCELIST FIELDSOLVER BINNING LINE
-    DRIFT COLLIMATOR BOX CONSTANTFOCUSING CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID RFCAVITY
+    DRIFT COLLIMATOR BOX CONSTANTFOCUSING CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID FIELDMAP RFCAVITY
     TRAVELINGWAVE CYCLOTRONSECTOR TRIMCOIL RING RBEND SBEND VERTICALFFAMAGNET VARIABLE_RF_CAVITY LASER MONITOR
     PROBE MARKER POLYNOMIAL_TIME_DEPENDENCE SINUSOIDAL_TIME_DEPENDENCE
     SPLINE_TIME_DEPENDENCE COF TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE SELECT
@@ -325,6 +325,7 @@ element_sections = [
   ["## `MULTIPOLE` {#multipole}", "multipole"],
   ["## `MULTIPOLET` {#multipolet}", "multipolet"],
   ["## `SOLENOID` {#solenoid}", "solenoid"],
+  ["## `FIELDMAP` {#fieldmap}", "fieldmap"],
   ["## `RFCAVITY` {#rfcavity}", "rfcavity"],
   ["## `TRAVELINGWAVE` {#travelingwave}", "travelingwave"],
   ["## `CYCLOTRONSECTOR` {#cyclotronsector}", "cyclotronsector"],
@@ -380,6 +381,14 @@ end
 end
 if [beambeam_text, beambeam_element].any? { |text| text.match?(/\bCOPY\s*=\s*TRUE/i) }
   errors += error("current BEAMBEAM documentation must use COPY_TIME, not obsolete COPY=TRUE")
+end
+
+fieldmap_element = (ROOT / "user-guide/elements.qmd").read.split("## `FIELDMAP` {#fieldmap}", 2).last.to_s.split("\n## `", 2).first.to_s
+%w[FMAPFN BSCALE ESCALE ZREVERSE].each do |attribute|
+  errors += error("FIELDMAP parameter table is missing #{attribute}") unless fieldmap_element.include?("| `#{attribute}` |")
+end
+%w[user-guide/input-language.qmd reference/elements.qmd].each do |relative|
+  errors += error("#{relative} is missing the FIELDMAP catalog link") unless (ROOT / relative).read.include?("elements.qmd#fieldmap")
 end
 
 worked_inputs_page = ROOT / "getting-started/worked-inputs.qmd"
@@ -588,6 +597,7 @@ source_audited_inputs = {
     GEOMETRY NSLICES EX EY EZ STRENGTH RADIUS K1 DK1 K1S DK1S KN DKN KS DKS
     TP LFRINGE RFRINGE HAPERT VAPERT MAXFORDER ROTATION EANGLE BBLENGTH ANGLE
     MAXXORDER VARRADIUS ENTRYOFFSET SCALING_MODEL FMAPFN FAST
+    ESCALE ZREVERSE
     VOLT DVOLT FREQ LAG DLAG APVETO RMIN RMAX VMIN VMAX BSCALE TRIMCOIL BMAX SLPTC PDIS GAPWIDTH PHI0 DESIGNENERGY
     PHASE_MODEL AMPLITUDE_MODEL FREQUENCY_MODEL NUMCELLS MODE
     WAVELENGTH PULSEENERGY PULSELENGTH WAISTX WAISTY DIR STOKES
@@ -727,8 +737,11 @@ end
 end
 
 field_maps_text = (ROOT / "user-guide/appendix/field-maps/index.qmd").read
-%w[2DMagnetoStatic 2DDynamic AstraDynamic AstraMagnetoStatic].each do |map_type|
+%w[2DMagnetoStatic 2DDynamic AstraDynamic AstraMagnetoStatic cylinder grid].each do |map_type|
   errors += error("field-map appendix is missing current OPALX type #{map_type}") unless field_maps_text.include?("`#{map_type}`")
+end
+%w[opalx-g4bl-field-maps opalx-g4bl-cylinder opalx-g4bl-grid opalx-g4bl-grid-memory].each do |anchor|
+  errors += error("field-map appendix is missing ##{anchor}") unless field_maps_text.include?("{##{anchor}}")
 end
 unless field_maps_text.include?("Recognition is not support") && field_maps_text.include?("currently audited OPALX source tree")
   errors += error("field-map appendix must distinguish recognized headers from constructible OPALX maps")

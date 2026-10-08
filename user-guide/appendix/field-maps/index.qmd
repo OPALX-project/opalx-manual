@@ -10,7 +10,7 @@ last-reviewed: "2026-07-23"
 ## Current OPALX Field Maps {#opalx-field-maps}
 
 OPALX selects a field-map reader from the file header. The current factory can
-construct exactly four map types:
+construct exactly six map types:
 
 | Header descriptor | OPALX reader | Use |
 |---|---|---|
@@ -18,9 +18,13 @@ construct exactly four map types:
 | `2DDynamic` (`2DDy...`) | `FM2DDynamic` | two-dimensional time-dependent electromagnetic map |
 | `AstraDynamic` (`AstraD...`) | `Astra1DDynamic` | non-equidistant ASTRA dynamic on-axis map |
 | `AstraMagnetoStatic` (`AstraM...`) | `Astra1DMagnetoStatic` | non-equidistant ASTRA static magnetic on-axis map |
+| `cylinder` (G4beamline) | `G4BL2DMagnetoStatic` | two-dimensional static magnetic map in r and z |
+| `grid` (G4beamline) | `G4BL3DGrid` | three-dimensional static magnetic map, with an optional electric field |
 
 The descriptor is read from the beginning of the first non-comment record.
-Comments begin with `#`.
+Comments begin with `#`. G4beamline maps have no descriptor; OPALX recognizes
+them by their first keyword, an optional `param` line followed by `cylinder` or
+`grid`. The file extension does not matter.
 
 ### `AstraDynamic` and `AstraMagnetoStatic` {#opalx-astra-field-maps}
 
@@ -46,6 +50,84 @@ in `MHz`, a radial grid, and four values per sample. In `XZ` order these are
 `Ez`, `Er`, an unused magnitude column, and `Hphi`; the first two columns are
 reversed in `ZX` order. Electric values are normalized to a peak on-axis
 longitudinal field of `1 MV/m` unless normalization is disabled.
+
+### G4beamline maps {#opalx-g4bl-field-maps}
+
+OPALX reads the `cylinder` and `grid` formats written by G4beamline. Positions
+are in mm, magnetic fields in tesla, and electric fields in MV/m. Neither reader
+normalizes: the values are used as written, so `BSCALE=1` on a
+[`FIELDMAP`](../../elements.qmd#fieldmap) element reproduces the map.
+
+An optional first line `param` scales the stored values the same way
+G4beamline does. Magnetic values are multiplied by `normB/current` and electric
+values by `normE/gradient`. Each key defaults to `1`. `current=0` is rejected,
+and so is `gradient=0` in a `grid` map. The `current=` and `gradient=` that
+G4beamline gives where it places a map correspond to `BSCALE` and `ESCALE` on
+the `FIELDMAP` element.
+
+Symmetry sections (`extendX`, `extendY`, `extendZ`, ...) are rejected by both
+readers.
+
+#### `cylinder` maps {#opalx-g4bl-cylinder}
+
+A `cylinder` map holds an axially symmetric magnetic field on an r-z grid:
+
+```text
+param normB=1. current=1.
+cylinder Z0=-1500.0000 nZ=301 dZ=10.0000 nR=51 dR=10.0000
+Bz
+<nZ rows of nR values>
+Br
+<nZ rows of nR values>
+```
+
+The `cylinder` line gives the first z (`Z0`), the number of points and the
+spacing in z (`nZ`, `dZ`), and the same in r (`nR`, `dR`). Each count must be
+at least 2. r always starts at 0. `X0`, `Y0`, and `tolerance` are accepted and
+ignored. A `Bz` block follows, and optionally a `Br` block; a missing `Br` block
+means $B_r=0$. In each block a row is one z point and a column one r point,
+with column 0 on the axis. `Er`, `Ez`, and `Bphi` blocks and the one-point-per-row
+`data` form are rejected.
+
+The field is interpolated bilinearly in r and z, as for `2DMagnetoStatic`.
+`ZREVERSE` mirrors the map in z and negates $B_z$; $B_r$ is unchanged.
+
+#### `grid` maps {#opalx-g4bl-grid}
+
+A `grid` map holds a field on a cartesian grid, one point per row:
+
+```text
+param current=1.
+grid X0=-200.0000 Y0=-120.0000 Z0=-1380.0000 nX=60 nY=25 nZ=553 dX=10.0000 dY=10.0000 dZ=5.0000
+data
+-2.0000e+02 -1.2000e+02 -1.3800e+03 6.2742e-05 3.7624e-04 -1.6298e-04
+-2.0000e+02 -1.2000e+02 -1.3750e+03 3.7771e-05 3.3956e-04 9.2075e-05
+...
+```
+
+The `grid` line gives the first point (`X0`, `Y0`, `Z0`), the number of points
+(`nX`, `nY`, `nZ`, each at least 2), and the spacing (`dX`, `dY`, `dZ`). Each
+row after `data` holds `x y z Bx By Bz`, or nine values
+`x y z Bx By Bz Ex Ey Ez`. Rows are placed by their own coordinates, so their
+order does not matter. A row more than a quarter of a spacing off the grid, a
+row that repeats a point, and a point with no row are all errors. A `points`
+section in place of `data` is rejected, and so is `ZREVERSE`.
+
+The field is interpolated trilinearly. Storage for the electric field is
+allocated only when a nonzero electric value appears, so nine-column maps whose
+electric columns are all zero cost no more than six-column maps.
+
+#### Memory use {#opalx-g4bl-grid-memory}
+
+A `grid` map takes 24 bytes per grid point for the magnetic field, and another
+24 bytes per point if it holds a nonzero electric field. The
+$60\times25\times553$ map above takes about 20 MB. Every MPI rank holds its own
+copy, and GPU builds keep one copy in CPU memory and one in GPU memory.
+
+If memory runs out while a map is loaded, OPALX stops with a message that names
+the map. On Linux the operating system may instead accept the request and end
+the job without a message once the memory is filled. To reduce the memory
+needed, use a coarser grid or a smaller box, or run fewer MPI ranks per node.
 
 ### Recognized but unsupported headers {#opalx-unsupported-field-map-headers}
 
