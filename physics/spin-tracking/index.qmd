@@ -3,7 +3,7 @@ title: "Spin Tracking"
 description: "Thomas-BMT spin transport and its placement in the OPALX tracker step."
 audience: physics
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-12"
 ---
 
 This section describes how *OPALX* evolves the per-particle spin
@@ -22,12 +22,25 @@ $$ {#eq-pol-def}
 where each component is the expectation value of the corresponding Pauli
 operator. The expectation is evaluated in the particle's
 **instantaneous (Lorentz) rest frame**, while the three Cartesian axes
-along which it is projected are the **lab-frame axes**. This hybrid
-convention is the one the BMT equation is naturally written in: the spin
-state lives in the rest frame, but the rotation rate $\vec\Omega$ is
-expressed using the lab-frame fields $\vec E, \vec B$ at the particle's
-position, so keeping the projection axes lab-aligned avoids a redundant
-boost rotation inside the integrator.
+along which it is projected are not boosted: they are the **same axes as
+the particle's momentum**. This hybrid convention is the one the BMT
+equation is naturally written in: the spin state lives in the rest
+frame, but the rotation rate $\vec\Omega$ is expressed using the
+lab-frame fields $\vec E, \vec B$ at the particle's position, so no
+boost rotation is needed inside the integrator.
+
+In the tracker those axes are the axes of the bunch frame. The bunch
+frame follows the reference particle: its origin sits on the reference
+particle and its $z$ axis points along the reference momentum. Each time
+the tracker moves and turns this frame, it rotates $\vec P$ together
+with the momentum and the fields. Because $\vec\Omega$ is built only
+from dot and cross products of $\vec\beta$, $\vec E$ and $\vec B$,
+turning all of them and $\vec P$ by the same rotation gives the same
+precession; the choice of axes changes only the components that are
+written out. The `mean_polx`, `mean_poly`, `mean_polz` columns of the
+`.stat` file and the `polx`, `poly`, `polz` data of the phase-space
+file are therefore along the bunch-frame axes, like the momentum. A
+`MONITOR` writes the spin in its own frame, like position and momentum.
 
 The magnitude $|\vec P|$ is bounded by the spin-$\tfrac{1}{2}$ Bloch
 sphere,
@@ -159,8 +172,8 @@ equal sub-rotations of angle $\phi / N_{\text{sub}}$ each, with
 $\vec\Omega$ re-evaluated identically for each (since $\vec E, \vec B,
 \gamma$ do not change inside a single tracker step). The threshold
 $\phi_{\max} = 0.1$ rad bounds the rotation-truncation error at the
-$10^{-4}$ relative level per step, which is well below the float
-storage precision of $\vec P$.
+$10^{-4}$ relative level per step. $\vec P$ is stored in double
+precision, like the momentum.
 
 ## Placement in the tracker step {#sec-spin-step-order}
 
