@@ -180,9 +180,9 @@ and the rest-frame electron momentum direction in the $\hat{\vec P}$-aligned
 local frame is
 $(\sin\theta\cos\phi, \sin\theta\sin\phi, \cos\theta)$. A single
 rotation taking $\hat z \to \hat{\vec P}$ then realigns this vector
-with the lab-frame Cartesian axes (which are the axes the
-polarization vector itself is referenced to, see the spin-tracking
-section); the rotated rest-frame momentum is fed to the Lorentz boost
+with the Cartesian axes the polarization vector itself is referenced
+to (the bunch-frame axes, the same as the momentum's, see the
+spin-tracking section); the rotated rest-frame momentum is fed to the Lorentz boost
 of the next section.
 
 ## Lorentz boost to the lab frame {#sec-decay-boost}
