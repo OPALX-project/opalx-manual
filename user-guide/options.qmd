@@ -3,7 +3,7 @@ title: "Runtime Options"
 description: "Complete source-audited reference for values accepted by the OPALX OPTION statement."
 audience: user
 status: current
-last-reviewed: "2026-09-07"
+last-reviewed: "2026-10-11"
 ---
 
 `OPTION` changes process-wide parser, tracking, output, and diagnostic settings.
@@ -176,6 +176,7 @@ tolerances, field selection, or the production-particle integrator.
 |---|---:|---|
 | `REPARTFREQ` | `10` | Check particle repartitioning at this frequency. Values at or below zero disable periodic repartitioning. |
 | `LOADBALANCINGTHRESHOLD` | `0.05` | Imbalance threshold for load balancing; must lie in `[0,1]`. |
+| `LOADBALANCINGPAIRWEIGHT` | `0` | Share of the ORB load-balancing weight that follows the P3M particle-particle pair count, in `[0,1]`; the rest follows the particle count. Each part is normalized to its global total, and the pair part counts $n^2$ per mesh vertex. `0` balances particle counts; values above `0` require `FIELDSOLVER, TYPE=P3M`. A pair-weighted cut that leaves a rank region narrower than twice the P3M cutoff is replaced by the particle-count cut. `LOADBALANCINGTHRESHOLD` then applies to each rank's weight share instead of its particle share. |
 | `BOUNDPDESTROY` | `10` | Delete particles outside this many rms beam sizes. Values at or below zero disable the cut. |
 | `MINBINEMITTED` | `10` | Delay space-charge calculation until the primary container has more particles than this threshold. |
 | `MINSTEPFORREBIN` | `200` | Earliest step at which the current tracker may collapse emission bins. |
