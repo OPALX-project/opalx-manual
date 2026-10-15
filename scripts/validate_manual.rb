@@ -168,7 +168,7 @@ if field_solver_page.file?
     "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
     "P3M cutoff requirement" => "finite, positive cutoff radius `RCUT`",
     "P3M binning restriction" => "`P3M` requires `NONE`",
-    "mandatory 3D decomposition" => "`PARFFTX`, `PARFFTY`, and `PARFFTZ` are all",
+    "ORB decomposition axes" => "boundaries only along the split axes",
     "uniform boundary restriction" => "Mixed boundary conditions",
     "generic Dirichlet limitation" => "this is **not a usable mode**",
     "shifted-Green backend and binning requirements" =>

@@ -3,7 +3,7 @@ title: "Worked Input Files"
 description: "Three complete OPALX inputs: a drift, an autophased RF cavity, and binned open-boundary space charge during emission."
 audience: user
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-15"
 ---
 
 The examples below are complete input files: no declarations are omitted from
@@ -71,8 +71,8 @@ The sampled momentum offsets are expressed in normalized momentum
 $\boldsymbol p/(mc)$, while `P0` itself is in $\mathrm{GeV}/c$. `ZSTOP=0.5`
 ends tracking when the reference trajectory reaches the end of the drift;
 `MAXSTEPS` is the safety limit. Although `NONE` performs no mesh solve, the
-current constructor still requires mesh dimensions, uniform boundary values,
-and all three `PARFFT*` flags.
+current constructor still requires mesh dimensions and uniform boundary
+values.
 
 ## Autophased RF cavity {#example-rfcavity}
 

@@ -3,7 +3,7 @@ title: "Field Solvers"
 description: "Configure OPALX particle-in-cell space charge, boundary conditions, binning, and cathode-plane corrections."
 audience: user
 status: current
-last-reviewed: "2026-09-09"
+last-reviewed: "2026-10-15"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
@@ -70,7 +70,7 @@ and cathode-plane corrections are additional modes described below.
 `NONE` skips binning, charge deposition, the field solve, and field gathering.
 Particle self-fields remain zero. A syntactically complete `FIELDSOLVER`
 definition is still required by the current construction path, including
-positive mesh sizes and all three `PARFFT*` flags set to `TRUE`.
+positive mesh sizes.
 
 ### `FFT` {#solver-fft}
 
@@ -146,9 +146,9 @@ Dirichlet boundary setting therefore has no runnable backend at present.
 | `TYPE` | required | `NONE`, `FFT`, `P3M`, `OPEN`, `CG` | Selects the backend described above. |
 | `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. `P3M` requires `NONE`. |
 | `NX`, `NY`, `NZ` | none | positive integer cell counts | Number of mesh points in $x$, $y$, and $z$. The parser stores real values; use integers. |
-| `PARFFTX` | `FALSE` | Boolean | Domain decomposition in $x$. Must currently be `TRUE`. |
-| `PARFFTY` | `FALSE` | Boolean | Domain decomposition in $y$. Must currently be `TRUE`. |
-| `PARFFTZ` | `TRUE` | Boolean | Domain decomposition in $z$. Must currently be `TRUE`. |
+| `PARFFTX` | `FALSE` | Boolean | Split the $x$ mesh axis over MPI ranks. |
+| `PARFFTY` | `FALSE` | Boolean | Split the $y$ mesh axis over MPI ranks. |
+| `PARFFTZ` | `TRUE` | Boolean | Split the $z$ mesh axis over MPI ranks. |
 | `BCFFTX`, `BCFFTY`, `BCFFTZ` | `OPEN` | `OPEN`, `PERIODIC`, `DIRICHLET` | Mesh boundary selection. All three values must match. See [Boundary conditions](#boundary-conditions). |
 | `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | Green-function discretization for `TYPE=OPEN`; otherwise ineffective. |
 | `RCUT` | `0 m` | positive length | Required and positive for `TYPE=P3M`; leave at `0` for every other type. |
@@ -156,10 +156,14 @@ Dirichlet boundary setting therefore has no runnable backend at present.
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
 
-The compiled `PARFFTX` and `PARFFTY` defaults are not usable defaults: current
-OPALX rejects any definition unless `PARFFTX`, `PARFFTY`, and `PARFFTZ` are all
-`TRUE`. Mixed boundary conditions, such as periodic $x,y$ with open $z$, are
-also rejected.
+`PARFFTX`, `PARFFTY`, and `PARFFTZ` select the mesh axes that are split over
+MPI ranks; the defaults split only $z$. With more than one rank, at least one
+flag must be `TRUE`, and the product of the split mesh sizes must be at least
+the number of ranks. ORB load balancing (`OPTION, REPARTFREQ`) moves rank
+boundaries only along the split axes. It needs a power-of-two rank count and
+keeps the current decomposition when a region has fewer than four mesh points
+along the axis it would cut. Mixed boundary conditions, such as periodic $x,y$
+with open $z$, are rejected.
 
 ## Mesh and particle-in-cell cycle {#mesh-pic-cycle}
 
