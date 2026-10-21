@@ -3,7 +3,7 @@ title: "Beam and Distributions"
 description: "Define OPALX particle distributions, emission sources, and source lists."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-10-21"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
@@ -136,6 +136,11 @@ injection are not supported.
 `GAUSS` samples independent coordinates. Positions are truncated at the
 internally fixed $\pm3\sigma$ bounds and translated so their sampled mean is
 zero; momenta are unbounded normals around the beam reference momentum.
+A zero spatial width places every particle exactly at zero on that axis before
+source offsets are added. This includes an omitted width, whose default is
+zero; no artificial spread is introduced, and momentum spreads remain as
+specified. Older builds may produce non-finite samples for zero spatial widths
+(see [issue #617](https://github.com/OPALX-project/OPALX/issues/617)).
 
 $$
 R_i\sim\mathcal{N}(0,\sigma_{R_i}^2),\qquad
