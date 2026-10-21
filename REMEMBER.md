@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21 |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21 |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -572,3 +572,30 @@ Use this template for subsequent entries:
   (PR #580) are both on OPALX master, so the manual branch can be merged. The
   common-attribute table still says "eight element implementations".
 - Next trigger: a change to the field-map readers.
+
+### 2026-10-21 - DOC-USER / DOC-PHYS: MZ moments and emittances
+
+- Manual base: `4d8fab80dc0fff7eead00c0166dd5634a7cd1371` on
+  `docs/mz-v1-audit`; OPALX source: `12d0954c71e1202be79fa13ea32a30d86b89c541`.
+- Reviewed DistributionMoments, ParticleContainer reference transforms,
+  DataSink, StatWriter, and the existing deterministic distribution-moments
+  unit test. Source inspection only; no simulation or C++ test run.
+- Added main bunch-statistics definitions to Conventions: equal macroparticle
+  population averages, covariance/frame transformations, normalized momentum,
+  RMS spreads, correlations, projected normalized and internal geometric
+  emittance, units, longitudinal interpretation, file naming, and column map.
+  Emittance uses `\varepsilon` at the user's request.
+  Linked the scoped definitions from File Formats. The full statistics schema
+  remains unaudited. Existing page review dates were retained because neither
+  page received a complete review.
+- Updated source and rendered validators' shared-page classification because
+  Conventions now contains an explicitly OPALX-only section.
+- Verification: 58-chapter source validation, full HTML render, six report-page
+  render, rendered section/equation presence checks, 64-page rendered HTML/link
+  validation, and git diff --check passed. Browser controls were unchanged;
+  browser tests were not run (dependencies are absent). Documents-checkout
+  validation was unavailable because ../opalx-documents is absent; no external
+  document links were changed.
+- Follow-up: discuss existing canonical/mechanical terminology separately;
+  audit MONITOR and PROBE sampling; separately review covariance-valued
+  dispersion columns and zero-spread guards. No source changes, commit or push.
