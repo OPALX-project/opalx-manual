@@ -3,7 +3,7 @@ title: "Control Statements"
 description: "Control parsing, variables, included files, flow, macros, messages, and operating-system actions."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-10-21"
 ---
 
 
@@ -329,8 +329,25 @@ name(actuals);
 name();
 ```
 
-The actual arguments replace all occurrences of the corresponding formal names
-inside the stored token list.
+Each call must supply the same number of actual arguments as formal names.
+Formal names must be unique, and actual arguments must not be empty. Use `name()`
+for a macro with no arguments.
+
+Substitution replaces whole name tokens throughout the body, including names on
+the left side of assignments. Text inside quoted strings is unchanged. Macros do
+not introduce a local variable scope: assignments and definitions in the body
+use the normal input environment.
+
+Commas separate arguments only outside balanced parentheses, square brackets,
+and braces. A vector literal such as `{1, 2, 3}` or a function call such as
+`MAX(1, 2)` therefore counts as one argument. Missing or mismatched delimiters,
+duplicate formal names, empty arguments, and argument-count mismatches are errors.
+
+Arguments are inserted as tokens without evaluation or automatic parentheses.
+For example, substituting `1+2` into `2*X` produces `2*1+2`, which evaluates to
+`4`. Write `2*(X)` in the body, or pass `(1+2)`, when grouping is required.
+Macro bodies may contain nested macro calls and compound blocks; a definition
+can be called repeatedly with different arguments.
 
 Example:
 
@@ -347,4 +364,13 @@ SHOWIT(PI);
 REAL X = 2;
 REAL Y;
 KS(X,Y);
+```
+
+A macro can accept a vector as a single argument:
+
+```text
+SAVE(V): MACRO {
+   VECTOR SAVED = V;
+}
+SAVE({1, 2, 3});
 ```
