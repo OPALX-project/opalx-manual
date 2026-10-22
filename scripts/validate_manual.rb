@@ -166,14 +166,14 @@ if field_solver_page.file?
     "disabled CG backend" => "Cannot use CGSolver yet, not fully implemented.",
     "open P3M backend" => "`TYPE=P3M`; all `BCFFT*=OPEN`",
     "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
-    "P3M cutoff requirement" => "finite, positive cutoff radius `RCUT`",
-    "P3M binning restriction" => "`P3M` requires `NONE`",
+    "P3M cutoff modes" => "`RCUT_CELLS` (default `2`)",
+    "P3M binning restriction" => "`P3M` accepts only a `BINNING` with `MAXBINS=1`",
     "ORB decomposition axes" => "boundaries only along the split axes",
     "uniform boundary restriction" => "Mixed boundary conditions",
     "generic Dirichlet limitation" => "this is **not a usable mode**",
-    "shifted-Green backend and binning requirements" =>
-      "**requires both `TYPE=OPEN` and a named `BINS` definition**",
-    "explicit-image backend caveat" => "current input checks do not reject other backends"
+    "shifted-Green backend requirement" =>
+      "This mode requires `TYPE=OPEN`, or `TYPE=P3M` with all three `BCFFT*=OPEN`",
+    "explicit-image backend requirement" => "other backends, including `P3M`, are rejected"
   }.each do |description, required_text|
     unless field_solver_text.include?(required_text)
       errors += error("field-solver is missing #{description}")

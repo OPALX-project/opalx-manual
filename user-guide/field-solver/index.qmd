@@ -3,7 +3,7 @@ title: "Field Solvers"
 description: "Configure OPALX particle-in-cell space charge, boundary conditions, binning, and cathode-plane corrections."
 audience: user
 status: current
-last-reviewed: "2026-10-15"
+last-reviewed: "2026-10-18"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
@@ -60,7 +60,7 @@ and cathode-plane corrections are additional modes described below.
 | `NONE` | No solve | Available no-op | External fields only |
 | `FFT` | Periodic in all three axes | Available | A periodically repeated charge distribution |
 | `OPEN` | Isolated free space | Available | Finite bunches; recommended default |
-| `P3M` | Open or periodic in all three axes | Available, monolithic only | Open or periodic P3M calculations |
+| `P3M` | Open or periodic in all three axes | Available; binned only with `MAXBINS=1` | Open or periodic P3M calculations |
 | `CG` | Intended potential solve with field boundary conditions | **Unavailable** | Parser-visible, but construction deliberately fails |
 
 : {tbl-colwidths="[12, 24, 22, 42]"}
@@ -111,14 +111,20 @@ results.
 
 ### `P3M` {#solver-p3m}
 
-`P3M` supports open and periodically repeated domains. Select one uniform
-boundary configuration and set a finite, positive cutoff radius `RCUT` in
-metres:
+`P3M` splits the Coulomb interaction at a cutoff radius $r_c$, with
+$\alpha=2/r_c$: a smooth long-range part is solved on the mesh, and a
+short-range particle-particle correction is added for pairs closer than $r_c$.
+It supports open and periodically repeated domains. Select one uniform
+boundary configuration:
 
 | Domain | Boundary settings |
 |---|---|
 | Open | `BCFFTX=OPEN`, `BCFFTY=OPEN`, `BCFFTZ=OPEN` |
 | Periodic | `BCFFTX=PERIODIC`, `BCFFTY=PERIODIC`, `BCFFTZ=PERIODIC` |
+
+By default the cutoff follows the mesh: $r_c$ is `RCUT_CELLS` (default `2`)
+times the largest mesh spacing and is updated with the moving mesh. Set `RCUT`
+instead for a fixed cutoff in metres; setting both is an error.
 
 ```opal
 FSP3M: FIELDSOLVER, TYPE=P3M,
@@ -128,8 +134,25 @@ FSP3M: FIELDSOLVER, TYPE=P3M,
     RCUT=2.5e-4, BBOXINCR=2.0;
 ```
 
-`P3M` at the moment requires `BINS=NONE` and cannot be combined with either 
-cathode-plane.
+`P3M` can use the [binned rest-frame mode](#binned-mode) with a single bin
+only: `BINS` must name a `BINNING` with `MAXBINS=1`, and larger `MAXBINS` are
+rejected. Both parts of the split are then evaluated in the bunch rest frame:
+the mesh part on the longitudinally stretched mesh, and the particle part on
+the pair separations $(\Delta x,\Delta y,\gamma\Delta z)$. The cutoff keeps
+its value in metres and acts as the rest-frame cutoff. The particle part is
+converted to laboratory $\mathbf E$ and $\mathbf B$ with the same
+transformation as the mesh field.
+
+The rest-frame mesh spacing along $z$ is $\gamma h_z$, so a mesh that resolves
+the split in the laboratory can be too coarse in the rest frame. OPALX warns
+once when $\gamma h_z$ is at least twice the largest laboratory spacing and
+$\alpha h$ exceeds $1$. Increase `NZ` by about the reported ratio, at most
+$\gamma$, for a near-isotropic rest-frame mesh.
+
+With all three `BCFFT*=OPEN`, `P3M` supports the
+[shifted-Green cathode correction](#shifted-greens-correction), monolithic or
+with one bin. Explicit image charges are rejected. The image field is resolved
+by the mesh only; the particle correction is applied to the real bunch.
 
 ### `CG` {#solver-cg}
 
@@ -144,14 +167,15 @@ Dirichlet boundary setting therefore has no runnable backend at present.
 | Parameter | Default | Accepted values / unit | Current effect |
 |---|---:|---|---|
 | `TYPE` | required | `NONE`, `FFT`, `P3M`, `OPEN`, `CG` | Selects the backend described above. |
-| `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. `P3M` requires `NONE`. |
+| `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. `P3M` accepts only a `BINNING` with `MAXBINS=1`. |
 | `NX`, `NY`, `NZ` | none | positive integer cell counts | Number of mesh points in $x$, $y$, and $z$. The parser stores real values; use integers. |
 | `PARFFTX` | `FALSE` | Boolean | Split the $x$ mesh axis over MPI ranks. |
 | `PARFFTY` | `FALSE` | Boolean | Split the $y$ mesh axis over MPI ranks. |
 | `PARFFTZ` | `TRUE` | Boolean | Split the $z$ mesh axis over MPI ranks. |
 | `BCFFTX`, `BCFFTY`, `BCFFTZ` | `OPEN` | `OPEN`, `PERIODIC`, `DIRICHLET` | Mesh boundary selection. All three values must match. See [Boundary conditions](#boundary-conditions). |
 | `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | Green-function discretization for `TYPE=OPEN`; otherwise ineffective. |
-| `RCUT` | `0 m` | positive length | Required and positive for `TYPE=P3M`; leave at `0` for every other type. |
+| `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
+| `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
@@ -224,8 +248,9 @@ The parser accepts `BCFFTX=DIRICHLET`, `BCFFTY=DIRICHLET`, and
 six mesh faces for the `CG` potential solver. Since `CG` is currently disabled,
 this is **not a usable mode** on current master.
 
-Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN` and all
-three `BCFFT*` values `OPEN`, then select one correction on
+Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
+`TYPE=P3M` for the shifted-Green correction, and all three `BCFFT*` values
+`OPEN`, then select one correction on
 [`EMISSIONSOURCE`](../beam-distributions.qmd#emissionsource).
 
 ## Space-charge modes {#space-charge-modes}
@@ -241,11 +266,7 @@ the entire bunch. It applies no rest-frame transformation and does not create a
 self-magnetic field. This is the least expensive mode and is appropriate only
 when that electrostatic approximation is adequate.
 
-`P3M` is available only in this mode.
-
-Explicit image charges can be included in this path. A requested shifted-Green
-correction is not applied without binning; OPALX emits a warning and proceeds
-with the uncorrected monolithic solve.
+Either cathode-plane correction can be included in this path.
 
 ### Binned rest-frame mode {#binned-mode}
 
@@ -270,7 +291,8 @@ $$
 
 Use binning when velocity varies substantially through the bunch, especially
 during emission or in a chirped beam. Check convergence with respect to both
-mesh resolution and binning parameters.
+mesh resolution and binning parameters. `P3M` supports this mode with one bin
+only; see [`P3M`](#solver-p3m) for its rest-frame short-range term.
 
 The charge mesh is aligned with the bunch mean momentum before a binned solve.
 Particle positions and normalized momenta are rotated into this same mesh frame
@@ -311,10 +333,9 @@ Source: EMISSIONSOURCE, DISTRIBUTION=Dist,
     ZEROFACEPLANEDUMP=0;
 ```
 
-The mode is implemented for monolithic and binned execution. Use it with the
-`OPEN` backend; this is the physically consistent and maintained setup, though
-the current input checks do not reject other backends. In binned mode the real
-and mirror charges require separate solves per bin.
+The mode is implemented for monolithic and binned execution and requires the
+`OPEN` backend; other backends, including `P3M`, are rejected. In binned mode
+the real and mirror charges require separate solves per bin.
 
 The moving mesh must span both the bunch and its mirror. Once the bunch is far
 from the cathode, this can make the mesh unnecessarily large or lose the
@@ -326,7 +347,7 @@ mode, and currently writes only in single-rank runs.
 ### Shifted-Green Dirichlet correction {#shifted-greens-correction}
 
 Set `SHIFTED_GREENS_FUNCTION` to `TRUE` to impose the same grounded plane
-without placing mirror particles on the mesh. It repeats each binned primary deposition using
+without placing mirror particles on the mesh. It repeats each primary deposition using
 a shifted free-space Green function, reflects the resulting field in $z$, and
 adds the image contribution with the required component signs.
 
@@ -337,8 +358,9 @@ Source: EMISSIONSOURCE, DISTRIBUTION=Dist,
     ZEROFACE_MAXSTEPS=500;
 ```
 
-This mode **requires both `TYPE=OPEN` and a named `BINS` definition**. Without
-binning the correction is skipped. Its kernel shift is computed from the
+This mode requires `TYPE=OPEN`, or `TYPE=P3M` with all three `BCFFT*=OPEN`. It
+works in monolithic and binned mode; `P3M` allows at most one bin. Its kernel
+shift is computed from the
 rest-frame mesh centre $z_c'$ and plane $z_p$ as
 
 $$
@@ -359,16 +381,17 @@ same `ZEROFACE_MAXSTEPS` convention.
 |---|---|---|---|
 | Disable self-fields | `NONE`; conventionally `OPEN` boundaries | `BINS=NONE` | none |
 | Periodic electrostatics | `FFT`; all `PERIODIC` | monolithic or binned | none |
-| Periodic P3M | `P3M`; all `PERIODIC` | monolithic | none |
+| Periodic P3M | `P3M`; all `PERIODIC` | monolithic or one bin | none |
 | Isolated, nearly mono-velocity bunch | `OPEN`; all `OPEN` | monolithic | optional explicit images |
-| Open P3M | `P3M`; all `OPEN` | monolithic | none |
+| Open P3M | `P3M`; all `OPEN` | monolithic or one bin | none or shifted Green |
 | Isolated bunch with velocity spread | `OPEN`; all `OPEN` | named `BINS` | none or explicit images |
 | Emission near a grounded plane | `OPEN`; all `OPEN` | named `BINS` | shifted Green recommended for separation from the plane |
 
 : {tbl-colwidths="[25, 24, 20, 31]"}
 
 Do not select `CG` or generic `DIRICHLET` for a current production input. Do
-not combine cathode corrections with periodic physics or `P3M`.
+not combine cathode corrections with periodic physics. `P3M` supports only the
+shifted-Green correction, and only with open boundaries.
 
 ## Accuracy, cost, and reproducibility {#accuracy-cost}
 
@@ -378,7 +401,9 @@ not combine cathode corrections with periodic physics or `P3M`.
   A visually smooth field is not a convergence test.
 - Vary `BBOXINCR`: too little padding places particles close to the mesh edge;
   too much padding lowers resolution for fixed mesh dimensions.
-- For `P3M`, check convergence in both mesh resolution and `RCUT`.
+- For `P3M`, check convergence in both mesh resolution and the cutoff (`RCUT`
+  or `RCUT_CELLS`). With one bin, judge the `NZ` resolution by the rest-frame
+  spacing $\gamma h_z$.
 - For binned runs, vary the `BINNING` controls and check that observables do not
   depend materially on the chosen partition.
 - Compare correction cutoffs and confirm that fields are negligible before
