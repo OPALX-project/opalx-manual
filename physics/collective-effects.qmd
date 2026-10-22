@@ -22,4 +22,6 @@ into separate, source-backed sections for:
 - Mesh convergence and decomposition constraints.
 
 For a complete source-verified example today, see the
-[Beam-Beam manufactured solution](beam-beam/index.qmd).
+[Beam-Beam manufactured solution](beam-beam/index.qmd). The
+[Field Solver Physics](field-solver/index.qmd) chapter documents P3M, cathode
+image fields, and binned rest-frame space charge.

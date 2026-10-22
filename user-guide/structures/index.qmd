@@ -69,7 +69,9 @@ Lorentz factor when transverse momentum is nonzero.
 OPALX first creates a uniform histogram over the selected quantity. With
 `ADAPTIVEBINNING=TRUE`, adjacent bins are merged using a cost function based on
 particle fraction, combined width, `DESIREDWIDTH`, `BINNINGALPHA`, and
-`BINNINGBETA`. With `FALSE`, the uniform histogram remains unchanged.
+`BINNINGBETA`. With `FALSE`, the uniform histogram remains unchanged. The
+[physics manual](../../physics/field-solver/index.qmd#physics-adaptive-binning)
+gives the cost function and the role of each parameter.
 
 The current parser does not enforce numeric ranges for `DESIREDWIDTH`,
 `BINNINGALPHA`, or `BINNINGBETA`. In particular, the source descriptions of the

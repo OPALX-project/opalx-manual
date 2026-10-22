@@ -55,7 +55,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -572,3 +572,37 @@ Use this template for subsequent entries:
   (PR #580) are both on OPALX master, so the manual branch can be merged. The
   common-attribute table still says "eight element implementations".
 - Next trigger: a change to the field-map readers.
+
+### 2026-10-22 - DOC-PHYS: P3M, cathode image fields, and binned space charge
+
+- OPALX source: `origin/master` at `20662a943` (P3M shifted-Green support),
+  plus the uncommitted local branch `p3m-multibin-moving-source` for binned
+  P3M with any `MAXBINS`; IPPL `origin/master`. Manual base: `182ea22` on
+  branch `7-add-p3m-cathodeimage-binning`.
+- Reviewed: `P3MAdapters.h`, `CartesianPIC3DAlgorithm.cpp`,
+  `RelativisticFieldComposer.cpp`, `FieldMirror.hpp`,
+  `ParticleMeshFieldTransfer.cpp`, `ParticleBinTraversal.cpp`,
+  `CartesianDomainUpdater.cpp`; IPPL `FFTOpenPoissonSolver` (truncated and
+  shifted kernels), `FFTTruncatedGreenPeriodicPoissonSolver`,
+  `TruncatedGreenParticleInteraction`, `ParticleSpatialOverlapLayout`.
+- Changed: physics field-solver chapter gained the conducting-plane model
+  (moving image, explicit images, shifted Green function, images with P3M),
+  the P3M solver section with moving-source pair fields for binned P3M, the
+  binned rest-frame model with adaptive merging, the emission interplay, and a
+  limitations list. User guide and developer guide now allow binned P3M with
+  any `MAXBINS`. The user-guide shift formula now reads $2\gamma_b(z_c-z_p)$
+  with the laboratory mesh centre, matching the code. User-guide, `BINNING`,
+  `EMISSIONSOURCE`, overview, and collective-effects pages were aligned and
+  linked to the physics sections. Seven references added; `fubiani2006`
+  authors corrected. The validator requires the P3M, shifted-Green and
+  adaptive-binning headings.
+- Verification: source validator (58 chapters), full HTML render, report-page
+  render, rendered-HTML validator (64 pages), MathJax typesetting of all 239
+  formulas on both changed pages, and whitespace check passed. Browser tests
+  not run (no local Playwright/Chrome).
+- Open items: publish only after the OPALX multi-bin P3M change is merged;
+  until then current master rejects `MAXBINS` other than 1 for `P3M`. Periodic
+  P3M image ghosts are shifted along every periodic axis in IPPL (listed as a
+  limitation); emission-time treatment is still a prompt.
+- Next trigger: merge of the OPALX multi-bin P3M pull request, a fix of the
+  IPPL periodic ghosts, or a change to the image or binning implementation.
