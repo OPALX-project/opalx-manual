@@ -557,6 +557,25 @@ Use this template for subsequent entries:
   merge documents first. Public main download is not live until that merge;
   PDF remains paused.
 
+### 2026-10-23 - DOC-USER: GAUSS cutoffs and phase-space adjustment
+
+- OPALX range: `f39d59ee2..` OPALX PR #630 (branch
+  `165-gauss-elliptical-cutoff-and-energy-adjust`, issue #165).
+- Manual base: `182ea22`.
+- Reviewed: `user-guide/beam-distributions.qmd`, attribute table and the
+  `GAUSS` and `MULTIVARIATEGAUSS` sections, against
+  `src/Distribution/Gaussian.cpp` and `Distribution::setDistParametersGauss`.
+- Changed: `CUTOFFX`, `CUTOFFY`, `CUTOFFLONG`, `CUTOFFPX`, `CUTOFFPY`, and
+  `CUTOFFPZ` now apply to `GAUSS` (elliptical transverse cuts, per-axis
+  longitudinal cuts, `0` disables all but `CUTOFFLONG`); documented the
+  OPAL-style mean and energy adjustment and the truncated RMS widths; marked
+  the cutoffs as ignored by `MULTIVARIATEGAUSS`; updated the limitations list.
+- Verification: source validator and whitespace check.
+- Open items: `last-reviewed` left unchanged because only the Gaussian
+  sections were checked. Manual issue #11.
+- Next trigger: `MULTIVARIATEGAUSS` gaining the same cuts, or correlations in
+  `GAUSS`.
+
 ### 2026-10-07 - DOC-USER: merge main into document-fieldmap-element
 
 - Manual base: branch `771d624` merged with main `0bebf46`.
