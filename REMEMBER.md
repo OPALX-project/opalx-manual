@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21 |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21 |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -599,3 +599,35 @@ Use this template for subsequent entries:
 - Follow-up: discuss existing canonical/mechanical terminology separately;
   audit MONITOR and PROBE sampling; separately review covariance-valued
   dispersion columns and zero-spread guards. No source changes, commit or push.
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: MONITOR sampling and current output
+
+- Manual base: `e2f4974b0ebb7ae898cd86301334c227160c54f9` on
+  `docs/mz-v1-audit`; current OPALX checkout:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7` on 631-support-ideal-rfcavity.
+  Relevant Monitor, OpalMonitor, LossDataSink and reference-callback code was
+  unchanged from the executable-tested master revision `41d65389d`.
+- User advised preserving current MONITOR behavior for now. Documented the
+  existing timestep-end particle timestamps, not the separate #619 correction.
+  No OPALX source edits were made during this documentation pass.
+- Expanded the MONITOR User Guide section with plane placement, mode selection,
+  filename handling, spatial versus temporal sampling, frames, HDF5/ASCII
+  output, timestamp meanings, and the retained mass/energy distinction.
+- Added the crossing and temporal snapshot model under Physics / Elements,
+  including interpolation, common-time drift, sampling assumptions and the
+  ordinary-full-step timestamp offset. Linked the input and physics sections,
+  and linked the existing moments/emittance definitions. The MONITOR parent
+  anchors and custom sidebar manifest remain valid.
+- Evidence: source inspection plus the earlier 41d65389d executable drift/bend
+  runs preserved under OPALX sandbox/monitor-audit. Those runs reproduce the
+  timestamp and mass/energy distinctions. No new simulations were needed.
+  The conditional momentum-frame concern is not presented as a confirmed bug.
+- Verification: 58-chapter source validation, full HTML render, six report-page
+  render, rendered section/equation checks, 64-page HTML/link validation and
+  git diff --check passed. Browser tests were not run (dependencies absent),
+  and document-checkout validation was unavailable (../opalx-documents absent).
+  No external document links or browser controls were changed.
+- Existing page review dates were retained: this is a focused MONITOR review,
+  not a full review of either Elements chapter. No commit or push performed.
+- Next: review PROBE's registered interface versus active tracking support;
+  retain MONITOR's current conventions pending an agreed code change.

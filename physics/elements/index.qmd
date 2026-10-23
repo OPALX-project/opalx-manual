@@ -77,3 +77,95 @@ explicit phase model. `COF` remains a static magnetic, fixed-energy orbit
 calculation; it does not solve the RF-periodic six-dimensional synchronous
 orbit. Bare-orbit input and RF tracking must respect the
 [orbit handover constraints](../../user-guide/tracking.qmd#opalx-initial-orbit).
+
+
+## MONITOR sampling {#monitor-sampling-model}
+
+::: {.feature-opalx}
+
+`MONITOR` is a passive sampling plane, without a detector-material or field
+model. The [input guide](../../user-guide/elements.qmd#monitor) describes its
+collection modes, output files, and retained timestamp conventions.
+
+### Spatial crossings
+
+Let $\mathbf r=(x,y,z)$ and
+$\mathbf u=\mathbf p/(mc)=\gamma\boldsymbol\beta$ be the particle state in
+the monitor frame, with $\gamma=\sqrt{1+|\mathbf u|^2}$. For a positive
+particle timestep $h_k$, the predicted displacement is
+
+$$
+\Delta\mathbf r_k=c h_k\frac{\mathbf u_k}{\gamma_k}.
+$$
+
+A crossing is recorded when $z_k<0$ and $z_k+\Delta z_k>0$. The linear
+intersection fraction and sampled position are
+
+$$
+\lambda_k=-\frac{z_k}{\Delta z_k},\qquad
+\mathbf r_k^{\mathrm{hit}}=\mathbf r_k+\lambda_k\Delta\mathbf r_k,
+\qquad z_k^{\mathrm{hit}}=0.
+$$
+
+The strict inequalities exclude exact endpoint hits and reverse crossings.
+The saved momentum is $\mathbf u_k$, without a momentum update at the
+intersection. In ordinary drift--kick--drift tracking, the stored crossing
+time is calculated as
+
+$$
+t_k^{\mathrm{hit}}=t_b+\frac{h}{2}+\lambda_k h_k,
+$$
+
+where $t_b$ is the bunch time at the start of the step and $h$ is the bunch
+timestep. This is a straight-drift estimate from the sampled state, not an
+additional integration through external or self-fields. Particle positions,
+momenta and crossing times are collected over the passage, rather than at one
+common laboratory time.
+
+### Temporal snapshots
+
+A temporal snapshot is triggered by the reference particle's crossing.
+For an ordinary full timestep $h>0$, let $t_m=t_{\mathrm{end}}-h/2$ and
+$(\mathbf r_{\mathrm{ref}},\mathbf u_{\mathrm{ref}})$ be the reference state
+supplied at the midpoint. Define
+
+$$
+\tau=-\frac{z_{\mathrm{ref}}}{h v_{\mathrm{ref},z}},\qquad
+t_{\mathrm{cross}}=t_m+\tau h,
+\qquad
+\mathbf v_{\mathrm{ref}}=c\frac{\mathbf u_{\mathrm{ref}}}
+{\sqrt{1+|\mathbf u_{\mathrm{ref}}|^2}}.
+$$
+
+The snapshot origin is placed at the predicted reference intersection and its
+longitudinal axis is aligned with the reference momentum. If $\mathcal T$
+is the rigid transform from the current container frame to that snapshot
+frame, and $Q$ its rotation, the sampled positions are
+
+$$
+\mathbf r_k^{\mathrm{snapshot}}
+=\mathcal T(\mathbf r_k^{\mathrm{end}})
++\left(\tau-\frac12\right)h\,Q\mathbf v_k.
+$$
+
+Thus each particle is drifted by the same time correction from the timestep
+endpoint. Longitudinal particle offsets are retained: this is a bunch
+snapshot, not an intersection of every particle with $z=0$. The calculation
+uses a rigid spatial transform and straight drift, without a Lorentz boost
+or an additional momentum push. The saved momentum is the current container
+momentum.
+
+The current output stores $t_{\mathrm{cross}}$ as reference `TIME`, but
+$t_{\mathrm{end}}$ as each particle's `time`. Accordingly,
+
+$$
+\texttt{meanTime}-\texttt{TIME}
+=\left(\frac12-\tau\right)h
+$$
+
+for an ordinary full step. The two agree when $\tau=1/2$ and generally differ
+otherwise. This timestamp convention is distinct from the time used to drift
+the snapshot positions; see the
+[output interpretation](../../user-guide/elements.qmd#monitor-output-times).
+
+:::

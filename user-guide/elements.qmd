@@ -616,7 +616,8 @@ L1: LASER, L=0.0, ELEMEDGE=0.0,
 
 ## `MONITOR` {#monitor}
 
-`MONITOR` records bunch crossings at a lattice location.
+`MONITOR` samples the bunch at a placed diagnostic plane. It adds no field and
+does not remove the particles it records.
 
 ```opal
 M1: MONITOR, L=0.01, ELEMEDGE=0.5, TYPE=SPATIAL, OUTFN="monitor.h5";
@@ -624,9 +625,69 @@ M1: MONITOR, L=0.01, ELEMEDGE=0.5, TYPE=SPATIAL, OUTFN="monitor.h5";
 
 | Parameter | Default | Current behavior |
 |---|---:|---|
-| `L` | at least `0.01` m at update | Physical collection interval. |
-| `TYPE` | non-`TEMPORAL` | `TEMPORAL` selects temporal collection; every other value selects spatial collection. |
-| `OUTFN` | unset | Output filename passed to the monitor implementation. |
+| `L` | at least `0.01` m at update | Element geometry length. Sampling takes place at the local $z=0$ plane, rather than throughout this length. |
+| `TYPE` | spatial collection | Exactly `TEMPORAL` selects a bunch snapshot triggered by the reference crossing; every other value selects individual spatial crossings. Use `SPATIAL` explicitly for clarity. |
+| `OUTFN` | element name | Output stem. A supplied extension is stripped before `.h5` or `.loss` is added. |
+
+The monitor accepts the common placement attributes. Its sampling plane is the
+origin of the placed element frame. Increasing `L` does not average the bunch
+over a thicker detector.
+
+### Spatial and temporal sampling {#monitor-collection-modes}
+
+| Mode | What is sampled | Longitudinal interpretation |
+|---|---|---|
+| `SPATIAL` | Each particle's forward crossing of the monitor plane, estimated by a straight drift with its current momentum. | Records lie at local $z=0$, at different arrival times. |
+| `TEMPORAL` | The primary container's particles, drifted to a common snapshot when the reference particle crosses the plane. | Particles retain longitudinal offsets within the bunch; they need not lie on the plane. |
+
+For positive timesteps, spatial sampling requires a strict negative-to-positive
+crossing in local $z$. A state exactly on either predicted endpoint is not
+selected by this test. The monitor retains the current momentum; there is no
+additional field integration to the crossing. See the
+[MONITOR sampling model](../physics/elements/index.qmd#monitor-sampling-model)
+for the intersection and drift formulas.
+
+Spatial records use the monitor-local coordinates. Temporal positions use a
+reference-aligned snapshot frame, while the stored momenta are taken from the
+current particle container. These records should not be interpreted as
+laboratory coordinates without accounting for the corresponding frame.
+
+### Output files and timestamps {#monitor-output-times}
+
+With `OPTION, ASCIIDUMP=FALSE, ENABLEHDF5=TRUE`, the particle file is
+`<OUTFN>.h5`. With `ASCIIDUMP=TRUE`, it is `<OUTFN>.loss`, an ASCII file with
+position, normalized momentum, particle ID and time. The `.loss` extension
+comes from the shared output writer; monitor records are sampled particles,
+not particle losses.
+
+HDF5 particle datasets include `id`, `x`, `y`, `z`, `px`, `py`, `pz`, `q`,
+`m`, and `time`. Positions use metres, normalized momentum is dimensionless,
+and times use seconds. Each saved set also carries reference `TIME`, mean
+particle time `meanTime`, and time spread `rmsTime`.
+
+| HDF5 quantity | `SPATIAL` | Current `TEMPORAL` convention |
+|---|---|---|
+| `TIME` | Reference particle's estimated crossing time. | Reference crossing time, corresponding to the drifted snapshot positions. |
+| Particle `time` | Individual estimated crossing time. | Bunch timestep-end time, shared by the snapshot's particle records. |
+| `meanTime` | Mean of the particle crossing times. | Mean of the saved particle timestamps, hence the timestep-end time. |
+| `rmsTime` | Spread of the particle crossing times. | Zero for a snapshot with one common saved timestamp; it is not the bunch arrival-time spread. |
+
+The temporal timestamp distinction is retained for legacy compatibility:
+`TIME` and particle `time` / `meanTime` can differ. Use `TIME` to identify the
+instant represented by the temporal snapshot positions. For example, a
+reference crossing at 267.543 ps during a timestep ending at 270 ps can produce
+positions for 267.543 ps and particle timestamps of 270 ps.
+
+The modes also retain different legacy mass and energy conventions. The HDF5
+`m`, `TotalMass`, and `ENERGY` values should not be compared between spatial
+and temporal records as if they represented the same physical quantities.
+This distinction does not change the dimensionless momentum components.
+
+The [moment and emittance definitions](conventions/index.qmd#bunch-moments-emittance)
+explain the population averages and projected RMS estimators. Applied to
+spatial records, the $(z,u_z)$ emittance is approximately zero because the
+sampled positions lie on one plane; use the crossing-time distribution for
+longitudinal arrival information.
 
 ## `MARKER` {#marker}
 
