@@ -3,7 +3,7 @@ title: "Space-Charge Solver Architecture"
 description: "Understand space-charge solver setup, ownership, runtime dispatch, and the CartesianPIC3D and FFT2D5 execution flows."
 audience: developer
 status: current
-last-reviewed: "2026-10-18"
+last-reviewed: "2026-10-22"
 toc-depth: 2
 ---
 
@@ -154,7 +154,6 @@ classDiagram
         }
         class RelativisticFieldComposer:::pic {
             +accumulate()
-            +addParticleContribution()
             +gatherElectrostatic()
             +gatherAccumulated()
         }
@@ -185,9 +184,8 @@ classDiagram
         }
         class P3MShortRangeInteraction:::ippl {
             cutoff
-            restFrameScratch
             +apply(particles)
-            +computeRestFrameField(particles, gamma)
+            +addMovingSourceField(particles)$
         }
         class OpenPoissonAdapter:::ippl {
             ownedNativeOpenSolver3D
@@ -272,7 +270,7 @@ classDiagram
     PoissonSolver <|-- PeriodicPoissonAdapter
     PoissonSolver <|-- P3MMeshPoissonAdapter
     PoissonSolver <|-- NullPoissonAdapter
-    P3MShortRangeInteraction ..> ParticleContainer : adds E, or rest-frame E' when binned, after final gather
+    P3MShortRangeInteraction ..> ParticleContainer : adds E, or moving-source E/B when binned, after final gather
 
     %% FFT2D5 ownership and particle access
     FFT2D5Algorithm --> ParticleContainer : borrows all, solves active
@@ -352,7 +350,7 @@ flowchart TB
         Fixed("Use BunchStateHandler fixed bounds<br/>OPEN only; no Dirichlet plane<br/>ORB disabled")
         Early{"NONE backend or<br/>at most one primary particle?"}
         Backend{"3D Poisson backend"}
-        P3M("Uniform OPEN or PERIODIC boundaries<br/>Mesh part of the Ewald split<br/>Binning only with MAXBINS=1")
+        P3M("Uniform OPEN or PERIODIC boundaries<br/>Mesh part of the Ewald split<br/>Binned mesh part with any MAXBINS")
         FFT("Uniform PERIODIC boundaries<br/>Neutralizing background<br/>No Dirichlet plane")
         Open("Uniform OPEN boundaries<br/>STANDARD or INTEGRATED Green function")
         Bins{"Particle binning configured?"}
@@ -384,8 +382,8 @@ flowchart TB
             Compose("Each selected pass<br/>Deposit, stretch mesh, solve<br/>Lorentz-compose E/B; restore spacing")
             More{"More nonempty bins?"}
             Gather("Gather accumulated E/B once<br/>onto all primary particles")
-            BinPP{"P3M backend?<br/>single bin"}
-            RestPP("Short-range E' with separations (dx, dy, γdz)<br/>Lorentz-convert and add E/B")
+            BinPP{"P3M backend?"}
+            RestPP("Short-range E/B of each source<br/>with its own momentum, once for all bins")
 
             Rebin --> Loop
             Loop --> DirichletPlane

@@ -44,7 +44,7 @@ and time uses seconds.
 | `EMISSIONMODEL` | `NONE` | `NONE` or `ASTRA`; availability depends on distribution type. |
 | `EKIN` | `0 eV` | Thermal kinetic energy for generated emitted particles; OPALX uses its absolute value. |
 | `ZEROFACE_R0Z` | `FALSE` | Apply explicit image-charge Dirichlet correction at $z=\mathrm{R0Z}$. |
-| `SHIFTED_GREENS_FUNCTION` | `FALSE` | Alternative shifted-Green correction; requires an `OPEN` field solver. |
+| `SHIFTED_GREENS_FUNCTION` | `FALSE` | Alternative shifted-Green correction; requires `TYPE=OPEN`, or `TYPE=P3M` with all `BCFFT*=OPEN`. |
 | `ZEROFACEPLANEDUMP` | `0` | Non-negative integer dump frequency; requires `ZEROFACE_R0Z=TRUE`. |
 | `ZEROFACE_MAXSTEPS` | `0` | Non-negative correction-step limit; `0` means unlimited. |
 
