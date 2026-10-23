@@ -29,7 +29,7 @@ Regression coverage is stated separately from parser registration.
 | `MULTIPOLET` | Physical multipole coefficients with fringe fields | optional time model |
 | `SOLENOID` | Mapped solenoid field | field map |
 | `FIELDMAP` | Static magnetic or electric field map; no maintained regression input | field map |
-| `RFCAVITY` | Standing-wave RF field | field map |
+| `RFCAVITY` | Mapped standing-wave or ideal uniform RF field; cyclotron single-gap kick | field map or voltage profile, except for `TYPE="IDEAL"` |
 | `TRAVELINGWAVE` | Traveling-wave RF field | field map |
 | `CYCLOTRONSECTOR` | PSI-style cyclotron sector field | field map and optional trim coils |
 | `LASER` | Source registered; no maintained regression input | none |
@@ -492,8 +492,16 @@ Restrictions:
 
 ## `RFCAVITY` {#rfcavity}
 
-`RFCAVITY` applies a time-dependent standing-wave field from a supported 1D or
-2D dynamic field map. The [autophased example](../getting-started/worked-inputs.qmd#example-rfcavity)
+`RFCAVITY` selects an RF model with `TYPE`:
+
+- `STANDING` (default): a standing-wave field from a dynamic field map.
+- `IDEAL`: a uniform longitudinal RF field over the element length, without
+  a field map.
+- `SINGLEGAP`: a discrete cyclotron voltage-profile kick, described in
+  [Accelerated Beam](cyclotron.qmd#accelerated-beam).
+
+The parameters below describe `STANDING` and `IDEAL`. The
+[autophased mapped example](../getting-started/worked-inputs.qmd#example-rfcavity)
 shows the complete connection to a beam and tracker.
 
 ```opal
@@ -506,24 +514,65 @@ Gun: RFCAVITY,
 
 | Parameter | Default | Unit | Current behavior |
 |---|---:|---:|---|
-| `TYPE` | unset | name | `STANDING` is the maintained regression configuration. `SINGLEGAP` is recognized internally; other common design strings fall back to standing-wave behavior. |
-| `VOLT`, `DVOLT` | unset | MV | Nominal field-map amplitude and additive amplitude error. |
-| `FREQ` | unset | MHz | RF frequency. A field-map value differing by more than 1% replaces it with a warning. |
-| `LAG`, `DLAG` | unset | rad | Nominal phase and additive phase error. |
-| `FMAPFN` | unset | path | Required dynamic field map. Current particle application supports `FM2DDynamic` and `Astra1DDynamic` maps. |
-| `FAST` | `TRUE` | Boolean | Passed to the field-map loader. |
+| `TYPE` | unset (`STANDING` behavior) | name | Accepted values are `STANDING`, `SINGLEGAP`, and `IDEAL`. Other input values are rejected. |
+| `L` | unset | m | `IDEAL` requires a finite positive length and applies its field on local $0\le z<L$. |
+| `VOLT`, `DVOLT` | unset | MV/m | Nominal peak electric-field amplitude and additive amplitude error for `IDEAL`; field-map amplitude and additive amplitude error for `STANDING`. |
+| `FREQ` | unset | MHz | RF frequency. For `STANDING`, a field-map value differing by more than 1% replaces it with a warning. `IDEAL` requires a finite, nonnegative value; zero selects a static field. |
+| `LAG`, `DLAG` | unset | rad | Nominal phase and additive phase error, using a cosine convention. |
+| `FMAPFN` | unset | path | Required for `STANDING`; supported maps are `FM2DDynamic`, `FM3DDynamic`, and `Astra1DDynamic`. Must be omitted for `IDEAL`. |
+| `FAST` | `TRUE` | Boolean | Passed to the field-map loader; has no effect for `IDEAL`. |
 | `APVETO` | `FALSE` | Boolean | If true, excludes this cavity from automatic phase optimization. |
 | `DESIGNENERGY` | `-1` | MeV | Positive target exit kinetic energy; the autophaser also adjusts amplitude to reach it. Negative disables the target. |
-| `GEOMETRY` | unset | name | Parsed boundary-geometry compatibility attribute; not connected by the current update path. |
-| `RMIN`, `RMAX`, `ANGLE`, `PDIS`, `GAPWIDTH`, `PHI0` | unset | mm or deg | Cyclotron-cavity compatibility inputs; not used by ordinary `PARALLEL` RF-field application. |
-| `PHASE_MODEL`, `AMPLITUDE_MODEL`, `FREQUENCY_MODEL` | unset | name | Names are stored, but ordinary `RFCAVITY` tracking does not currently resolve them into time-dependence objects. |
+| `GEOMETRY` | unset | name | Parsed boundary-geometry compatibility attribute; not connected by the current element update. |
+| `RMIN`, `RMAX`, `ANGLE`, `PDIS`, `GAPWIDTH`, `PHI0` | unset | model-specific | Used by the separate `SINGLEGAP` interface; see the cyclotron guide. They do not configure the `STANDING` or `IDEAL` field. |
+| `PHASE_MODEL`, `AMPLITUDE_MODEL`, `FREQUENCY_MODEL` | unset | name | Rejected for `IDEAL`. For `STANDING`, names are stored but not resolved into time-dependence objects. Use `VARIABLE_RF_CAVITY` when RF parameters must vary with time. |
 
 : {tbl-colwidths="[24, 12, 15, 49]"}
 
-The instantaneous map scale is set by the configured amplitude and
+The instantaneous electric map scale uses the configured amplitude and
 $\cos(2\pi f t+\mathrm{LAG})$; the magnetic map component uses the corresponding
 sine factor. `OPTION.AUTOPHASE>0` searches the reference-particle phase for
 maximum exit energy, using the option value as the number of refinement passes.
+This also applies to `IDEAL`, including amplitude adjustment when
+`DESIGNENERGY>0`. Set `APVETO=TRUE` to retain the specified phase, or
+`OPTION, AUTOPHASE=0;` to disable automatic phasing globally.
+
+### Ideal uniform RF field {#rfcavity-ideal}
+
+```opal
+RF1: RFCAVITY,
+    TYPE="IDEAL", L=0.2, ELEMEDGE=0.0,
+    VOLT=5.0, FREQ=100.0, LAG=0.0,
+    APVETO=TRUE;
+```
+
+Here `VOLT=5.0` sets a peak longitudinal field of 5 MV/m. With `L=0.2`,
+the peak integrated voltage is $5.0\times0.2=1$ MV. At fixed `VOLT`, changing
+`L` changes the field extent and integrated voltage. The field is uniform
+transversely inside `APERTURE` and zero outside the cavity's longitudinal
+interval. Without `APERTURE`,
+there is no transverse field limit. The model adds no magnetic field, fringe
+fields, or transverse RF focusing.
+
+With $t$ in seconds, the longitudinal field inside the cavity is
+
+$$
+E_z(t)=10^6(\mathrm{VOLT}+\mathrm{DVOLT})
+\cos\!\left(2\pi\,10^6\mathrm{FREQ}\,t+\mathrm{LAG}+\mathrm{DLAG}\right)
+\quad[\mathrm{V/m}].
+$$
+
+The reference particle uses the nominal `VOLT` and `LAG`, excluding `DVOLT`
+and `DLAG`. All RF parameters must be finite. `FMAPFN` and named time models
+are not accepted. The nominal peak integrated voltage is `VOLT` times `L`
+in MV; the actual energy gain also depends on charge, RF phase, and transit
+time through the cavity.
+
+`VARIABLE_RF_CAVITY` instead takes an amplitude model in MV/m and uses a sine
+phase convention. For constant parameters and zero errors, the corresponding
+amplitude is `VOLT` and its phase is `LAG` plus $\pi/2$.
+See the [ideal RF field model](../physics/elements/index.qmd#ideal-rfcavity-model)
+for sampling and transit-time details.
 
 ## `TRAVELINGWAVE` {#travelingwave}
 

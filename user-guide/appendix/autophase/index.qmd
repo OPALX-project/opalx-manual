@@ -221,7 +221,7 @@ Internally it keeps the cavity-local initial reference state and then:
 
 ### Initial Estimate for `RFCAVITY`
 
-For standing-wave cavities, the first estimate is delegated to
+For mapped standing-wave cavities, the first estimate is delegated to
 `RFCavity::getAutoPhaseEstimate(...)`. That routine samples the on-axis field
 map, builds a spline, constructs iterative time-of-flight and energy histories,
 and evaluates an `A/B` phase condition equivalent in structure to the legacy
@@ -229,6 +229,14 @@ appendix derivation.
 
 So the OPALX standing-wave path is directly connected to the analytic appendix
 logic, but implemented numerically on the actual on-axis sampled field.
+
+For `RFCAVITY, TYPE="IDEAL"`, there is no field map. The initial estimate
+instead scans phase by tracking the on-axis reference particle through the
+uniform field. The same direct-tracking refinement then selects the
+maximum-energy phase. `APVETO`, `OPTION.AUTOPHASE`, and positive
+`DESIGNENERGY` targets also apply to this model; the adjusted amplitude is a
+peak electric field in MV/m. See the
+[ideal cavity input](../../elements.qmd#rfcavity-ideal).
 
 ### Initial Estimate for `TRAVELINGWAVE`
 

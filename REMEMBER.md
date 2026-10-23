@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23; focused RFCAVITY IDEAL review (MV/m amplitude) on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23; focused RFCAVITY IDEAL review (MV/m amplitude) on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -661,3 +661,61 @@ Use this template for subsequent entries:
   No tracking, diagnostic calculation, momentum units or emittance formula
   changes. The earlier canonical/mechanical terminology follow-up is resolved
   for the identified false labels. No commit or push performed by the agent.
+
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: RFCAVITY TYPE=IDEAL
+
+- Manual base: `a44fea7` on `docs/mz-v1-audit`; OPALX source:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7` on
+  `631-support-ideal-rfcavity`, pending the user's source merge.
+- Reviewed OpalCavity parsing/update, RFCavity particle/host/reference fields,
+  initialization, validation and phase estimation, CavityAutophaser voltage
+  adjustment, and the eight existing IdealRFCavityTest cases.
+- Added IDEAL input example, integrated VOLT/DVOLT units, finite positive L,
+  map/time-model rejection, finite RF parameters and nonnegative frequency,
+  aperture support, cosine convention, reference-error exclusion and autophase
+  controls. Updated the RFCAVITY table, element summary and OPALX sidebar
+  entry. Corrected mapped
+  amplitude units and map support in that table and linked the already
+  documented SINGLEGAP interface instead of calling its parameters unused.
+- Added a focused ideal RF physics section with field support, midpoint
+  sampling, finite-transit-time approximation and the phase/amplitude mapping
+  to VARIABLE_RF_CAVITY. Extended the current OPALX autophasing appendix for
+  the ideal cavity's phase scan and integrated-voltage adjustment.
+- Verification: all eight existing IdealRFCavityTest cases passed using the
+  existing local binary (sandbox emitted an MPI socket warning). The 58-chapter
+  source validator, full HTML and six-report renders, rendered IDEAL example,
+  physics, autophase and navigation checks, 64-page HTML/link validation, and
+  git diff --check passed. Browser interaction tests were not run (dependencies
+  absent). No rebuild or source edits.
+- This is a focused subsection review; full-page review dates are unchanged.
+  Publish this documentation with the matching source feature. No commit or
+  push performed.
+
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: IDEAL amplitude changed to MV/m
+
+- Manual base remains `a44fea7` on `docs/mz-v1-audit`, with the preceding
+  RFCAVITY documentation still uncommitted. OPALX source reviewed:
+  `7ec5346fb635fa474f7582fe7a60834976999904` on
+  `631-support-ideal-rfcavity`.
+- Verified removal of the length divisor from all three IDEAL field methods,
+  the parser/header unit descriptions, and the autophaser's length-dependent
+  amplitude estimate and MV/m output. The preceding entry describes the
+  superseded integrated-voltage implementation.
+- Updated the User Guide VOLT/DVOLT table, example (5 MV/m over 0.2 m gives
+  1 MV peak integrated voltage), field equation, length interpretation and
+  VARIABLE_RF_CAVITY amplitude conversion. Updated the physics definition to
+  E_0 in MV/m, restored L in the transit-time energy-gain formula, and revised
+  the integrated-voltage and DC limits. Autophasing now adjusts peak field
+  amplitude in MV/m. SINGLEGAP retains its separate voltage-in-MV convention.
+- All nine existing IdealRFCavityTest cases passed using the updated local
+  binary, including field amplitude independent of length and gradient-based
+  DC gain and design-energy adjustment. The sandbox emitted an MPI socket
+  warning; the test suite completed successfully. No build or source edits.
+- Verification: 58-chapter source validation, full HTML and six-report renders,
+  64-page HTML/link validation, focused rendered MV/m units/formula/example
+  checks, obsolete IDEAL scaling checks, and git diff --check passed. Browser
+  interaction tests were not run (dependencies absent); no navigation changes
+  were made in this follow-up. Full-page review dates remain unchanged.
+  No commit or push performed.

@@ -14,7 +14,62 @@ runtime semantics require more than the generic placement conventions.
 {{< include multipole.qmd >}}
 
 
-## Ideal time-dependent RF cavity {#variable-rf-cavity-model}
+## Ideal RFCAVITY {#ideal-rfcavity-model}
+
+::: {.feature-opalx}
+
+`RFCAVITY, TYPE="IDEAL"` prescribes a uniform longitudinal electric field in
+its straight element frame. Let $E_0$ and $\delta E_0$ denote `VOLT` and `DVOLT`
+in MV/m, $f$ denote `FREQ` in MHz, and $\phi$ and $\delta\phi$ denote `LAG` and
+`DLAG` in radians. With $L$ in metres and $t$ in seconds,
+
+$$
+\mathbf E_{\mathrm{RF}}(\mathbf r,t)
+=\widehat{\mathbf z}\,10^6(E_0+\delta E_0)
+\cos\!\left(2\pi\,10^6 f t+\phi+\delta\phi\right)
+\chi_{\mathcal C}(\mathbf r),
+\qquad \mathbf B_{\mathrm{RF}}=0.
+$$
+
+The support $\mathcal C$ consists of local $0\le z<L$ inside the configured
+`APERTURE`; without an aperture it has no transverse limit. The field is added
+to existing fields. Particle removal follows the separate aperture rules.
+The reference particle uses $\delta E_0=\delta\phi=0$. The
+[input guide](../../user-guide/elements.qmd#rfcavity-ideal) gives an example,
+parameter restrictions, and automatic-phasing controls.
+
+This model has abrupt longitudinal edges, no fringe fields, no transverse RF
+focusing, and no electromagnetic cavity-mode solution. Ordinary
+drift--kick--drift tracking evaluates its field at the physical midpoint
+$t+h/2$ of a step of duration $h$.
+
+For a particle with charge $q$ in C and approximately constant speed $v$
+through the cavity, define $\omega=2\pi\,10^6 f$. The energy gain is
+
+$$
+\Delta K\simeq q\,10^6(E_0+\delta E_0)L\,
+\operatorname{sinc}\!\left(\frac{\omega L}{2v}\right)
+\cos(\omega t_c+\phi+\delta\phi),
+\qquad \operatorname{sinc}(a)=\frac{\sin a}{a},
+$$
+
+in joules, where $t_c$ is the time at the cavity centre and
+$\operatorname{sinc}(0)=1$. This is a constant-speed approximation; tracking
+integrates the field through the finite cavity. `VOLT` specifies the peak
+electric-field amplitude in MV/m, independent of $L$. The nominal peak
+spatially integrated voltage is $10^6 E_0 L$ volts. For $f=0$ and $\phi=0$,
+the nominal energy gain is $q\,10^6 E_0 L$ joules for a full traversal.
+
+For constant time models, `VARIABLE_RF_CAVITY` produces the same particle field
+within their common field region when its amplitude is $E_0+\delta E_0$ in
+MV/m, its frequency is $f$ in MHz, and its phase is
+$\phi+\delta\phi+\pi/2$. Its sine convention and rectangular support are
+described below.
+
+:::
+
+
+## RF cavity with time models {#variable-rf-cavity-model}
 
 `VARIABLE_RF_CAVITY` prescribes a uniform longitudinal electric field in its
 straight element frame. Let $A(t)$ be the amplitude-model output in MV/m,
