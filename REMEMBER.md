@@ -592,36 +592,149 @@ Use this template for subsequent entries:
   common-attribute table still says "eight element implementations".
 - Next trigger: a change to the field-map readers.
 
-### 2026-10-22 - DOC-PHYS: P3M, cathode image fields, and binned space charge
+### 2026-10-21 - DOC-USER / DOC-PHYS: MZ moments and emittances
 
-- OPALX source: `origin/master` at `20662a943` (P3M shifted-Green support),
-  plus the uncommitted local branch `p3m-multibin-moving-source` for binned
-  P3M with any `MAXBINS`; IPPL `origin/master`. Manual base: `182ea22` on
-  branch `7-add-p3m-cathodeimage-binning`.
-- Reviewed: `P3MAdapters.h`, `CartesianPIC3DAlgorithm.cpp`,
-  `RelativisticFieldComposer.cpp`, `FieldMirror.hpp`,
-  `ParticleMeshFieldTransfer.cpp`, `ParticleBinTraversal.cpp`,
-  `CartesianDomainUpdater.cpp`; IPPL `FFTOpenPoissonSolver` (truncated and
-  shifted kernels), `FFTTruncatedGreenPeriodicPoissonSolver`,
-  `TruncatedGreenParticleInteraction`, `ParticleSpatialOverlapLayout`.
-- Changed: physics field-solver chapter gained the conducting-plane model
-  (moving image, explicit images, shifted Green function, images with P3M),
-  the P3M solver section with moving-source pair fields for binned P3M, the
-  binned rest-frame model with adaptive merging, the emission interplay, and a
-  limitations list. User guide and developer guide now allow binned P3M with
-  any `MAXBINS`. The user-guide shift formula now reads $2\gamma_b(z_c-z_p)$
-  with the laboratory mesh centre, matching the code. User-guide, `BINNING`,
-  `EMISSIONSOURCE`, overview, and collective-effects pages were aligned and
-  linked to the physics sections. Seven references added; `fubiani2006`
-  authors corrected. The validator requires the P3M, shifted-Green and
-  adaptive-binning headings.
-- Verification: source validator (58 chapters), full HTML render, report-page
-  render, rendered-HTML validator (64 pages), MathJax typesetting of all 239
-  formulas on both changed pages, and whitespace check passed. Browser tests
-  not run (no local Playwright/Chrome).
-- Open items: publish only after the OPALX multi-bin P3M change is merged;
-  until then current master rejects `MAXBINS` other than 1 for `P3M`. Periodic
-  P3M image ghosts are shifted along every periodic axis in IPPL (listed as a
-  limitation); emission-time treatment is still a prompt.
-- Next trigger: merge of the OPALX multi-bin P3M pull request, a fix of the
-  IPPL periodic ghosts, or a change to the image or binning implementation.
+- Manual base: `4d8fab80dc0fff7eead00c0166dd5634a7cd1371` on
+  `docs/mz-v1-audit`; OPALX source: `12d0954c71e1202be79fa13ea32a30d86b89c541`.
+- Reviewed DistributionMoments, ParticleContainer reference transforms,
+  DataSink, StatWriter, and the existing deterministic distribution-moments
+  unit test. Source inspection only; no simulation or C++ test run.
+- Added main bunch-statistics definitions to Conventions: equal macroparticle
+  population averages, covariance/frame transformations, normalized momentum,
+  RMS spreads, correlations, projected normalized and internal geometric
+  emittance, units, longitudinal interpretation, file naming, and column map.
+  Emittance uses `\varepsilon` at the user's request.
+  Linked the scoped definitions from File Formats. The full statistics schema
+  remains unaudited. Existing page review dates were retained because neither
+  page received a complete review.
+- Updated source and rendered validators' shared-page classification because
+  Conventions now contains an explicitly OPALX-only section.
+- Verification: 58-chapter source validation, full HTML render, six report-page
+  render, rendered section/equation presence checks, 64-page rendered HTML/link
+  validation, and git diff --check passed. Browser controls were unchanged;
+  browser tests were not run (dependencies are absent). Documents-checkout
+  validation was unavailable because ../opalx-documents is absent; no external
+  document links were changed.
+- Follow-up: discuss existing canonical/mechanical terminology separately;
+  audit MONITOR and PROBE sampling; separately review covariance-valued
+  dispersion columns and zero-spread guards. No source changes, commit or push.
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: MONITOR sampling and current output
+
+- Manual base: `e2f4974b0ebb7ae898cd86301334c227160c54f9` on
+  `docs/mz-v1-audit`; current OPALX checkout:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7` on 631-support-ideal-rfcavity.
+  Relevant Monitor, OpalMonitor, LossDataSink and reference-callback code was
+  unchanged from the executable-tested master revision `41d65389d`.
+- User advised preserving current MONITOR behavior for now. Documented the
+  existing timestep-end particle timestamps, not the separate #619 correction.
+  No OPALX source edits were made during this documentation pass.
+- Expanded the MONITOR User Guide section with plane placement, mode selection,
+  filename handling, spatial versus temporal sampling, frames, HDF5/ASCII
+  output, timestamp meanings, and the retained mass/energy distinction.
+- Added the crossing and temporal snapshot model under Physics / Elements,
+  including interpolation, common-time drift, sampling assumptions and the
+  ordinary-full-step timestamp offset. Linked the input and physics sections,
+  and linked the existing moments/emittance definitions. The MONITOR parent
+  anchors and custom sidebar manifest remain valid.
+- Evidence: source inspection plus the earlier 41d65389d executable drift/bend
+  runs preserved under OPALX sandbox/monitor-audit. Those runs reproduce the
+  timestamp and mass/energy distinctions. No new simulations were needed.
+  The conditional momentum-frame concern is not presented as a confirmed bug.
+- Verification: 58-chapter source validation, full HTML render, six report-page
+  render, rendered section/equation checks, 64-page HTML/link validation and
+  git diff --check passed. Browser tests were not run (dependencies absent),
+  and document-checkout validation was unavailable (../opalx-documents absent).
+  No external document links or browser controls were changed.
+- Existing page review dates were retained: this is a focused MONITOR review,
+  not a full review of either Elements chapter. No commit or push performed.
+- Next: review PROBE's registered interface versus active tracking support;
+  retain MONITOR's current conventions pending an agreed code change.
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: normalized momentum terminology
+
+- Manual base: `5281139` (MONITOR documentation committed by user) on
+  `docs/mz-v1-audit`; OPALX source reviewed:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7`.
+- User approved correcting the stored-momentum terminology following supervisor
+  agreement. Reviewed the Boris pusher and DistributionMoments definitions.
+- Conventions now defines normalized momentum as p/(mc)=gamma*beta, identifies
+  mechanical (kinetic) momentum, and distinguishes canonical momentum through
+  p_can=p+q*A in SI units with physical charge in coulombs. Explicitly states
+  that RMS emittances use normalized mechanical momentum components. Added a
+  stable anchor to that definition and clarified the units-table entry.
+  At the user's request, normalized momentum is written as tilde(p), while
+  plain p denotes physical momentum. Updated covariance, emittance, MONITOR
+  sampling and overview notation to match, and explicitly mapped PX/PY/PZ
+  to the normalized components. The passive-probe full state is named w.
+- Physics overview now calls the stored variables position and normalized
+  momentum components. Replaced all three incorrect canonical-momentum labels
+  and linked the Conventions definition. Legitimate canonical-coordinate and
+  symplecticity discussions elsewhere were reviewed by search and retained.
+- Verification: 58-chapter source validation, full HTML render, six-report
+  render, rendered momentum definitions/labels/link-target checks, 64-page
+  rendered HTML/link validation and git diff --check passed. Browser tests
+  were not run (dependencies absent); external document checkout is absent.
+  No document links or interactive controls changed.
+- This is a focused terminology review; existing full-page review dates remain.
+  No tracking, diagnostic calculation, momentum units or emittance formula
+  changes. The earlier canonical/mechanical terminology follow-up is resolved
+  for the identified false labels. No commit or push performed by the agent.
+
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: RFCAVITY TYPE=IDEAL
+
+- Manual base: `a44fea7` on `docs/mz-v1-audit`; OPALX source:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7` on
+  `631-support-ideal-rfcavity`, pending the user's source merge.
+- Reviewed OpalCavity parsing/update, RFCavity particle/host/reference fields,
+  initialization, validation and phase estimation, CavityAutophaser voltage
+  adjustment, and the eight existing IdealRFCavityTest cases.
+- Added IDEAL input example, integrated VOLT/DVOLT units, finite positive L,
+  map/time-model rejection, finite RF parameters and nonnegative frequency,
+  aperture support, cosine convention, reference-error exclusion and autophase
+  controls. Updated the RFCAVITY table, element summary and OPALX sidebar
+  entry. Corrected mapped
+  amplitude units and map support in that table and linked the already
+  documented SINGLEGAP interface instead of calling its parameters unused.
+- Added a focused ideal RF physics section with field support, midpoint
+  sampling, finite-transit-time approximation and the phase/amplitude mapping
+  to VARIABLE_RF_CAVITY. Extended the current OPALX autophasing appendix for
+  the ideal cavity's phase scan and integrated-voltage adjustment.
+- Verification: all eight existing IdealRFCavityTest cases passed using the
+  existing local binary (sandbox emitted an MPI socket warning). The 58-chapter
+  source validator, full HTML and six-report renders, rendered IDEAL example,
+  physics, autophase and navigation checks, 64-page HTML/link validation, and
+  git diff --check passed. Browser interaction tests were not run (dependencies
+  absent). No rebuild or source edits.
+- This is a focused subsection review; full-page review dates are unchanged.
+  Publish this documentation with the matching source feature. No commit or
+  push performed.
+
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: IDEAL amplitude changed to MV/m
+
+- Manual base remains `a44fea7` on `docs/mz-v1-audit`, with the preceding
+  RFCAVITY documentation still uncommitted. OPALX source reviewed:
+  `7ec5346fb635fa474f7582fe7a60834976999904` on
+  `631-support-ideal-rfcavity`.
+- Verified removal of the length divisor from all three IDEAL field methods,
+  the parser/header unit descriptions, and the autophaser's length-dependent
+  amplitude estimate and MV/m output. The preceding entry describes the
+  superseded integrated-voltage implementation.
+- Updated the User Guide VOLT/DVOLT table, example (5 MV/m over 0.2 m gives
+  1 MV peak integrated voltage), field equation, length interpretation and
+  VARIABLE_RF_CAVITY amplitude conversion. Updated the physics definition to
+  E_0 in MV/m, restored L in the transit-time energy-gain formula, and revised
+  the integrated-voltage and DC limits. Autophasing now adjusts peak field
+  amplitude in MV/m. SINGLEGAP retains its separate voltage-in-MV convention.
+- All nine existing IdealRFCavityTest cases passed using the updated local
+  binary, including field amplitude independent of length and gradient-based
+  DC gain and design-energy adjustment. The sandbox emitted an MPI socket
+  warning; the test suite completed successfully. No build or source edits.
+- Verification: 58-chapter source validation, full HTML and six-report renders,
+  64-page HTML/link validation, focused rendered MV/m units/formula/example
+  checks, obsolete IDEAL scaling checks, and git diff --check passed. Browser
+  interaction tests were not run (dependencies absent); no navigation changes
+  were made in this follow-up. Full-page review dates remain unchanged.
+  No commit or push performed.

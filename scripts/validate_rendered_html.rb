@@ -282,7 +282,6 @@ end
 
 shared_pages = %w[
   user-guide/introduction/index.html
-  user-guide/conventions/index.html
   user-guide/input-language.html
   user-guide/command-format/index.html
   user-guide/control-statements/index.html

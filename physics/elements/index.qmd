@@ -14,7 +14,62 @@ runtime semantics require more than the generic placement conventions.
 {{< include multipole.qmd >}}
 
 
-## Ideal time-dependent RF cavity {#variable-rf-cavity-model}
+## Ideal RFCAVITY {#ideal-rfcavity-model}
+
+::: {.feature-opalx}
+
+`RFCAVITY, TYPE="IDEAL"` prescribes a uniform longitudinal electric field in
+its straight element frame. Let $E_0$ and $\delta E_0$ denote `VOLT` and `DVOLT`
+in MV/m, $f$ denote `FREQ` in MHz, and $\phi$ and $\delta\phi$ denote `LAG` and
+`DLAG` in radians. With $L$ in metres and $t$ in seconds,
+
+$$
+\mathbf E_{\mathrm{RF}}(\mathbf r,t)
+=\widehat{\mathbf z}\,10^6(E_0+\delta E_0)
+\cos\!\left(2\pi\,10^6 f t+\phi+\delta\phi\right)
+\chi_{\mathcal C}(\mathbf r),
+\qquad \mathbf B_{\mathrm{RF}}=0.
+$$
+
+The support $\mathcal C$ consists of local $0\le z<L$ inside the configured
+`APERTURE`; without an aperture it has no transverse limit. The field is added
+to existing fields. Particle removal follows the separate aperture rules.
+The reference particle uses $\delta E_0=\delta\phi=0$. The
+[input guide](../../user-guide/elements.qmd#rfcavity-ideal) gives an example,
+parameter restrictions, and automatic-phasing controls.
+
+This model has abrupt longitudinal edges, no fringe fields, no transverse RF
+focusing, and no electromagnetic cavity-mode solution. Ordinary
+drift--kick--drift tracking evaluates its field at the physical midpoint
+$t+h/2$ of a step of duration $h$.
+
+For a particle with charge $q$ in C and approximately constant speed $v$
+through the cavity, define $\omega=2\pi\,10^6 f$. The energy gain is
+
+$$
+\Delta K\simeq q\,10^6(E_0+\delta E_0)L\,
+\operatorname{sinc}\!\left(\frac{\omega L}{2v}\right)
+\cos(\omega t_c+\phi+\delta\phi),
+\qquad \operatorname{sinc}(a)=\frac{\sin a}{a},
+$$
+
+in joules, where $t_c$ is the time at the cavity centre and
+$\operatorname{sinc}(0)=1$. This is a constant-speed approximation; tracking
+integrates the field through the finite cavity. `VOLT` specifies the peak
+electric-field amplitude in MV/m, independent of $L$. The nominal peak
+spatially integrated voltage is $10^6 E_0 L$ volts. For $f=0$ and $\phi=0$,
+the nominal energy gain is $q\,10^6 E_0 L$ joules for a full traversal.
+
+For constant time models, `VARIABLE_RF_CAVITY` produces the same particle field
+within their common field region when its amplitude is $E_0+\delta E_0$ in
+MV/m, its frequency is $f$ in MHz, and its phase is
+$\phi+\delta\phi+\pi/2$. Its sine convention and rectangular support are
+described below.
+
+:::
+
+
+## RF cavity with time models {#variable-rf-cavity-model}
 
 `VARIABLE_RF_CAVITY` prescribes a uniform longitudinal electric field in its
 straight element frame. Let $A(t)$ be the amplitude-model output in MV/m,
@@ -77,3 +132,95 @@ explicit phase model. `COF` remains a static magnetic, fixed-energy orbit
 calculation; it does not solve the RF-periodic six-dimensional synchronous
 orbit. Bare-orbit input and RF tracking must respect the
 [orbit handover constraints](../../user-guide/tracking.qmd#opalx-initial-orbit).
+
+
+## MONITOR sampling {#monitor-sampling-model}
+
+::: {.feature-opalx}
+
+`MONITOR` is a passive sampling plane, without a detector-material or field
+model. The [input guide](../../user-guide/elements.qmd#monitor) describes its
+collection modes, output files, and retained timestamp conventions.
+
+### Spatial crossings
+
+Let $\mathbf r=(x,y,z)$ and
+$\widetilde{\mathbf p}=\mathbf p/(mc)=\gamma\boldsymbol\beta$ be the particle state in
+the monitor frame, with $\gamma=\sqrt{1+|\widetilde{\mathbf p}|^2}$. For a positive
+particle timestep $h_k$, the predicted displacement is
+
+$$
+\Delta\mathbf r_k=c h_k\frac{\widetilde{\mathbf p}_k}{\gamma_k}.
+$$
+
+A crossing is recorded when $z_k<0$ and $z_k+\Delta z_k>0$. The linear
+intersection fraction and sampled position are
+
+$$
+\lambda_k=-\frac{z_k}{\Delta z_k},\qquad
+\mathbf r_k^{\mathrm{hit}}=\mathbf r_k+\lambda_k\Delta\mathbf r_k,
+\qquad z_k^{\mathrm{hit}}=0.
+$$
+
+The strict inequalities exclude exact endpoint hits and reverse crossings.
+The saved momentum is $\widetilde{\mathbf p}_k$, without a momentum update at the
+intersection. In ordinary drift--kick--drift tracking, the stored crossing
+time is calculated as
+
+$$
+t_k^{\mathrm{hit}}=t_b+\frac{h}{2}+\lambda_k h_k,
+$$
+
+where $t_b$ is the bunch time at the start of the step and $h$ is the bunch
+timestep. This is a straight-drift estimate from the sampled state, not an
+additional integration through external or self-fields. Particle positions,
+momenta and crossing times are collected over the passage, rather than at one
+common laboratory time.
+
+### Temporal snapshots
+
+A temporal snapshot is triggered by the reference particle's crossing.
+For an ordinary full timestep $h>0$, let $t_m=t_{\mathrm{end}}-h/2$ and
+$(\mathbf r_{\mathrm{ref}},\widetilde{\mathbf p}_{\mathrm{ref}})$ be the reference state
+supplied at the midpoint. Define
+
+$$
+\tau=-\frac{z_{\mathrm{ref}}}{h v_{\mathrm{ref},z}},\qquad
+t_{\mathrm{cross}}=t_m+\tau h,
+\qquad
+\mathbf v_{\mathrm{ref}}=c\frac{\widetilde{\mathbf p}_{\mathrm{ref}}}
+{\sqrt{1+|\widetilde{\mathbf p}_{\mathrm{ref}}|^2}}.
+$$
+
+The snapshot origin is placed at the predicted reference intersection and its
+longitudinal axis is aligned with the reference momentum. If $\mathcal T$
+is the rigid transform from the current container frame to that snapshot
+frame, and $Q$ its rotation, the sampled positions are
+
+$$
+\mathbf r_k^{\mathrm{snapshot}}
+=\mathcal T(\mathbf r_k^{\mathrm{end}})
++\left(\tau-\frac12\right)h\,Q\mathbf v_k.
+$$
+
+Thus each particle is drifted by the same time correction from the timestep
+endpoint. Longitudinal particle offsets are retained: this is a bunch
+snapshot, not an intersection of every particle with $z=0$. The calculation
+uses a rigid spatial transform and straight drift, without a Lorentz boost
+or an additional momentum push. The saved momentum is the current container
+momentum.
+
+The current output stores $t_{\mathrm{cross}}$ as reference `TIME`, but
+$t_{\mathrm{end}}$ as each particle's `time`. Accordingly,
+
+$$
+\texttt{meanTime}-\texttt{TIME}
+=\left(\frac12-\tau\right)h
+$$
+
+for an ordinary full step. The two agree when $\tau=1/2$ and generally differ
+otherwise. This timestamp convention is distinct from the time used to drift
+the snapshot positions; see the
+[output interpretation](../../user-guide/elements.qmd#monitor-output-times).
+
+:::

@@ -709,7 +709,6 @@ end
 
 shared_pages = %w[
   user-guide/introduction/index.qmd
-  user-guide/conventions/index.qmd
   user-guide/input-language.qmd
   user-guide/command-format/index.qmd
   user-guide/control-statements/index.qmd
