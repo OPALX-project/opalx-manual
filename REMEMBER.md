@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -631,3 +631,33 @@ Use this template for subsequent entries:
   not a full review of either Elements chapter. No commit or push performed.
 - Next: review PROBE's registered interface versus active tracking support;
   retain MONITOR's current conventions pending an agreed code change.
+
+### 2026-10-23 - DOC-USER / DOC-PHYS: normalized momentum terminology
+
+- Manual base: `5281139` (MONITOR documentation committed by user) on
+  `docs/mz-v1-audit`; OPALX source reviewed:
+  `fc7c070d7bc4c5daae5beece167f880142d7caa7`.
+- User approved correcting the stored-momentum terminology following supervisor
+  agreement. Reviewed the Boris pusher and DistributionMoments definitions.
+- Conventions now defines normalized momentum as p/(mc)=gamma*beta, identifies
+  mechanical (kinetic) momentum, and distinguishes canonical momentum through
+  p_can=p+q*A in SI units with physical charge in coulombs. Explicitly states
+  that RMS emittances use normalized mechanical momentum components. Added a
+  stable anchor to that definition and clarified the units-table entry.
+  At the user's request, normalized momentum is written as tilde(p), while
+  plain p denotes physical momentum. Updated covariance, emittance, MONITOR
+  sampling and overview notation to match, and explicitly mapped PX/PY/PZ
+  to the normalized components. The passive-probe full state is named w.
+- Physics overview now calls the stored variables position and normalized
+  momentum components. Replaced all three incorrect canonical-momentum labels
+  and linked the Conventions definition. Legitimate canonical-coordinate and
+  symplecticity discussions elsewhere were reviewed by search and retained.
+- Verification: 58-chapter source validation, full HTML render, six-report
+  render, rendered momentum definitions/labels/link-target checks, 64-page
+  rendered HTML/link validation and git diff --check passed. Browser tests
+  were not run (dependencies absent); external document checkout is absent.
+  No document links or interactive controls changed.
+- This is a focused terminology review; existing full-page review dates remain.
+  No tracking, diagnostic calculation, momentum units or emittance formula
+  changes. The earlier canonical/mechanical terminology follow-up is resolved
+  for the identified false labels. No commit or push performed by the agent.

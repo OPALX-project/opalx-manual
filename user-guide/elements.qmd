@@ -685,7 +685,7 @@ This distinction does not change the dimensionless momentum components.
 
 The [moment and emittance definitions](conventions/index.qmd#bunch-moments-emittance)
 explain the population averages and projected RMS estimators. Applied to
-spatial records, the $(z,u_z)$ emittance is approximately zero because the
+spatial records, the $(z,\widetilde p_z)$ emittance is approximately zero because the
 sampled positions lie on one plane; use the crossing-time distribution for
 longitudinal arrival information.
 

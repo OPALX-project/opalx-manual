@@ -90,12 +90,12 @@ collection modes, output files, and retained timestamp conventions.
 ### Spatial crossings
 
 Let $\mathbf r=(x,y,z)$ and
-$\mathbf u=\mathbf p/(mc)=\gamma\boldsymbol\beta$ be the particle state in
-the monitor frame, with $\gamma=\sqrt{1+|\mathbf u|^2}$. For a positive
+$\widetilde{\mathbf p}=\mathbf p/(mc)=\gamma\boldsymbol\beta$ be the particle state in
+the monitor frame, with $\gamma=\sqrt{1+|\widetilde{\mathbf p}|^2}$. For a positive
 particle timestep $h_k$, the predicted displacement is
 
 $$
-\Delta\mathbf r_k=c h_k\frac{\mathbf u_k}{\gamma_k}.
+\Delta\mathbf r_k=c h_k\frac{\widetilde{\mathbf p}_k}{\gamma_k}.
 $$
 
 A crossing is recorded when $z_k<0$ and $z_k+\Delta z_k>0$. The linear
@@ -108,7 +108,7 @@ $$
 $$
 
 The strict inequalities exclude exact endpoint hits and reverse crossings.
-The saved momentum is $\mathbf u_k$, without a momentum update at the
+The saved momentum is $\widetilde{\mathbf p}_k$, without a momentum update at the
 intersection. In ordinary drift--kick--drift tracking, the stored crossing
 time is calculated as
 
@@ -126,15 +126,15 @@ common laboratory time.
 
 A temporal snapshot is triggered by the reference particle's crossing.
 For an ordinary full timestep $h>0$, let $t_m=t_{\mathrm{end}}-h/2$ and
-$(\mathbf r_{\mathrm{ref}},\mathbf u_{\mathrm{ref}})$ be the reference state
+$(\mathbf r_{\mathrm{ref}},\widetilde{\mathbf p}_{\mathrm{ref}})$ be the reference state
 supplied at the midpoint. Define
 
 $$
 \tau=-\frac{z_{\mathrm{ref}}}{h v_{\mathrm{ref},z}},\qquad
 t_{\mathrm{cross}}=t_m+\tau h,
 \qquad
-\mathbf v_{\mathrm{ref}}=c\frac{\mathbf u_{\mathrm{ref}}}
-{\sqrt{1+|\mathbf u_{\mathrm{ref}}|^2}}.
+\mathbf v_{\mathrm{ref}}=c\frac{\widetilde{\mathbf p}_{\mathrm{ref}}}
+{\sqrt{1+|\widetilde{\mathbf p}_{\mathrm{ref}}|^2}}.
 $$
 
 The snapshot origin is placed at the predicted reference intersection and its

@@ -33,8 +33,10 @@ geometry will be implemented.
 
 ## Variables in OPALX {#sec.opalt.variablesopalt}
 
-OPALX uses the following canonical variables to describe the motion
-of particles. The physical units are listed in square brackets.
+OPALX uses the following position and normalized momentum components to
+describe particle motion. Normalized momentum is dimensionless,
+$\widetilde{\mathbf p}=\mathbf p/(mc)=\gamma\boldsymbol\beta$, as defined in
+[Conventions](../../user-guide/conventions/index.qmd#coordinates-and-normalized-momentum).
 
 X
 
@@ -43,8 +45,7 @@ X
 
 PX
 
-:   $\beta_x\gamma$ Horizontal canonical momentum
-    Units.
+:   Horizontal normalized momentum $\widetilde p_x=\gamma\beta_x$ [dimensionless].
 
 Y
 
@@ -53,8 +54,7 @@ Y
 
 PY
 
-:   $\beta_y\gamma$ Vertical canonical momentum
-    Units.
+:   Vertical normalized momentum $\widetilde p_y=\gamma\beta_y$ [dimensionless].
 
 Z
 
@@ -62,8 +62,7 @@ Z
 
 PZ
 
-:   $\beta_z\gamma$ Longitudinal canonical momentum
-    Units.
+:   Longitudinal normalized momentum $\widetilde p_z=\gamma\beta_z$ [dimensionless].
 
 The independent variable is **t** [s].
 
@@ -291,10 +290,10 @@ For a bracket with $g_n<0$ and $g_{n+1}\geq0$, define
 $$
 \alpha=\frac{-g_n}{g_{n+1}-g_n},\qquad
 t_c=t_n+\alpha(t_{n+1}-t_n),\qquad
-\mathbf u_c=(1-\alpha)\mathbf u_n+\alpha\mathbf u_{n+1},
+\mathbf w_c=(1-\alpha)\mathbf w_n+\alpha\mathbf w_{n+1},
 $$
 
-where $\mathbf u$ contains position [m] and mechanical momentum $\mathbf p/(mc)$
+where $\mathbf w$ contains position [m] and normalized momentum $\widetilde{\mathbf p}$
 at the same physical time. Positive interpolated momentum along the normal
 selects forward crossings. A negative-side excursion arms the next return, so
 the launch point, reverse crossing and near-plane jitter do not count as turns.
