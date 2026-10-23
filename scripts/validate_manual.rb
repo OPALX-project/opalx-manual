@@ -166,14 +166,14 @@ if field_solver_page.file?
     "disabled CG backend" => "Cannot use CGSolver yet, not fully implemented.",
     "open P3M backend" => "`TYPE=P3M`; all `BCFFT*=OPEN`",
     "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
-    "P3M cutoff requirement" => "finite, positive cutoff radius `RCUT`",
-    "P3M binning restriction" => "`P3M` requires `NONE`",
+    "P3M cutoff modes" => "`RCUT_CELLS` (default `2`)",
+    "P3M binning support" => "`P3M` can use the [binned rest-frame mode](#binned-mode) with any `MAXBINS`",
     "ORB decomposition axes" => "boundaries only along the split axes",
     "uniform boundary restriction" => "Mixed boundary conditions",
     "generic Dirichlet limitation" => "this is **not a usable mode**",
-    "shifted-Green backend and binning requirements" =>
-      "**requires both `TYPE=OPEN` and a named `BINS` definition**",
-    "explicit-image backend caveat" => "current input checks do not reject other backends"
+    "shifted-Green backend requirement" =>
+      "This mode requires `TYPE=OPEN`, or `TYPE=P3M` with all three `BCFFT*=OPEN`",
+    "explicit-image backend requirement" => "other backends, including `P3M`, are rejected"
   }.each do |description, required_text|
     unless field_solver_text.include?(required_text)
       errors += error("field-solver is missing #{description}")
@@ -196,11 +196,14 @@ physics_field_solver_sections = [
   "### Periodic boundaries {#physics-periodic-boundaries}",
   "### Open boundaries {#physics-open-boundaries}",
   "### Dirichlet and image-charge boundaries {#physics-dirichlet-boundaries}",
+  "#### Shifted Green function {#physics-shifted-green}",
   "## Solver formulations {#solver-formulations}",
   "### Periodic FFT solver {#physics-fft-solver}",
   "### Hockney open-boundary solver {#physics-open-solver}",
+  "### Particle-particle particle-mesh solver {#physics-p3m}",
   "### Iterative solvers {#physics-iterative-solvers}",
   "## Binned rest-frame space charge {#physics-binned-space-charge}",
+  "### Adaptive bin merging {#physics-adaptive-binning}",
   "## Emission and conducting boundaries {#physics-emission-boundaries}",
   "## Numerical accuracy and convergence {#numerical-accuracy-convergence}",
   "### Mesh resolution {#mesh-resolution}",

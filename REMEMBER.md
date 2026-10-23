@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23; focused RFCAVITY IDEAL review (MV/m amplitude) on 2026-10-23 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit; focused moments/emittance definitions reviewed 2026-10-21; audit PROBE runtime support next |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04; focused MONITOR sampling and output review on 2026-10-23; normalized-momentum terminology clarified on 2026-10-23; focused RFCAVITY IDEAL review (MV/m amplitude) on 2026-10-23 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work; focused moments/emittance estimator and frame review 2026-10-21; audit PROBE runtime support next |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -556,6 +556,25 @@ Use this template for subsequent entries:
   Create PRs from codex/beambeam-experiment-downloads in each repository and
   merge documents first. Public main download is not live until that merge;
   PDF remains paused.
+
+### 2026-10-23 - DOC-USER: GAUSS cutoffs and phase-space adjustment
+
+- OPALX range: `f39d59ee2..` OPALX PR #630 (branch
+  `165-gauss-elliptical-cutoff-and-energy-adjust`, issue #165).
+- Manual base: `182ea22`.
+- Reviewed: `user-guide/beam-distributions.qmd`, attribute table and the
+  `GAUSS` and `MULTIVARIATEGAUSS` sections, against
+  `src/Distribution/Gaussian.cpp` and `Distribution::setDistParametersGauss`.
+- Changed: `CUTOFFX`, `CUTOFFY`, `CUTOFFLONG`, `CUTOFFPX`, `CUTOFFPY`, and
+  `CUTOFFPZ` now apply to `GAUSS` (elliptical transverse cuts, per-axis
+  longitudinal cuts, `0` disables all but `CUTOFFLONG`); documented the
+  OPAL-style mean and energy adjustment and the truncated RMS widths; marked
+  the cutoffs as ignored by `MULTIVARIATEGAUSS`; updated the limitations list.
+- Verification: source validator and whitespace check.
+- Open items: `last-reviewed` left unchanged because only the Gaussian
+  sections were checked. Manual issue #11.
+- Next trigger: `MULTIVARIATEGAUSS` gaining the same cuts, or correlations in
+  `GAUSS`.
 
 ### 2026-10-07 - DOC-USER: merge main into document-fieldmap-element
 

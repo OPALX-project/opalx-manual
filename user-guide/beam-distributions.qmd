@@ -44,7 +44,7 @@ and time uses seconds.
 | `EMISSIONMODEL` | `NONE` | `NONE` or `ASTRA`; availability depends on distribution type. |
 | `EKIN` | `0 eV` | Thermal kinetic energy for generated emitted particles; OPALX uses its absolute value. |
 | `ZEROFACE_R0Z` | `FALSE` | Apply explicit image-charge Dirichlet correction at $z=\mathrm{R0Z}$. |
-| `SHIFTED_GREENS_FUNCTION` | `FALSE` | Alternative shifted-Green correction; requires an `OPEN` field solver. |
+| `SHIFTED_GREENS_FUNCTION` | `FALSE` | Alternative shifted-Green correction; requires `TYPE=OPEN`, or `TYPE=P3M` with all `BCFFT*=OPEN`. |
 | `ZEROFACEPLANEDUMP` | `0` | Non-negative integer dump frequency; requires `ZEROFACE_R0Z=TRUE`. |
 | `ZEROFACE_MAXSTEPS` | `0` | Non-negative correction-step limit; `0` means unlimited. |
 
@@ -95,13 +95,13 @@ OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 | `SIGMAT` | `0 s` | flat-top types; optional emitted-file window | Default RMS width for both pulse edges. |
 | `TPULSEFWHM` | `0 s` | flat-top types; optional emitted-file window | Full pulse width at half maximum. |
 | `TRISE`, `TFALL` | `0 s` | flat-top types; optional emitted-file window | Edge times; a positive value overrides the corresponding `SIGMAT`. |
-| `CUTOFFLONG` | `3`, $\sigma$ | flat-top types; optional emitted-file window | Truncates both Gaussian pulse edges. |
+| `CUTOFFLONG` | `3`, $\sigma$ | `GAUSS`; flat-top types; optional emitted-file window | Truncates the longitudinal position of `GAUSS` at $\pm\,$`CUTOFFLONG`$\,\sigma_z$ and both Gaussian pulse edges of the flat-top types. Must be positive. |
 | `FTOSCAMPLITUDE` | `0 %` | `OPALFLATTOP` | Sinusoidal modulation amplitude, clamped to 100%. |
 | `FTOSCPERIODS` | `0` | `OPALFLATTOP` | Number of modulation periods across the flat interval. |
 | `EMITTED` | `FALSE` | flat-top types; optional emitted-file window | Enables generated time-dependent emission. |
 | `EMISSIONSTEPS` | `100` | `OPALFLATTOP`, `EMITTEDFROMFILE` | Preferred emission resolution; positive values are rounded up. |
-| `CUTOFFX`, `CUTOFFY` | `3`, $\sigma$ | none currently | **Accepted but currently ignored by active samplers.** |
-| `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ` | `3`, $\sigma$ | none currently | **Accepted but currently ignored; Gaussian bounds are fixed internally.** |
+| `CUTOFFX`, `CUTOFFY` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(x,y)$ in units of $\sigma_x$, $\sigma_y$. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
+| `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(p_x,p_y)$ and the per-axis cut on $p_z$, in units of the momentum widths. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
 | `CORRX`, `CORRY`, `CORRZ`, `CORRT` | `0` | none currently | **Accepted but currently ignored; use `CORR` with `MULTIVARIATEGAUSS`.** |
 
 Non-file distributions require `PC`, `ENERGY`, or `GAMMA` on `BEAM`.
@@ -133,30 +133,63 @@ injection are not supported.
 
 ### `GAUSS` {#gauss}
 
-`GAUSS` samples independent coordinates. Positions are truncated at the
-internally fixed $\pm3\sigma$ bounds and translated so their sampled mean is
-zero; momenta are unbounded normals around the beam reference momentum.
+`GAUSS` samples independent normal coordinates and truncates them with the
+same cuts as OPAL. Each candidate $(x,y,z,p_x,p_y,p_z)$ is drawn in units of
+its width and accepted only if
+
+$$
+\left(\frac{x}{C_x}\right)^2+\left(\frac{y}{C_y}\right)^2\le 1,\qquad
+\left(\frac{p_x}{C_{p_x}}\right)^2+\left(\frac{p_y}{C_{p_y}}\right)^2\le 1,\qquad
+|z|\le C_z,\qquad |p_z|\le C_{p_z},
+$$
+
+where $C_x$, $C_y$, $C_z$ are `CUTOFFX`, `CUTOFFY`, `CUTOFFLONG` and
+$C_{p_x}$, $C_{p_y}$, $C_{p_z}$ are `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ`, all
+in units of the corresponding `SIGMA*`. The transverse cuts are ellipses, not
+boxes, so the accepted sample excludes the corners that an independent
+per-axis truncation would keep. Accepted samples are scaled by the widths:
 
 $$
 R_i\sim\mathcal{N}(0,\sigma_{R_i}^2),\qquad
-P_i\sim\mathcal{N}(\bar P_i,\sigma_{P_i}^2).
+P_i\sim\mathcal{N}(\bar P_i,\sigma_{P_i}^2),
 $$
+
+with $\bar P=(0,0,\bar p_z)$ taken from the `BEAM` reference momentum.
+
+A cutoff of `0` for `CUTOFFX`, `CUTOFFY`, `CUTOFFPX`, `CUTOFFPY`, or
+`CUTOFFPZ` disables that cut. `CUTOFFLONG` must be positive; `0` is rejected
+with an error. Negative values are used by magnitude.
+
+After sampling, the phase space is adjusted as in OPAL: $x$, $y$, $z$, $p_x$,
+and $p_y$ are shifted so that their sampled means are exactly zero, and $p_z$
+is shifted by a common offset so that the mean of
+$p_z+(p_x^2+p_y^2)/(2p_z)$ equals $\bar p_z$. The source offsets `R0*` and
+`P0*` are added afterwards and are not affected by this adjustment.
+
+Because of the truncation, the sampled RMS widths lie below the requested
+`SIGMA*` values. With the default cutoff of $3$, the transverse RMS widths are
+$0.974\,\sigma$ and the longitudinal ones $0.987\,\sigma$. A zero `SIGMA*`
+collapses that coordinate to an exact point.
 
 | Use | Parameters |
 |---|---|
 | Count | `NPARTDIST` (positive integer) |
 | Position | `SIGMAX`, `SIGMAY`, `SIGMAZ` |
 | Momentum | `SIGMAPX`, `SIGMAPY`, `SIGMAPZ` |
+| Cutoffs | `CUTOFFX`, `CUTOFFY`, `CUTOFFLONG`, `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ` |
 | Source | `R0*`, `P0*`, `T0`; `EMISSIONMODEL=NONE` only |
 
 ```text
 G: DISTRIBUTION, TYPE=GAUSS, NPARTDIST=10000,
    SIGMAX=1e-3, SIGMAY=1e-3, SIGMAZ=2e-3,
-   SIGMAPX=1e-4, SIGMAPY=1e-4, SIGMAPZ=2e-4;
+   SIGMAPX=1e-4, SIGMAPY=1e-4, SIGMAPZ=2e-4,
+   CUTOFFX=3, CUTOFFY=3, CUTOFFLONG=3,
+   CUTOFFPX=3, CUTOFFPY=3, CUTOFFPZ=0;   // no cut on pz
 ```
 
 With `T0 > 0`, the complete sample is injected once when a tracker step crosses
-`T0`. Named correlations and user-supplied cutoffs do not affect this sampler.
+`T0`. The named correlations `CORRX`, `CORRY`, `CORRZ`, `CORRT` do not affect
+this sampler; use `MULTIVARIATEGAUSS` for correlated phase space.
 
 ### `MULTIVARIATEGAUSS` {#multivariategauss}
 
@@ -194,8 +227,9 @@ MG: DISTRIBUTION, TYPE=MULTIVARIATEGAUSS, NPARTDIST=10000,
     CORR={0.2,0,0,0,0, 0,0,0,0, 0,0,0, 0,0,0};
 ```
 
-Sampling uses internally fixed three-sigma bounds. `T0 > 0` produces one
-delayed injection, as for `GAUSS`.
+Sampling truncates each coordinate independently at internally fixed
+three-sigma bounds; the `CUTOFF*` attributes are ignored, and no phase-space
+adjustment is applied. `T0 > 0` produces one delayed injection, as for `GAUSS`.
 
 ### `FLATTOP` {#flattop}
 
@@ -386,7 +420,8 @@ as the sum of the source distributions' particle counts.
 Current source limitations are deliberate documentation constraints:
 
 - only `MULTIVARIATEGAUSS.CORR` affects correlations;
-- Gaussian cutoff attributes are parsed but sampling uses internal bounds;
+- the `CUTOFF*` attributes apply to `GAUSS` only; `MULTIVARIATEGAUSS` uses
+  internally fixed three-sigma bounds;
 - `FTOSCAMPLITUDE` and `FTOSCPERIODS` affect only `OPALFLATTOP`;
 - `ASTRA` is supported only by the generated flat-top emitters; and
 - file distributions take momentum from their files, not from `BEAM` energy.

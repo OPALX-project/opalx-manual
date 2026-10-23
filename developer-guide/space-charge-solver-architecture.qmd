@@ -3,7 +3,7 @@ title: "Space-Charge Solver Architecture"
 description: "Understand space-charge solver setup, ownership, runtime dispatch, and the CartesianPIC3D and FFT2D5 execution flows."
 audience: developer
 status: current
-last-reviewed: "2026-09-17"
+last-reviewed: "2026-10-22"
 toc-depth: 2
 ---
 
@@ -185,6 +185,7 @@ classDiagram
         class P3MShortRangeInteraction:::ippl {
             cutoff
             +apply(particles)
+            +addMovingSourceField(particles)$
         }
         class OpenPoissonAdapter:::ippl {
             ownedNativeOpenSolver3D
@@ -269,7 +270,7 @@ classDiagram
     PoissonSolver <|-- PeriodicPoissonAdapter
     PoissonSolver <|-- P3MMeshPoissonAdapter
     PoissonSolver <|-- NullPoissonAdapter
-    P3MShortRangeInteraction ..> ParticleContainer : adds E after final gather
+    P3MShortRangeInteraction ..> ParticleContainer : adds E, or moving-source E/B when binned, after final gather
 
     %% FFT2D5 ownership and particle access
     FFT2D5Algorithm --> ParticleContainer : borrows all, solves active
@@ -349,14 +350,13 @@ flowchart TB
         Fixed("Use BunchStateHandler fixed bounds<br/>OPEN only; no Dirichlet plane<br/>ORB disabled")
         Early{"NONE backend or<br/>at most one primary particle?"}
         Backend{"3D Poisson backend"}
-        P3M("Uniform OPEN or PERIODIC boundaries<br/>One whole-bunch mesh solve")
-        PP("Gather E and add short-range<br/>particle-particle interaction")
+        P3M("Uniform OPEN or PERIODIC boundaries<br/>Mesh part of the Ewald split<br/>Binned mesh part with any MAXBINS")
         FFT("Uniform PERIODIC boundaries<br/>Neutralizing background<br/>No Dirichlet plane")
         Open("Uniform OPEN boundaries<br/>STANDARD or INTEGRATED Green function")
         Bins{"Particle binning configured?"}
 
         subgraph WholeBunch["Whole-bunch solve"]
-            Whole{"Dirichlet plane method<br/>OPEN only"}
+            Whole{"Dirichlet plane method<br/>Image: OPEN; shifted: OPEN or open P3M"}
             Direct("Primary charge deposit<br/>One Poisson solve<br/>Gather E")
             Image("Primary + mirrored opposite charge<br/>One Poisson solve<br/>Gather E")
             Shift("Primary pass + shifted-image pass<br/>Two Poisson solves<br/>Accumulate and gather E/B")
@@ -364,18 +364,26 @@ flowchart TB
             Whole -->|None| Direct
             Whole -->|ImageCharge| Image
             Whole -->|ShiftedGreen| Shift
+            WholePP{"P3M backend?"}
+            PP("Add short-range particle-particle E<br/>to the real bunch")
+            Direct --> WholePP
+            Image --> WholePP
+            Shift --> WholePP
+            WholePP -->|Yes| PP
         end
 
         subgraph Binned["Binned solve"]
             Rebin("Rebin: VELOCITYZ or GAMMAZ<br/>Fixed bins or adaptive merging<br/>Clear mesh E/B accumulators")
             Loop("For each globally nonempty bin<br/>Compute mean momentum and gamma")
-            DirichletPlane{"Dirichlet plane method<br/>OPEN only"}
+            DirichletPlane{"Dirichlet plane method<br/>Image: OPEN; shifted: OPEN or open P3M"}
             BinDirect("Primary pass<br/>One Poisson solve per bin")
             BinImage("Primary pass + explicit image pass<br/>Two Poisson solves per bin")
             BinShift("Primary pass + shifted-image pass<br/>Two Poisson solves per bin")
             Compose("Each selected pass<br/>Deposit, stretch mesh, solve<br/>Lorentz-compose E/B; restore spacing")
             More{"More nonempty bins?"}
             Gather("Gather accumulated E/B once<br/>onto all primary particles")
+            BinPP{"P3M backend?"}
+            RestPP("Short-range E/B of each source<br/>with its own momentum, once for all bins")
 
             Rebin --> Loop
             Loop --> DirichletPlane
@@ -388,6 +396,8 @@ flowchart TB
             Compose --> More
             More -->|Yes| Loop
             More -->|No| Gather
+            Gather --> BinPP
+            BinPP -->|Yes| RestPP
         end
 
         Restore("Restore R/P<br/>Rotate E/B to tracker axes")
@@ -402,17 +412,16 @@ flowchart TB
         Backend -->|P3M| P3M
         Backend -->|FFT| FFT
         Backend -->|OPEN| Open
-        P3M --> PP
+        P3M --> Bins
         FFT --> Bins
         Open --> Bins
         Bins -->|No| Whole
         Bins -->|Yes| Rebin
         Early -->|Yes| Restore
+        WholePP -->|No| Restore
         PP --> Restore
-        Direct --> Restore
-        Image --> Restore
-        Shift --> Restore
-        Gather --> Restore
+        BinPP -->|No| Restore
+        RestPP --> Restore
         Restore --> Finish
     end
 
@@ -470,8 +479,8 @@ flowchart TB
 
     class C,Dispatch runtime;
     class T,G,Skip,Algorithm,Result runtimeAccent;
-    class Entry,Dynamic,Fixed,P3M,PP,FFT,Open,Direct,Image,Shift,Rebin,Loop,BinDirect,BinImage,BinShift,Compose,Gather,Restore,Finish pic;
-    class Domain,Early,Backend,Bins,Whole,DirichletPlane,More picDecision;
+    class Entry,Dynamic,Fixed,P3M,PP,RestPP,FFT,Open,Direct,Image,Shift,Rebin,Loop,BinDirect,BinImage,BinShift,Compose,Gather,Restore,Finish pic;
+    class Domain,Early,Backend,Bins,Whole,WholePP,DirichletPlane,More,BinPP picDecision;
     class Start25,Init25,Frame25,Trilinear,Bilinear,Solve25,Ghost25,None25,Open25,Circular25,Plates25,Gather25,Finish25 fft;
     class Scatter25,Mode25 fftDecision;
 

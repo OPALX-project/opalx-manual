@@ -22,12 +22,11 @@ an integrated Green [@qiang2005_opalt],
 [@qiang2006_1_opalt], [@qiang2006_2_opalt]
 function to efficiently and accurately treat beams with large aspect
 ratio, and a shifted Green function to efficiently treat image charge
-effects of a cathode [@fubiani2006],
-[@qiang2005_opalt],
+effects of a cathode [@qiang2005_opalt],
 [@qiang2006_1_opalt],[@qiang2006_2_opalt]. For
 simulations of particles sources i.e. electron guns OPALX uses the
 technique of energy binning in the electrostatic space charge
-calculation to model beams with large energy spread. In the very near
+calculation to model beams with large energy spread [@fubiani2006]. In the very near
 future a parallel Multigrid solver taking into account the exact
 geometry will be implemented.
 
