@@ -10,7 +10,7 @@ Pass configuration values to CMake with `-D<NAME>=<VALUE>`. For example:
 
 ```bash
 cmake -S . -B build_cuda \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=CUDA \
   -DARCH=AMPERE80 \
   -DOPALX_ENABLE_UNIT_TESTS=ON
@@ -24,7 +24,7 @@ from one toolchain should not be reused with another.
 
 | Flag | Default | Accepted values and effect |
 |---|---:|---|
-| `BUILD_TYPE` | `Release` | `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`. This value sets `CMAKE_BUILD_TYPE`. |
+| `CMAKE_BUILD_TYPE` | `RelWithDebInfo` | `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`. Standard CMake build-type variable; when unspecified, OPALX defaults to `RelWithDebInfo`. An existing cached value is preserved, and setting an empty `-DCMAKE_BUILD_TYPE=` restores the default. |
 | `PLATFORMS` | `SERIAL` | Semicolon-separated selection from `SERIAL`, `OPENMP`, `CUDA`, `HIP`, and `SYCL`. CUDA and HIP cannot be enabled together. |
 | `ARCH` | empty | Enables the matching `Kokkos_ARCH_*` setting. CUDA builds require an architecture such as `AMPERE80`; SYCL uses an appropriate `INTEL_*` value. |
 | `BUILD_SHARED_LIBS` | `OFF` | Build the OPALX library as shared rather than static. |

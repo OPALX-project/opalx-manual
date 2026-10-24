@@ -32,7 +32,7 @@ The Merlin GPU example targets Pascal hardware:
 
 ```bash
 cmake -S . -B build_merlin_cuda \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=CUDA \
   -DARCH=PASCAL61
 cmake --build build_merlin_cuda -j 8
@@ -67,7 +67,7 @@ Gwendolen uses the CUDA backend with the Ampere A100 target:
 
 ```bash
 cmake -S . -B build_gwendolen_cuda \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=CUDA \
   -DARCH=AMPERE80
 cmake --build build_gwendolen_cuda -j 8
