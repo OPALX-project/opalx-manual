@@ -3,7 +3,7 @@ title: "Build Configuration"
 description: "Complete reference for the user-facing OPALX CMake selectors, feature toggles, and dependency controls."
 audience: developer
 status: current
-last-reviewed: "2026-08-06"
+last-reviewed: "2026-10-24"
 ---
 
 Pass configuration values to CMake with `-D<NAME>=<VALUE>`. For example:
@@ -106,15 +106,13 @@ OPALX currently enables IPPL FFT and solver support, forwards `PLATFORMS`, and
 disables IPPL Alpine support and IPPL's own tests. These values are set by
 OPALX rather than being independent user options:
 
-| README flag | Current CMake variable | Value |
-|---|---|---:|
-| `IPPL_ENABLE_ALPINE` | `IPPL_ENABLE_ALPINE` | `OFF` |
-| `IPPL_ENABLE_TEST` | `IPPL_ENABLE_TESTS` | `OFF` |
+| CMake variable | Value |
+|---|---|
+| `IPPL_ENABLE_ALPINE` | `OFF` |
+| `IPPL_ENABLE_TESTS` | `OFF` |
 
-The singular `IPPL_ENABLE_TEST` spelling appears in the OPALX README; the
-actual variable forwarded to IPPL is `IPPL_ENABLE_TESTS`. Because OPALX sets
-these cache values with `FORCE`, command-line overrides are not currently
-supported.
+The values are applied through the OPALX CMake presets and forwarded to the
+IPPL build; they are not independent OPALX build options.
 
 ## Inspect a configured build
 
