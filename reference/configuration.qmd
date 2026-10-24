@@ -62,7 +62,6 @@ environment.
 | `OPALX_ENABLE_HIP_PROFILER` | `OFF` | Reserved for HIP profiler integration. The current configuration rejects `ON` because support is not implemented yet. |
 | `OPALX_USE_ALTERNATIVE_VARIANT` | `OFF` | Use the modified variant implementation retained for CUDA 12.2 and GCC 12.3 compatibility. |
 | `OPALX_USE_STANDARD_FOLDERS` | `OFF` | Place generated executables and libraries under build-tree `bin/` and `lib/` directories. |
-| `OPALX_SKIP_FAILING_TESTS` | `OFF` | Exclude tests currently marked as failing from the build and test run. |
 | `OPALX_ENABLE_SCRIPTS` | `OFF` | Generate supported benchmark and test job-script templates. |
 | `OPALX_FIELD_DEBUG` | `OFF` | Compile field-solver field-dump diagnostics. This can create additional output during a simulation. |
 | `OPALX_USE_KOKKOS_MATH_CONSTANTS` | `ON` | Source constants such as `pi`, `e`, and `log10e` from `Kokkos::numbers`; set `OFF` for literal fallback values. |
