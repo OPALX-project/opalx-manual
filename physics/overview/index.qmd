@@ -3,7 +3,7 @@ title: "Overview"
 description: "Relativistic equations of motion, split-step integration, frame handling, and tracker structure."
 audience: physics
 status: current
-last-reviewed: "2026-09-10"
+last-reviewed: "2026-10-23"
 ---
 ## Introduction {#sec.opalt.introduction}
 
@@ -171,8 +171,10 @@ formal order. Establish accuracy by timestep convergence for the beam and
 fields being studied, including source-frame evolution.
 
 For external fields, compatible analytic rings select candidate elements from
-the particles' laboratory positions on the device. Other geometries retain the
-`OrbitThreader` path-length query. Each selected element uses its existing local
+the particles' laboratory positions on the device. Coasting cyclotron rings use
+[spatial sector candidates](../cyclotron.qmd) from the current bunch bounds;
+other geometries retain the `OrbitThreader` path-length query. Each selected
+element uses its existing local
 coordinate transformation, support test, and device field kernel; overlapping
 fields are added before the Boris kick. Spatial selection is independent of
 whether the collective solver permits step retries.
@@ -907,3 +909,47 @@ $$\rho(s) = B_0 \times S(s)$$
 
 This expression can be substituted into the preceding recursion to obtain a more explicit
 equation.
+
+
+### Cyclotron segment diagnostics {#cyclotron-probe-diagnostics}
+
+The cyclotron [PROBE](../../user-guide/elements.qmd#probe) applies the accepted
+endpoint interpolation above in both directions. Its legacy endpoint names
+$(XSTART,YSTART)$ represent laboratory $(x,z)$; the laboratory $y$ coordinate is
+vertical. Let $\mathbf a=(x_a,0,z_a)$ and $\mathbf b=(x_b,0,z_b)$ be the
+segment endpoints [m], $\mathbf d=\mathbf b-\mathbf a$, and
+$\mathbf n=(-d_z,0,d_x)$. After finding a transverse plane crossing
+$\mathbf r_c$, accept it only if
+
+$$
+0\leq\frac{(\mathbf r_c-\mathbf a)\cdot\mathbf d}{\mathbf d\cdot\mathbf d}\leq1.
+$$
+
+Both directions use a 1 nm arming distance. The vertical coordinate is
+unrestricted. Histories retain laboratory endpoints while the bunch frame
+changes; particle attributes carry the history through compaction and MPI
+migration. Only crossing records are transferred from the device for output.
+The diagnostic never changes physical particle state, fields, reference
+advancement, or accepted integration intervals.
+
+Radial histograms use $r_c=\sqrt{x_c^2+z_c^2}$ and bin index
+$\lfloor(r_c-r_{\min})/\Delta r\rfloor$, where $r_{\min}$ is the minimum
+radius on the finite segment and $\Delta r=STEP$ after conversion to metres.
+With $r_{\max}$ the maximum endpoint radius, the number of bins is
+$\lceil(r_{\max}-r_{\min})/\Delta r\rceil+1$; the extra bin includes an
+exact upper boundary. Histogram output converts lengths to mm.
+
+The `.peaks` observable is the arithmetic mean radius of hits assigned to each
+reference turn, with no charge weighting or histogram peak fit. An independent
+reference counter uses the launch section and forward reference momentum;
+turns start at zero. Hits in an accepted interval use the reference turn at the
+start of that interval. Near the reference return, this assigns crossings only
+to accepted-step resolution; reduce `DT` when turn grouping matters there.
+Collective diagnostic reductions may differ in their last bits across MPI
+partitions, but must preserve crossing IDs and integer hit counts.
+
+The interpolation error is $O(\Delta t^2)$ for smooth transverse crossings;
+no method based only on two endpoints can detect unresolved multiple crossings.
+An interval containing an RF impulse does not satisfy the smooth-momentum
+assumption, so probes should not coincide with SINGLEGAP planes. Diagnostic
+history and output rewind are not checkpointed in this implementation.

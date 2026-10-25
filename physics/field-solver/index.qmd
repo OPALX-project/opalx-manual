@@ -3,7 +3,7 @@ title: "Field Solver Physics"
 description: "Planned derivation and validation guide for OPALX particle-mesh space-charge solvers."
 audience: physics
 status: planned
-last-reviewed: "2026-09-09"
+last-reviewed: "2026-10-23"
 toc-depth: 3
 ---
 
@@ -116,23 +116,63 @@ is production-ready.
 
 ## Binned rest-frame space charge {#physics-binned-space-charge}
 
-For each populated bin $b$, OPALX computes the mean normalized momentum
-$\mathbf p_b$ and a representative Lorentz factor $\gamma_b$. The longitudinal
-mesh spacing is stretched by $\gamma_b$, charge is deposited and solved in the
-approximate bin rest frame, and the gathered electric field $\mathbf E'_b$ is
-transformed back according to
+For each populated bin, let $\mathbf p_i=\mathbf P_i/(mc)$ and define the
+equal-particle averages $\bar{\mathbf p}=\langle\mathbf p_i\rangle$ and
+$G=\langle\sqrt{1+|\mathbf p_i|^2}\rangle$. For **one configured bin,
+`TYPE=OPEN`, and no active image plane**, OPALX uses the instantaneous
+centre-of-momentum frame:
 
 $$
-\mathbf E_b=\gamma_b\mathbf E'_b
- -(\gamma_b-1)(\mathbf E'_b\cdot\widehat{\mathbf v}_b)\widehat{\mathbf v}_b,
+\boldsymbol\beta=\frac{\bar{\mathbf p}}{G},\qquad
+D=G^2-|\bar{\mathbf p}|^2,\qquad
+\Gamma=\frac{G}{\sqrt D}.
+$$
+
+Here $G$ is mean particle energy in units $mc^2$, whereas $\Gamma$ is the bulk
+Lorentz factor. They coincide for coherent momenta; a warm sample with zero mean
+momentum has $\Gamma=1$ even when $G>1$. The weighted total spatial momentum of
+the sampled particles vanishes after this boost. The present single-bunch
+implementation assumes equal physical macroparticle weights.
+
+The solve axes are aligned with the bunch mean momentum. In those axes,
+$x'=x$, $y'=y$, and $z'=\Gamma z$ relative to the moving origin. The backend
+mesh uses $h'_z=\Gamma h_z$ and $\Delta V'=\Gamma\Delta V$. Charge normalization
+is therefore $\rho'=\rho/\Gamma$: the deposited `dt*Q` is divided by the solve
+timestep and the stretched cell volume, exactly once. For particles taking the
+full common timestep, $\sum_j\rho'_j\Delta V'_j=Q$; existing partial-step
+emission weights are retained. Lengths are in metres and charge density in
+C/m$^3$. The OPEN Poisson problem is
+$\nabla'^2\phi'=-\rho'/\epsilon_0$, with $\mathbf E'=-\nabla'\phi'$.
+
+The same $\Gamma$ and $\mathbf v=c\boldsymbol\beta$ enter field reconstruction:
+
+$$
+\mathbf E=\Gamma\mathbf E'
+ -(\Gamma-1)(\mathbf E'\cdot\widehat{\mathbf v})\widehat{\mathbf v},
 \qquad
-\mathbf B_b=\frac{\gamma_b}{c^2}\mathbf v_b\times\mathbf E'_b,
+\mathbf B=\frac{\Gamma}{c^2}\mathbf v\times\mathbf E',
 $$
 
-where $\mathbf v_b=c\mathbf p_b/\gamma_b$. Contributions from all populated
-bins are accumulated before the particle push. One explicit bin applies a
-single common boost to the bunch; multiple bins approximate a longitudinally
-varying velocity distribution.
+with a zero direction vector when $\mathbf v=0$. Electric fields are in V/m and
+magnetic fields in tesla. The actual particle velocity, not the bulk velocity,
+is used by the pusher. For a comoving test particle the transverse force is
+$q\mathbf E'_\perp/\Gamma$. The bin table's `gammaBin` reports this bulk boost
+factor; verbose diagnostics retain `meanParticleGamma` separately.
+
+This remains a frozen electrostatic approximation: $\mathbf B'=0$ is assumed,
+and simultaneous laboratory samples are treated as one stationary rest-frame
+charge shape. Global zero CM momentum does not imply zero local current.
+Internal warm motion, retarded fields, and rest-frame time resynchronization
+are not added by this correction.
+
+Multi-bin solves, other backends, and solves with active image planes retain
+the earlier representative-frame approximation, using $G$ for both the mesh
+stretch and field coefficient and $c\bar{\mathbf p}/G$ for velocity. For warm
+bins that pair is not a single consistent Lorentz boost. `BINS=NONE` remains
+the separate laboratory electrostatic path. The corrected OPEN path requires
+mean momentum along solve z and rejects appreciably tilted inputs supplied
+directly to the solver. General tilted bins need a directional stretch
+$A=I+(\Gamma-1)\mathbf n\mathbf n^T$, not a change of z spacing alone.
 
 ## Emission and conducting boundaries {#physics-emission-boundaries}
 

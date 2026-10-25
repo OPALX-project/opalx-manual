@@ -3,7 +3,7 @@ title: "Elements"
 description: "Configure current OPALX elements or consult the retained legacy OPAL element interfaces."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-10-23"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
@@ -35,7 +35,7 @@ Regression coverage is stated separately from parser registration.
 | `LASER` | Source registered; no maintained regression input | none |
 | `MONITOR` | Source registered; no maintained regression input | output file |
 | `MARKER` | Source registered; no maintained regression input | none |
-| `PROBE` | Source registered; no maintained regression input | output file |
+| `PROBE` | Cyclotron segment recording; coasting and RF integration checks | `.h5`/`.loss`, `.hist`, `.peaks` |
 | `RBEND`, `SBEND` | Source registered; no maintained regression input | none |
 | `VERTICALFFAMAGNET` | Source registered; no maintained regression input | none |
 | `VARIABLE_RF_CAVITY` | Source registered; no maintained regression input | time models |
@@ -640,21 +640,66 @@ IP: MARKER, ELEMEDGE=1.2;
 
 ## `PROBE` {#probe}
 
-`PROBE` records particle crossings over a rectangular span.
+`PROBE` records crossings of a finite cyclotron detector segment without removing
+particles or changing their integration steps. Include it in the tracked `LINE`
+or `RING` together with the `CYCLOTRONSECTOR` elements.
 
 ```opal
-P1: PROBE, L=0.001, ELEMEDGE=0.8,
-    XSTART=-10, XEND=10, YSTART=-10, YEND=10,
-    STEP=1, OUTFN="probe.h5";
+P1: PROBE, XSTART=1900, XEND=4700, YSTART=0, YEND=0,
+    STEP=1, OUTFN="radial-probe";
 ```
 
-| Parameter | Unit | Current behavior |
+| Parameter | Unit | Behavior |
 |---|---:|---|
-| `XSTART`, `XEND` | mm | Horizontal endpoints, converted to metres. |
-| `YSTART`, `YEND` | mm | Vertical endpoints, converted to metres. |
-| `STEP` | mm | Sampling step; default `1`. |
-| `WIDTH` | mm | Accepted but not used by the current update path. |
-| `OUTFN` | path | Output filename. |
+| `XSTART`, `XEND` | mm | Segment endpoint laboratory **X** coordinates. |
+| `YSTART`, `YEND` | mm | Segment endpoint laboratory **Z** coordinates (legacy cyclotron names). |
+| `STEP` | mm | Positive finite radial histogram bin width; default `1`. |
+| `WIDTH` | — | Legacy attribute, unused. |
+| `OUTFN` | path | Output basename; defaults to the element name. A supplied extension is removed. |
+
+The OPALX cyclotron machine plane is laboratory X–Z; laboratory Y is vertical
+and is unrestricted by the probe. Endpoints are global laboratory coordinates,
+independent of the containing sequence's pose. `L`, `ELEMEDGE` and the common
+placement attributes do not position the probe. Endpoints must be finite and
+distinct. Histograms are limited to 10 million bins per probe.
+
+Both crossing directions are recorded; segment endpoints are included. A
+particle initially on the detector is not recorded until it leaves and returns.
+A 1 nm excursion from the detector plane arms the next crossing and suppresses
+near-plane jitter. Crossings are interpolated between accepted particle states.
+Choose `DT` small enough to resolve each crossing and keep the probe away from
+RF impulse planes; see [crossing accuracy](../physics/overview/index.qmd#cyclotron-probe-diagnostics).
+
+For basename `radial-probe`, the outputs are:
+
+- `radial-probe.h5`, or `radial-probe.loss` with `OPTION, ASCIIDUMP=TRUE`:
+  particle ID, laboratory position [m], mechanical momentum normalized by
+  $mc$, crossing time [s], zero-based reference turn and container (`bunchNumber`).
+  HDF5 also stores particle charge [C] and mass [GeV/$c^2$].
+- `radial-probe.hist`: counts in radial bins, with bounds and bin width in mm.
+  Radius is measured from the laboratory origin in the X–Z plane.
+- `radial-probe.peaks`: mean crossing radius [mm] for each reference turn with
+  hits, in increasing turn order. These are radial means, not fitted histogram
+  peak locations. Hits from multiple containers with the same turn are pooled.
+
+Accepted probe hits are flushed collectively every 100 tracking steps and at
+normal completion. HDF5/ASCII records are appended; `.hist` and `.peaks` remain
+cumulative summaries. A collectively reported SINGLEGAP transport error flushes
+previously accepted crossings before aborting; the failed step is not recorded.
+A hard process termination can still lose the unflushed batch. Periodic flushing
+does not enable checkpoint restart.
+
+A run without hits writes a zero histogram and header-only `.peaks`, and no
+phase-space file. Probe output basenames must be unique within a run; existing probe output files
+are rejected, so use a fresh basename for each run. Recording
+supports particle sorting and MPI migration, including empty ranks. It does not
+relax existing restrictions of the SINGLEGAP cyclotron transport model.
+Checkpoint restart and continuation of an earlier particle tracking run are not
+yet supported. An independent fresh `TRACK` run starts a new recording and
+requires fresh output basenames. Legacy FFA/RingElement probe placement remains a separate feature. `COF`
+currently requires a field-only lattice without `PROBE`; use a separate `RING`
+for the orbit solve. A newly emitted particle begins its crossing history at its
+first accepted endpoint; no crossing is inferred across an unobserved interval.
 
 ## `RBEND` and `SBEND` {#bends}
 
