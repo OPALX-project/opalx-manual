@@ -79,3 +79,12 @@ their pending-authorization statements.
 - Generator tests initially encountered sandbox Quarto cache access failure; rerunning with cache access.
 - No commit or push authorized. Next: finish checks and open the rebuilt page.
 - Completed: 26 generator/filter/integration tests (339 assertions), ten browser checks including desktop/mobile history visibility, full 58-chapter and six-report HTML renders, and rendered-link validation. Diff reviewed and whitespace check clean. Integration fixture now includes Quarto’s required `**/*.quarto_ipynb` rule. Local result ready; publication still requires authorized commit/push.
+
+## Merge conflict resolution — 2026-10-25
+
+- Goal: resolve ongoing merge of edc7a93 into local main e251310.
+- Three conflicts: physics field solver, user field solver, beam distributions.
+- Retain October 23 review dates, incoming expanded derivation and GAUSS cutoff model, local CM correction and zero-width caveat.
+- Clarify representative bin means exclude the corrected one-bin OPEN path. Local Distribution.cpp confirms incoming cutoff semantics.
+- Next: validators, HTML render, diff review, and stage the three resolved paths. No push authorized.
+- Completed: all three conflict paths resolved and staged; no unmerged paths or conflict markers. Source validator, full HTML and report renders, 64-page rendered validator, 26 generator tests (339 assertions), ten browser tests, and staged whitespace check pass. Resolution diff reviewed against both parents. Merge remains ready for commit; nothing committed or pushed.

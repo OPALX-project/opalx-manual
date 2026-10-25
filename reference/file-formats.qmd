@@ -23,6 +23,11 @@ Other output formats remain **planned** until each reader or writer has been
 traced in the current source. A legacy OPAL variant is not an OPALX
 compatibility guarantee.
 
+For the main `.stat` files, the [bunch moments and RMS emittance
+conventions](../user-guide/conventions/index.qmd#bunch-moments-emittance) define
+the position, momentum-spread, correlation, and emittance columns. The full
+statistics schema remains to be documented.
+
 Each completed format page will specify:
 
 - File extension and text or binary encoding.

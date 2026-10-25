@@ -25,7 +25,7 @@ state it explicitly in their parameter tables.
 | Charged-particle `BEAM.ENERGY` | $\mathrm{GeV}$ |
 | Photon `BEAM.ENERGY` | $\mathrm{eV}$, following the CAIN convention |
 | Particle mass | $\mathrm{GeV\,c^{-2}}$ in `BEAM.MASS` |
-| Normalized momentum | $\beta\gamma$ where explicitly stated |
+| Normalized momentum | $\widetilde p=p/(mc)=\beta\gamma$, dimensionless |
 | Beam current | $\mathrm{A}$ |
 | Particle charge | elementary-charge units |
 | Normalized and geometric emittance | $\mathrm{m\,rad}$ |
@@ -52,6 +52,150 @@ meters, `PULSEENERGY` in joules, and `PULSELENGTH` in seconds. `DIR` and
 
 Coordinate frames and transformations are defined in the
 [Physics coordinate-system chapter](../../physics/coordinate-systems/index.qmd).
+
+## Bunch moments and RMS emittance {#bunch-moments-emittance}
+
+::: {.feature-opalx}
+
+The definitions below apply to the main bunch-statistics (`.stat`) output.
+Statistics are calculated separately for each particle container, using the
+particles currently in that container across all MPI ranks. Each macroparticle
+contributes equally: the averages do not use particle charge or weight.
+Particles already removed from the container do not contribute.
+
+### Coordinates and normalized momentum {#coordinates-and-normalized-momentum}
+
+Write the stored phase-space vector as
+
+$$
+\mathbf w=(x,\widetilde p_x,y,\widetilde p_y,z,\widetilde p_z), \qquad
+\widetilde{\mathbf p}=\frac{\mathbf p}{mc}=\gamma\boldsymbol\beta,
+\qquad \gamma=\sqrt{1+|\widetilde{\mathbf p}|^2}.
+$$
+
+Here $\mathbf p=\gamma m\mathbf v$ is mechanical (kinetic) momentum.
+Throughout the OPALX documentation, **normalized momentum** means the
+dimensionless quantity $\widetilde{\mathbf p}=\mathbf p/(mc)$ defined above.
+
+Canonical momentum is a different quantity. In SI units,
+
+$$
+\mathbf p_{\mathrm{can}}=\mathbf p+q\mathbf A,
+$$
+
+where $q$ is the physical particle charge in coulombs and $\mathbf A$ is the
+magnetic vector potential. OPALX's `PX`, `PY`, and `PZ` correspond to
+$\widetilde p_x=\gamma\beta_x$, $\widetilde p_y=\gamma\beta_y$, and
+$\widetilde p_z=\gamma\beta_z$, without a vector-potential term.
+
+Positions are in metres and normalized momentum components are dimensionless.
+In particular, $\widetilde p_x$ and $\widetilde p_y$ are momentum components; the corresponding
+trajectory slopes are $\widetilde p_x/\widetilde p_z$ and $\widetilde p_y/\widetilde p_z$ when $\widetilde p_z\ne0$.
+
+Bunch moments use the container's moving reference coordinate system at the
+output time. Its longitudinal axis follows the reference-particle momentum.
+The transformation translates positions and rotates momenta; it does not
+Lorentz-boost the particles into their rest frame. For a rigid transformation
+$\mathbf r'=Q(\mathbf r-\mathbf a)$, $\widetilde{\mathbf p}'=Q\widetilde{\mathbf p}$, the centered
+vectors obey $\Delta\mathbf r'=Q\Delta\mathbf r$ and
+$\Delta\widetilde{\mathbf p}'=Q\Delta\widetilde{\mathbf p}$. Thus the covariance transforms as
+$C'=TCT^{\mathsf T}$, where $T$ applies $Q$ to the position and momentum
+components in the ordering above. Projected emittances can change when the
+axes mix different planes.
+
+The suffix `s` in `mean_s`, `rms_s`, `rms_ps`, and `emit_s` denotes the local
+longitudinal coordinate $z$. The separate `.stat` column `s` is the accumulated
+reference path length, not a particle coordinate.
+
+### Averages, spreads, and correlations
+
+For a nonempty container with $N$ macroparticles, define
+
+$$
+\langle a\rangle=\frac{1}{N}\sum_{k=1}^{N}a_k,
+\qquad \Delta a_k=a_k-\langle a\rangle,
+\qquad C_{ab}=\frac{1}{N}\sum_{k=1}^{N}\Delta a_k\Delta b_k.
+$$
+
+These are population moments with denominator $N$, without an $N-1$ sample
+correction. The reported RMS sizes and momentum spreads are centered standard
+deviations,
+
+$$
+\sigma_{r_i}=\sqrt{C_{r_ir_i}}, \qquad
+\sigma_{\widetilde p_i}=\sqrt{C_{\widetilde p_i\widetilde p_i}}.
+$$
+
+For example, `rms_px` is the spread about $\langle \widetilde p_x\rangle$, rather than
+$\sqrt{\langle \widetilde p_x^2\rangle}$. The correlation columns contain
+
+$$
+\rho_i=\frac{C_{r_i\widetilde p_i}}{\sigma_{r_i}\sigma_{\widetilde p_i}}.
+$$
+
+The correlation is undefined if either spread is zero; the current output
+calculation does not guard this division, so such entries can be non-finite.
+For an empty container, the writer outputs zero for the means, RMS spreads,
+correlations, and emittances listed below.
+
+### Projected normalized and geometric emittance
+
+The reported RMS emittances are calculated from positions and the normalized
+mechanical momentum components $\widetilde p_i=p_i/(mc)$ defined above. For
+$i\in\{x,y,z\}$, the projected normalized RMS emittance is
+
+$$
+\varepsilon_{n,i}=\sqrt{\max\!\left(
+C_{r_ir_i}C_{\widetilde p_i\widetilde p_i}-C_{r_i\widetilde p_i}^{\,2},\,0\right)}.
+$$
+
+The nonnegative clamp prevents a negative square-root argument from roundoff.
+This is an RMS emittance with no additional factor of $\pi$. It includes the
+full distribution in the container, without a dispersion subtraction or a
+percentile cut. It is a two-dimensional projection; it does not measure the
+coupled eigenemittances of the full six-dimensional covariance matrix.
+The longitudinal value uses $(z,\widetilde p_z)$, rather than a time--energy pair.
+
+The internal geometric-emittance conversion is
+
+$$
+\overline\gamma=\frac1N\sum_{k=1}^{N}\sqrt{1+|\widetilde{\mathbf p}_k|^2},
+\qquad
+\varepsilon_{g,i}=\frac{\varepsilon_{n,i}}{\sqrt{\overline\gamma^2-1}}.
+$$
+
+The same denominator is used for all three planes. It is obtained from the
+mean particle Lorentz factor, not the reference particle or the magnitude of
+the mean momentum. This conversion requires
+$\sqrt{\overline\gamma^2-1}>0$; it is not a direct covariance calculation using
+particle slopes. For broad momentum distributions, distinguish this convention
+from an emittance calculated directly from $(x,\widetilde p_x/\widetilde p_z)$ or $(y,\widetilde p_y/\widetilde p_z)$.
+The main `.stat` file writes the normalized emittances, not these geometric
+values.
+
+Both are conventionally quoted in $\mathrm{m\,rad}$, with radians
+dimensionless; the `.stat` header labels `emit_*` with unit `m`. Multiply a
+value in metres by $10^6$ to express it in $\mathrm{mm\,mrad}$.
+
+### Statistics columns
+
+The main statistics file is SDDS ASCII. A single container uses
+`<basename>.stat`; multiple containers use `<basename>_c0.stat`,
+`<basename>_c1.stat`, and so on. Read column names and units from the file
+header. The following subset maps the moments above to the output:
+
+| Columns | Definition | Units |
+|---|---|---|
+| `mean_x`, `mean_y`, `mean_s` | $\langle x\rangle$, $\langle y\rangle$, $\langle z\rangle$ | m |
+| `rms_x`, `rms_y`, `rms_s` | $\sigma_x$, $\sigma_y$, $\sigma_z$ | m |
+| `rms_px`, `rms_py`, `rms_ps` | $\sigma_{\widetilde p_x}$, $\sigma_{\widetilde p_y}$, $\sigma_{\widetilde p_z}$ | dimensionless |
+| `xpx`, `ypy`, `zpz` | $\rho_x$, $\rho_y$, $\rho_z$ | dimensionless |
+| `emit_x`, `emit_y`, `emit_s` | $\varepsilon_{n,x}$, $\varepsilon_{n,y}$, $\varepsilon_{n,z}$ | m |
+
+These definitions concern the bunch snapshot at an output time. Sampling and
+frames for `MONITOR` and `PROBE` records must be considered separately.
+
+:::
 
 ## Multipole conversion
 
