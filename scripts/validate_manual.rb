@@ -337,7 +337,6 @@ element_sections = [
   ["## `MARKER` {#marker}", "marker"],
   ["## `PROBE` {#probe}", "probe"],
   ["## `RBEND` and `SBEND` {#bends}", "bends"],
-  ["## `VERTICALFFAMAGNET` {#verticalffamagnet}", "verticalffamagnet"],
   ["## `VARIABLE_RF_CAVITY` {#variable-rf-cavity}", "variable-rf-cavity"],
   ["## Current limitations {#element-limitations}", "element-limitations"]
 ]
@@ -607,8 +606,7 @@ source_audited_inputs = {
     WAVELENGTH PULSEENERGY PULSELENGTH WAISTX WAISTY DIR STOKES
     XSTART XEND YSTART YEND WIDTH STEP
     K0 K0S K2 K2S K3 K3S ANGLE E1 E2 HGAP FINT GAP GREATERTHANPI
-    B0 FIELD_INDEX MAX_HORIZONTAL_POWER END_LENGTH CENTRE_LENGTH BB_LENGTH
-    HEIGHT_POS_EXTENT HEIGHT_NEG_EXTENT HEIGHT
+    B0 FIELD_INDEX HEIGHT
     COEFFICIENTS FREQUENCIES PHASE_OFFSETS AMPLITUDES DC_OFFSETS VALUES TIMES ORDER
   ]
 }
