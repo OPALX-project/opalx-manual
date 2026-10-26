@@ -1,39 +1,46 @@
 ---
 title: "Appendix B — Input Language Syntax"
-description: "Compact grammar reference for OPALX and OPAL statements and expressions."
+description: "Compact grammar reference for OPALX statements and expressions."
 audience: user
 status: current
 last-reviewed: "2026-07-23"
 ---
 
-This appendix reproduces the compact grammar shared by OPALX and OPAL input
-language. Words in italic in the legacy appendix denote syntactic entities,
-while monospaced tokens must be entered literally.
+This appendix summarizes OPALX input syntax. Italic names denote syntactic
+entities, while monospaced tokens must be entered literally. Attribute-specific
+restrictions belong to the corresponding command reference.
 
 ## Statements
 
 | Entity | Form |
 |---|---|
 | _comment_ | `// ...` or `/* ... */` |
-| _identifier_ | `[a-zA-Z][a-zA-Z0-9-]` |
+| _identifier_ | `[A-Za-z][A-Za-z0-9_.]*` |
 | _integer_ | `[0-9]+` |
 | _string_ | single-quoted or double-quoted text |
-| _command_ | `_keyword_ _attribute-list_` or `_label_ : _keyword_ _attribute-list_` |
+| _command_ | `_keyword_;` or `_keyword_, _attribute-list_;`, optionally preceded by `_label_ :` |
+| _attribute-list_ | One attribute followed by zero or more `, _attribute_` entries. |
 | _attribute_ | `_attribute-name_`, `_attribute-name_ = _attribute-value_`, or `_attribute-name_ := _attribute-value_` |
 
-The distinction between `=` and `:=` is semantic as well as syntactic:
+Unquoted identifiers and keywords are case-insensitive: the lexer normalizes
+them to upper case. Quoted text preserves its case. A hyphen is not part of an
+unquoted identifier.
 
-- `=` evaluates the expression immediately.
-- `:=` stores the expression for later evaluation.
+For real and logical expression-valued attributes, `=` evaluates immediately,
+whereas `:=` retains an expression for later evaluation. This distinction is
+not universal: string values are parsed and stored immediately with either
+operator. Use `=` for real constant definitions; `:=` is not supported there.
 
-An attribute value may be any of the parser categories used in the original
-appendix:
+Structured statements and macro definitions/calls have additional forms; see
+[Control Statements](../../control-statements/index.qmd).
+
+The accepted value category depends on the attribute's registered type.
+Categories used by supported input interfaces include:
 
 - string expression
 - logical expression
 - real expression
 - array expression
-- constraint
 - variable reference
 - place
 - range
@@ -47,10 +54,13 @@ appendix:
 |---|---|
 | _real-expression_ | `_real-term_`, unary `+/- _real-term_`, or recursive `+` / `-` combinations |
 | _real-term_ | `_real-factor_` or recursive `*` / `/` combinations |
-| _real-factor_ | `_real-primary_` or recursive exponentiation `_real-factor_ ^ _real-primary_` |
-| _real-primary_ | real literal, symbolic constant, `#`, real name, array lookup, object attribute lookup, table reference, function call, or parenthesized expression |
+| _real-factor_ | `_real-primary_` or `_real-primary_ ^ _real-primary_` |
+| _real-primary_ | real literal, symbolic constant, `#` inside a `TABLE` generator, real name, array lookup, object attribute lookup, table reference, function call, or parenthesized expression |
 
-Built-in scalar functions listed by the legacy appendix are:
+A factor accepts at most one exponentiation operator. Write `(a^b)^c` or
+`a^(b^c)` when grouping powers; an unparenthesized `a^b^c` is not accepted.
+
+Built-in scalar functions include:
 
 - `RANF`, `GAUSS`
 - `ABS`, `TRUNC`, `ROUND`, `FLOOR`, `CEIL`, `SIGN`
@@ -76,19 +86,27 @@ The grammar also allows:
 
 | Entity | Form |
 |---|---|
-| _real-prefix_ | empty, `REAL`, `CONST`, or `REAL CONST` |
-| _real-definition_ | `_real-prefix_ _real-name_ = _real-expression_` or `:=` variant |
-| _symbolic-constant_ | `PI`, `TWOPI`, `DEGRAD`, `RADDEG`, `E`, `EMASS`, `PMASS`, `HMMASS`, `UMASS`, `CMASS`, `MMASS`, `DMASS`, `XEMASS`, `CLIGHT` |
+| _real-prefix_ | `REAL` for variables; `CONST`, `CONSTANT`, `REAL CONST`, or `REAL CONSTANT` for constants. |
+| _real-definition_ | `_real-prefix_ _real-name_ = _real-expression_;`. Variables also permit `:=`; real constants use `=`. |
+| _symbolic-constant_ | `PI`, `TWOPI`, `DEGRAD`, `RADDEG`, `E`, `EMASS`, `PMASS`, `HMMASS`, `UMASS`, `CMASS`, `MUMASS`, `DMASS`, `XEMASS`, `CLIGHT`, `H2PMASS`, `ALPHAMASS`, `AMU`, `OPALVERSION`, `RANK` |
 
-The original appendix also lists `_real-name_`, `_object-name_`,
-`_table-name_`, and `_column-name_` as identifiers.
+An existing real variable can be reassigned without repeating its type prefix.
+A new bare-name assignment does not declare a variable; use `REAL` when
+introducing one.
+
+Unquoted real names, object names, table names, and column names follow
+the identifier syntax defined above.
 
 ## Logical Expressions and Variables
 
-Logical expressions are built from relations combined with `&&` and `||`.
+Logical expressions combine relations using `&&` and `||`. Relations bind
+first, then `&&`, then `||`; parentheses group logical expressions. Both
+operands are evaluated, so C-style short-circuit behavior must not be assumed.
+
 The relation grammar allows:
 
 - `_logical-name_`
+- `( _logical-expression_ )`
 - `TRUE`
 - `FALSE`
 - `_real-expression_ _relation-operator_ _real-expression_`
@@ -114,7 +132,8 @@ and the same `=` versus `:=` distinction as for reals.
 String expressions may be:
 
 - a literal string
-- an identifier interpreted as a string
+- an existing string-valued name or a known object name; arbitrary unquoted
+  text is not a general string literal
 - a concatenation `_string-expression_ & _string_`
 
 String definitions use the prefix `STRING`:
@@ -122,10 +141,12 @@ String definitions use the prefix `STRING`:
 - `STRING name = expression`
 - `STRING name := expression`
 
+String parsing stores the value immediately for both forms; `:=` does not
+create a deferred string expression.
+
 ## Real Array Expressions and Definitions
 
-The legacy appendix distinguishes scalar and array grammars explicitly.
-Array expressions mirror scalar arithmetic:
+Array expressions support the following arithmetic operations:
 
 - unary `+` and `-`
 - binary `+`, `-`, `*`, `/`
@@ -151,29 +172,24 @@ Array references may be:
 
 Real array definitions use:
 
-- `_array-prefix_ : REAL VECTOR`
+- `_array-prefix_ : VECTOR` or `REAL VECTOR`
 - `_array-definition_ : _array-prefix_ _array-name_ = _array-expression_`
 - `_array-definition_ : _array-prefix_ _array-name_ := _array-expression_`
 
-## Constraints
+`VECTOR` and `REAL VECTOR` declare a global real array; `ARRAY` is not a
+declaration keyword. Braces form array values, including array-valued command
+attributes. For example:
 
-Constraints are first-class attribute values in the grammar. The appendix gives
-exactly:
+```opal
+REAL VECTOR V = {1, 2, 3};
+VECTOR W := {1, 2, 3};
+```
 
-- `_constraint_ : _array-expression_ _constraint-operator_ _array-expression_`
-
-with allowed operators:
-
-- `==`
-- `<`
-- `>`
-
-This is the form used by optimization-related commands when comparing vector or
-sampled quantities.
+The exponentiation grouping rule above also applies to real arrays.
 
 ## Variable References
 
-The variable-reference grammar in the appendix is intentionally small:
+A variable reference names a real variable or an object attribute:
 
 - `_variable-reference_ : _real-name_`
 - `_variable-reference_ : _object-name_ -> _attribute-name_`
@@ -187,9 +203,10 @@ The final grammar sections define parser tokens that are not scalar numbers.
 
 Token lists:
 
-- `_token-list_ : _anything-except-comma_`
+- A token list ends at a top-level comma, semicolon or closing delimiter.
+  Balanced nested `()`, `[]` and `{}` remain part of the list.
 - `_token-list-array_ : _token-list_`
-- `_token-list-array_ : _token-list-array_ , _token-list_`
+- `_token-list-array_ : { _token-list_, ... }` for multiple token lists
 
 Regular expressions:
 

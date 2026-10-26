@@ -56,12 +56,12 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused Appendix B parser corrections on 2026-10-26 (local review); focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Publish approved Appendix B corrections when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | BINNING relocation and navigation checks on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Verify the published BINNING location after deployment; re-enable PDF only when requested |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Appendix B focused HTML render and link checks on 2026-10-26; BINNING relocation, navigation and publication verified on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Verify Appendix B publication after an authorized push; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -855,3 +855,62 @@ Use this template for subsequent entries:
   The user authorized commit and push to `main` after local validation;
   publication verification follows the push. Spin source and audit review
   marks/assignments were not changed.
+
+
+### 2026-10-26 — Appendix B definite parser corrections (local review)
+
+- Manual baseline: `92b7945`; parser reference: OPALX tag `OPALX-1.0.0`
+  at `1a7bcf5a0`. The user requested definite corrections first, with changes
+  in red and a local render before any push.
+- Correct identifier syntax/case, statement punctuation, typed assignment
+  behavior, exponent grouping, the `MUMASS` spelling, unsupported constraint
+  claims and token-list grammar. Clarify Boolean precedence/evaluation and
+  string parsing; include missing registered constants.
+- Real arrays use `VECTOR` or `REAL VECTOR`; `ARRAY` is not a declaration
+  keyword. Add two small examples and distinguish declarations from braced
+  values used by array-valued attributes.
+- Mark changed text and examples with a page-local red review class. Preserve
+  heading anchors and the full-page review date; the broader grammar/function
+  completeness pass remains pending. Remove the review banner and temporary
+  red styling after the user approves this copy for publication.
+- Validation: 57-chapter source validator, focused Appendix B HTML render in
+  `/Users/adelmann/git/opalx-manual/_site`, 64-page rendered-link validator,
+  generated chapter/anchor/red-region/example checks and whitespace review
+  passed. The Statements and array/constraint corrections were visually
+  inspected in the local browser; an independent source review found no
+  actionable semantic errors. No full-book/PDF build or OPALX tests ran.
+- No commit or push. Spin content and audit checkmarks/assignments were not
+  changed. The preceding Binning restructure is already published and verified.
+
+
+### 2026-10-26 — clarify Appendix B scope and remove Constraints
+
+- Continue the uncommitted red review copy on manual baseline `92b7945`.
+  Replace historical references to the original/legacy appendix with direct
+  OPALX descriptions of scalar functions, identifier names, array arithmetic
+  and variable references. Qualify identifier names as unquoted, since quoted
+  names are also accepted. Scope the page description to OPALX.
+- Remove the unsupported Constraints section at the user's request. No source
+  links target that section and no authored references depend on its number;
+  Quarto renumbers Variable References to 26.7 and Token Lists and Regular
+  Expressions to 26.8. Keep the other heading anchors and all red review marks.
+- Validation: 57-chapter source validation, focused Appendix B HTML render
+  in the primary `_site`, 64-page rendered-link validation, red wording and
+  section-number checks, local browser inspection and whitespace review pass.
+  The browser shows the revised identifier wording in red and the updated
+  eight-section table of contents without Constraints. No full-book/PDF or
+  OPALX tests ran; no commit or push.
+
+
+### 2026-10-26 — finalize approved Appendix B presentation
+
+- User approved the corrected Appendix B. Remove the temporary red styling,
+  review spans/divs and review notice; preserve the approved syntax text,
+  examples, heading anchors and eight-section numbering.
+- Validation: source checks (57 chapters), focused HTML render in the primary
+  `_site`, rendered-link checks (64 pages), comparison with the approved text
+  after removing review markup, and independent Markdown review pass.
+  Final local browser inspection passed; no full-book/PDF or OPALX tests.
+- Prepare a commit message for the complete Appendix B correction. No commit
+  or push was requested or performed. Keep the complete-page review date
+  unchanged; the broader grammar completeness audit remains pending.
