@@ -30,7 +30,7 @@ errors << "render does not contain documentation-version persistence" unless com
 errors << "render does not contain the accessible documentation-version selector" unless combined_html.include?("Select documentation version")
 errors << "render does not contain direct-anchor version handling" unless combined_html.include?("revealHashTarget")
 errors << "render does not contain the distribution sidebar manifest" unless combined_html.include?("page-toc:beam-distributions")
-errors << "render does not contain the structures sidebar manifest" unless combined_html.include?("page-toc:structures")
+errors << "render still contains the removed Structures sidebar manifest" if combined_html.include?("page-toc:structures")
 errors << "render does not contain the field-solver sidebar manifest" unless combined_html.include?("page-toc:field-solver")
 errors << "render does not contain the elements sidebar manifest" unless combined_html.include?("page-toc:elements")
 errors << "render does not contain the regression-test source URL" unless combined_html.include?("https://github.com/OPALX-project/regression-tests-x/blob/master")
@@ -71,7 +71,7 @@ if field_solver_html_path.file?
     solver-backends solver-none solver-fft solver-open solver-p3m solver-cg solver-2d5 fieldsolver-parameters
     mesh-pic-cycle boundary-conditions open-periodic-boundaries generic-dirichlet-boundaries
     space-charge-modes monolithic-mode binned-mode explicit-image-charges
-    shifted-greens-correction compatibility-selection accuracy-cost
+    shifted-greens-correction compatibility-selection accuracy-cost binning
   ]
   field_solver_anchors.each do |anchor|
     errors << "field-solver render is missing ##{anchor}" unless field_solver_html.match?(/\bid=["']#{Regexp.escape(anchor)}["']/)
@@ -84,7 +84,8 @@ if field_solver_html_path.file?
     "fieldsolver-parameters" => /data-number=["']\d+\.2["']/,
     "generic-dirichlet-boundaries" => /data-number=["']\d+\.4\.2["']/,
     "shifted-greens-correction" => /data-number=["']\d+\.5\.4["']/,
-    "accuracy-cost" => /data-number=["']\d+\.7["']/
+    "accuracy-cost" => /data-number=["']\d+\.7["']/,
+    "binning" => /data-number=["']\d+\.8["']/
   }.each do |anchor, numbering|
     section = field_solver_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "field-solver ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)
@@ -93,6 +94,10 @@ if field_solver_html_path.file?
   errors << "field-solver sidebar lacks an accessible chapter toggle" unless field_solver_html.include?("Toggle Field Solver sections")
   errors << "field-solver sidebar lacks an accessible solver-type toggle" unless field_solver_html.include?("Toggle solver types")
   errors << "field-solver sidebar lacks accessible subsection toggles" unless field_solver_html.include?("Toggle ${item.text} subsections")
+  errors << "field-solver sidebar does not label Binning" unless field_solver_html.include?('text: "Binning"')
+  unless field_solver_html.scan(/<section\s+id=["']binning["']/).length == 1
+    errors << "field-solver render must contain exactly one #binning section"
+  end
   %w[
     page-toc:field-solver page-toc:field-solver:backends
     page-toc:field-solver:boundaries page-toc:field-solver:modes
@@ -240,20 +245,6 @@ else
   errors << "render is missing resources/presentations-reports.html"
 end
 
-structures_html_path = SITE / "user-guide/structures/index.html"
-if structures_html_path.file?
-  structures_html = File.read(structures_html_path)
-  binning_section = structures_html[/<section\s+id=["']binning["'][\s\S]*?<\/section>/]
-  errors << "structures render is missing #binning" unless binning_section
-  errors << "BINNING has incorrect automatic numbering" unless binning_section&.match?(/data-number=["']\d+\.1["']/)
-  errors << "structures does not suppress its duplicate margin TOC" unless structures_html.include?("opalx-sidebar-page-toc")
-  errors << "structures sidebar lacks an accessible chapter toggle" unless structures_html.include?("Toggle Structures sections")
-  errors << "structures sidebar state key is not rendered" unless structures_html.include?("page-toc:structures")
-  errors << "structures sidebar does not label subsection 1 as Binning" unless structures_html.include?('text: "Binning"')
-else
-  errors << "render is missing user-guide/structures/index.html"
-end
-
 dual_pages = %w[
   user-guide/options.html
   user-guide/elements.html
@@ -286,7 +277,6 @@ shared_pages = %w[
   user-guide/input-language.html
   user-guide/command-format/index.html
   user-guide/control-statements/index.html
-  user-guide/structures/index.html
 ]
 shared_pages.each do |relative|
   path = SITE / relative

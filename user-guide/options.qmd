@@ -187,7 +187,7 @@ tolerances, field selection, or the production-particle integrator.
 
 `MINBINEMITTED` and `MINSTEPFORREBIN` affect runtime bin handling. The
 definition of the adaptive histogram itself is documented under
-[Structures / Binning](structures/index.qmd#binning).
+[Field Solvers / Binning](field-solver/index.qmd#binning).
 
 ## Accepted compatibility options
 

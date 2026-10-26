@@ -44,7 +44,6 @@ book:
         - user-guide/beam-lines/index.qmd
         - user-guide/beam.qmd
         - user-guide/beam-distributions.qmd
-        - user-guide/structures/index.qmd
         - user-guide/field-solver/index.qmd
         - user-guide/tracking.qmd
         - user-guide/wakefields/index.qmd

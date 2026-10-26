@@ -60,15 +60,6 @@
       ]
     },
     {
-      path: "/user-guide/structures/index.html",
-      stateKey: "page-toc:structures",
-      targetId: "opalx-sidebar-structures",
-      toggleLabel: "Toggle Structures sections",
-      items: [
-        { id: "binning", text: "Binning" }
-      ]
-    },
-    {
       path: "/user-guide/field-solver/index.html",
       stateKey: "page-toc:field-solver",
       targetId: "opalx-sidebar-field-solver",
@@ -137,6 +128,7 @@
           id: "accuracy-cost",
           text: "Accuracy, cost, and reproducibility"
         },
+        { id: "binning", text: "Binning" },
         {
           id: "opal-field-solver-fft-based-particle-mesh-pm-solver",
           text: "FFT particle-mesh solver",
@@ -232,9 +224,11 @@
     }
   ];
 
+  const normalizePagePath = (pathname) => pathname.replace(/\/index\.html$/, "/");
+
   const linkPath = (link) => {
     try {
-      return new URL(link.href, window.location.href).pathname;
+      return normalizePagePath(new URL(link.href, window.location.href).pathname);
     } catch (_) {
       return "";
     }
@@ -242,7 +236,7 @@
 
   const chapterLink = (chapter) => Array.from(
     document.querySelectorAll("#quarto-sidebar a.sidebar-link[href]")
-  ).find((link) => linkPath(link).endsWith(chapter.path));
+  ).find((link) => linkPath(link).endsWith(normalizePagePath(chapter.path)));
 
   const numberItems = (items) => items.map((item, index) => ({
     ...item,
@@ -329,7 +323,7 @@
 
   const markActiveAnchor = (chapter, toc) => {
     toc.querySelectorAll("a.sidebar-link.active").forEach((link) => link.classList.remove("active"));
-    if (!window.location.pathname.endsWith(chapter.path) || !window.location.hash) return;
+    if (!normalizePagePath(window.location.pathname).endsWith(normalizePagePath(chapter.path)) || !window.location.hash) return;
     const id = window.location.hash.slice(1);
     toc.querySelector(`[data-opalx-toc-anchor="${CSS.escape(id)}"] > div a`)?.classList.add("active");
   };

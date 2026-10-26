@@ -34,7 +34,7 @@ macros](../user-guide/control-statements/index.qmd), plus [`BEAM`](../user-guide
 [`DISTRIBUTION`, `EMISSIONSOURCE`, and
 `EMISSIONSOURCELIST`](../user-guide/beam-distributions.qmd),
 [`FIELDSOLVER`](../user-guide/field-solver/index.qmd), and
-[`BINNING`](../user-guide/structures/index.qmd#binning). [`LINE` and `RING`](../user-guide/beam-lines/index.qmd)
+[`BINNING`](../user-guide/field-solver/index.qmd#binning). [`LINE` and `RING`](../user-guide/beam-lines/index.qmd)
 assemble ordered beamline elements. The complete statement catalog is in
 [Input Language and Execution](../user-guide/input-language.qmd).
 
@@ -45,4 +45,4 @@ The following high-use interfaces already have source-audited tables:
 - [Runtime Options](../user-guide/options.qmd)
 - [Field Output Commands](../user-guide/diagnostics-output.qmd)
 - [Elements](../user-guide/elements.qmd)
-- [Structures / Binning](../user-guide/structures/index.qmd#binning)
+- [Field Solvers / Binning](../user-guide/field-solver/index.qmd#binning)

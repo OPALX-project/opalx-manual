@@ -8,6 +8,8 @@ currently in progress; use this file for work that must be repeated.
 
 1. Start in `/Users/adelmann/git/opalx-manual` and read `AGENTS.md`, this file,
    and any current `HANDOFF.md`.
+   Make changes in this checkout and render into its `_site/` directory;
+   use a different checkout or render location only at the user's request.
 2. Inspect the working trees before changing them. Preserve unrelated local
    edits. Pull or switch revisions only when that is compatible with the local
    work.
@@ -59,7 +61,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Focused Pages publication-gate repair on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Publish repaired navigation/validation changes; re-enable PDF only when requested |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | BINNING relocation and navigation checks on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Verify the published BINNING location after deployment; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -830,3 +832,26 @@ Use this template for subsequent entries:
   rendering needed access to Quarto's normal Sass cache. No PDF build,
   publication, commit or push was performed; live Actions logs were not
   accessed because GitHub CLI authentication was unavailable.
+
+
+### 2026-10-26 — place Binning within Field Solvers
+
+- Manual baseline: `1b5652f`. Remove the standalone Structures chapter and
+  move its BINNING section, examples, defaults, formulas and runtime notes
+  unchanged into the eighth subsection of Field Solvers. The user selected
+  continuous numbering: Field Solvers is now chapter 18 and Binning is 18.8.
+- Update the chapter list, command catalogue, input-language and runtime-option
+  links, migration inventory, sidebar and validation rules. Quarto generates
+  a redirect for the old Structures URL and preserves the `#binning` fragment.
+- Normalize directory and `index.html` URLs in the custom sidebar so its new
+  Binning entry initializes and highlights correctly with either URL form.
+- Validation: source and document links (57 chapters), full HTML book and six
+  report renders, 64-page rendered-link check, 26 latest-change tests (339
+  assertions), and 13 browser tests passed. Browser checks cover both Binning
+  URL forms, its active navigation, version selection and the old redirect.
+  Both local previews were visually inspected; the diff and verbatim content
+  move were independently reviewed. No PDF build or OPALX simulations ran.
+- Applied and rendered in `/Users/adelmann/git/opalx-manual`, as requested.
+  The user authorized commit and push to `main` after local validation;
+  publication verification follows the push. Spin source and audit review
+  marks/assignments were not changed.

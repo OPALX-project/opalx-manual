@@ -12,6 +12,12 @@
   task register and maintenance log when the pass is complete. Use `HANDOFF.md`
   only for work that is currently in progress.
 
+## Local working checkout
+
+- For manual work, edit `/Users/adelmann/git/opalx-manual` directly.
+- Render local HTML into `/Users/adelmann/git/opalx-manual/_site`.
+- Use another checkout or render location only when the user explicitly asks.
+
 ## Manual pages
 
 - Every substantive `.qmd` page needs `title`, `description`, `audience`,

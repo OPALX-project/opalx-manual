@@ -20,7 +20,7 @@ sources:
       - {id: 13, source-page: beam, decision: migrated, destination: user-guide/beam.qmd, treatment: dual source-audited interfaces}
       - {id: 14, source-page: distributions, decision: migrated, destination: user-guide/beam-distributions.qmd, treatment: dual interfaces on one page}
       - {id: 15, source-page: emission-sources, decision: merged, destination: user-guide/beam-distributions.qmd, treatment: current sources plus retained OPAL emission material}
-      - {id: 16, source-page: energy-bins, decision: merged, destination: user-guide/structures/index.qmd, treatment: shared BINNING guide}
+      - {id: 16, source-page: energy-bins, decision: merged, destination: user-guide/field-solver/index.qmd, treatment: OPALX BINNING guide}
       - {id: 17, source-page: field-solver, decision: migrated, destination: user-guide/field-solver/index.qmd, treatment: dual solver interfaces}
       - {id: 18, source-page: tracking, decision: migrated, destination: user-guide/tracking.qmd, treatment: dual TRACK RUN ENDTRACK behavior}
       - {id: 19, source-page: wakefields, decision: migrated, destination: user-guide/wakefields/index.qmd, treatment: complete OPAL interface and OPALX unavailable notice}

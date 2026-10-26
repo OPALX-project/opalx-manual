@@ -56,7 +56,7 @@ tracking order.
 ### Solver structures {.unnumbered .unlisted}
 
 Configure a [field solver](field-solver/index.qmd) and, when needed, a reusable
-[binning definition](structures/index.qmd#binning).
+[binning definition](field-solver/index.qmd#binning).
 :::
 
 ::: {.doc-card}
@@ -147,7 +147,7 @@ run. Define dependencies before the object that refers to them.
 | `EMISSIONSOURCE` | Couples one distribution to offsets, timing, emission energy, and image-charge settings. | [Emission source](beam-distributions.qmd#emissionsource) |
 | `EMISSIONSOURCELIST` | Stores an ordered, non-empty list of named emission sources for `BEAM.SOURCES`. | [Emission-source list](beam-distributions.qmd#emissionsourcelist) |
 | `FIELDSOLVER` | Selects the Poisson backend, mesh, decomposition, boundary conditions, optional binning, and image-charge mode. | [Field solver](field-solver/index.qmd) |
-| `BINNING` | Configures the longitudinal histogram used by binned space charge. | [Binning](structures/index.qmd#binning) |
+| `BINNING` | Configures the longitudinal histogram used by binned space charge. | [Binning](field-solver/index.qmd#binning) |
 
 ## Beamline definitions {#beamline-definitions}
 

@@ -45,6 +45,9 @@ end
 
 errors = 0
 chapters = chapter_paths(CONFIG.dig("book", "chapters"))
+if chapters.include?("user-guide/structures/index.qmd")
+  errors += error("BINNING belongs in Field Solvers, not a separate Structures chapter")
+end
 report_pages = [ROOT / "resources/reports/index.qmd"] +
                ROOT.glob("resources/reports/[0-9][0-9][0-9][0-9]/*.qmd")
 substantive_pages = (chapters.map { |relative| ROOT / relative } + report_pages).uniq
@@ -142,7 +145,8 @@ field_solver_sections = [
   ["### Shifted-Green Dirichlet correction {#shifted-greens-correction}",
    "shifted-greens-correction"],
   ["## Compatibility and selection {#compatibility-selection}", "compatibility-selection"],
-  ["## Accuracy, cost, and reproducibility {#accuracy-cost}", "accuracy-cost"]
+  ["## Accuracy, cost, and reproducibility {#accuracy-cost}", "accuracy-cost"],
+  ["## Binning {#binning}", "binning"]
 ]
 
 if field_solver_page.file?
@@ -160,6 +164,13 @@ if field_solver_page.file?
     else
       previous_position = position
     end
+  end
+  numbered_sections = field_solver_text.scan(/^## .+$/).reject { |heading| heading.include?(".unnumbered") }
+  unless numbered_sections.index("## Binning {#binning}") == 7
+    errors += error("Binning must be the eighth numbered subsection of Field Solvers")
+  end
+  unless field_solver_text.scan(/^## Binning \{#binning\}$/).length == 1
+    errors += error("Field Solvers must contain exactly one Binning section")
   end
 
   {
@@ -296,7 +307,7 @@ if input_language_page.file?
     "distribution guide" => "beam-distributions.qmd#distribution",
     "element guide" => "elements.qmd#drift",
     "field-solver guide" => "field-solver/index.qmd",
-    "binning guide" => "structures/index.qmd#binning",
+    "binning guide" => "field-solver/index.qmd#binning",
     "tracking guide" => "[Tracking](tracking.qmd)",
     "options guide" => "[Runtime options](options.qmd)"
   }.each do |description, required_text|
@@ -526,14 +537,14 @@ if distribution_toc.file?
   %w[page-toc:beam-distributions page-toc:beam-distributions:distribution].each do |state_key|
     errors += error("distribution sidebar manifest is missing stable key: #{state_key}") unless toc_text.include?(state_key)
   end
-  unless toc_text.match?(/path:\s*["']\/user-guide\/structures\/index\.html["'][\s\S]*?id:\s*["']binning["']/)
-    errors += error("structures sidebar manifest is missing the BINNING anchor")
+  unless toc_text.match?(/path:\s*["']\/user-guide\/field-solver\/index\.html["'][\s\S]*?id:\s*["']binning["']/)
+    errors += error("field-solver sidebar manifest is missing the BINNING anchor")
   end
   unless toc_text.include?("const numberItems") && toc_text.include?("renderedNumber")
     errors += error("sidebar manifest must derive subsection numbers from rendered headings")
   end
-  unless toc_text.include?("page-toc:structures")
-    errors += error("structures sidebar manifest is missing its stable key")
+  if toc_text.include?("page-toc:structures")
+    errors += error("sidebar manifest still contains the removed Structures chapter")
   end
   field_solver_sections.each do |_heading, anchor|
     unless toc_text.match?(/\bid:\s*["']#{Regexp.escape(anchor)}["']/)
@@ -586,10 +597,6 @@ source_audited_inputs = {
     IDEALIZED LOGBENDTRAJECTORY VERSION MEMORYDUMP HALOSHIFT DELPARTFREQ MINBINEMITTED
     MINSTEPFORREBIN COMPUTEPERCENTILES QM_MODE AGGRESSIVE_STATE_SYNC LOADBALANCINGTHRESHOLD
     LOADBALANCINGPAIRWEIGHT
-  ],
-  "user-guide/structures/index.qmd" => %w[
-    MAXBINS DESIREDWIDTH BINNINGALPHA BINNINGBETA PARAMETER ADAPTIVEBINNING DUMPBINSFILE
-    DUMPBINSFREQ TABLEPRINTFREQ
   ],
   "user-guide/field-solver/index.qmd" => %w[
     TYPE BINS NX NY NZ PARFFTX PARFFTY PARFFTZ BCFFTX BCFFTY BCFFTZ GREENSF RCUT BBOXINCR
@@ -676,12 +683,18 @@ cof_format = formats_text.split("{#cof-result-json}", 2).last.to_s.split("## Che
   errors += error("COF JSON reference is missing key: #{key}") unless cof_format.include?("`#{key}`")
 end
 
-binning_text = (ROOT / "user-guide/structures/index.qmd").read
+binning_text = field_solver_text.to_s.split("## Binning {#binning}", 2).last.to_s
+binning_text = binning_text.split(/(?=^##\s)|^:::\s*$/, 2).first.to_s
+%w[MAXBINS DESIREDWIDTH BINNINGALPHA BINNINGBETA PARAMETER ADAPTIVEBINNING
+   DUMPBINSFILE DUMPBINSFREQ TABLEPRINTFREQ].each do |attribute|
+  errors += error("field-solver Binning section is missing input attribute: #{attribute}") unless
+    binning_text.include?("`#{attribute}`")
+end
 %w[VELOCITYZ POSITIONZ PZ GAMMAZ].each do |parameter|
-  errors += error("binning page is missing parser value: #{parameter}") unless binning_text.include?("`#{parameter}`")
+  errors += error("field-solver Binning section is missing parser value: #{parameter}") unless binning_text.include?("`#{parameter}`")
 end
 unless binning_text.include?("implements only `VELOCITYZ` and `GAMMAZ`")
-  errors += error("binning page must distinguish parser values from runtime support")
+  errors += error("field-solver Binning section must distinguish parser values from runtime support")
 end
 
 dual_pages = %w[
@@ -711,7 +724,6 @@ shared_pages = %w[
   user-guide/input-language.qmd
   user-guide/command-format/index.qmd
   user-guide/control-statements/index.qmd
-  user-guide/structures/index.qmd
   user-guide/appendix/language-syntax/index.qmd
   user-guide/appendix/opal-madx/index.qmd
 ]
