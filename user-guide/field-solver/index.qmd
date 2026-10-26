@@ -62,6 +62,7 @@ and cathode-plane corrections are additional modes described below.
 | `OPEN` | Isolated free space | Available | Finite bunches; recommended default |
 | `P3M` | Open or periodic in all three axes | Available | Open or periodic P3M calculations |
 | `CG` | Intended potential solve with field boundary conditions | **Unavailable** | Parser-visible, but construction deliberately fails |
+| `FFT2D5` | Open in transverse, open or periodic longitudinally | Available | Long finite bunches in rings |
 
 : {tbl-colwidths="[12, 24, 22, 42]"}
 
@@ -164,6 +165,20 @@ in the [physics manual](../../physics/field-solver/index.qmd#physics-p3m).
 Dirichlet boundary setting therefore has no runnable backend at present.
 :::
 
+### `FFT2D5` {#solver-2d5}
+
+Uses IPPL's Hockney free-space 2D FFT solver for the transverse fields. The doubled-grid convolution
+removes the periodic wraparound of an ordinary FFT solve.  Uses a $\lambda'(z)$ model in the
+longitudinal direction using the local charge line density
+
+$$
+E_z(z)=-\frac{g}{4\pi\varepsilon_0 \gamma^2}\frac{d}{dz}\lambda(z)
+$$
+
+where $g$ is a constant that depends on the transverse boundary conditions.
+
+This solver only supports 'BINS=NONE', 'PARFFTX=FALSE', 'PARFFTY=FALSE', 'PARFFTZ=FALSE'.
+
 ## `FIELDSOLVER` parameters {#fieldsolver-parameters}
 
 | Parameter | Default | Accepted values / unit | Current effect |
@@ -179,6 +194,13 @@ Dirichlet boundary setting therefore has no runnable backend at present.
 | `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
 | `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
+| `PIPEMODE` | `OPEN` | 'OPEN', 'CIRCULAR', 'PLATES', 'NONE' | Longitudinal field geometry model, transverse boundary conditions always OPEN. 'TYPE=FFT2D5' only. |
+| `BEAMR` | `1.0` | positive length | Beam radius in metres.  'TYPE=FFT2D5' only. |
+| `CLOSEDRING` | `FALSE` | Boolean | For a ring that is longitudinally closed, set to 'TRUE'. 'TYPE=FFT2D5' only.|
+| `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | Scatters charge cloud longitudinally across slices if set to 'TRUE'. 'TYPE=FFT2D5' only.|
+| `PIPESIZEX` | `1.0` | positive length | Beam pipe horizontal size in metres. 'TYPE=FFT2D5' only. |
+| `PIPESIZEY` | `1.0` | positive lenght | Beam pipe vertical size in metres. 'TYPE=FFT2D5' only. |
+| `REFPATHNAME` | `""` | string | Reference path file name.  If blank (the default) uses the output from the orbit threader. 'TYPE=FFT2D5' only. |
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
 
