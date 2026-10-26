@@ -47,7 +47,7 @@ For a portable single-threaded backend:
 
 ```bash
 cmake -S . -B build_serial \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=SERIAL
 cmake --build build_serial -j 8
 ```
@@ -56,7 +56,7 @@ For OpenMP, use a separate build directory:
 
 ```bash
 cmake -S . -B build_openmp \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=OPENMP
 cmake --build build_openmp -j 8
 ```
@@ -67,7 +67,7 @@ An NVIDIA A100 build uses the CUDA backend and Ampere architecture:
 
 ```bash
 cmake -S . -B build_cuda \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=CUDA \
   -DARCH=AMPERE80
 cmake --build build_cuda -j 8

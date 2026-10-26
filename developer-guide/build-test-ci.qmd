@@ -25,7 +25,7 @@ jobs install the compiler; the serial smoke-test job installs its runtime.
 
 ```bash
 cmake -S . -B build_serial \
-  -DBUILD_TYPE=Debug \
+  -DCMAKE_BUILD_TYPE=Debug \
   -DPLATFORMS=SERIAL \
   -DOPALX_ENABLE_UNIT_TESTS=ON
 cmake --build build_serial -j 8

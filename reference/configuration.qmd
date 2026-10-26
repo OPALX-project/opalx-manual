@@ -3,14 +3,14 @@ title: "Build Configuration"
 description: "Complete reference for the user-facing OPALX CMake selectors, feature toggles, and dependency controls."
 audience: developer
 status: current
-last-reviewed: "2026-08-06"
+last-reviewed: "2026-10-24"
 ---
 
 Pass configuration values to CMake with `-D<NAME>=<VALUE>`. For example:
 
 ```bash
 cmake -S . -B build_cuda \
-  -DBUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Release \
   -DPLATFORMS=CUDA \
   -DARCH=AMPERE80 \
   -DOPALX_ENABLE_UNIT_TESTS=ON
@@ -24,7 +24,7 @@ from one toolchain should not be reused with another.
 
 | Flag | Default | Accepted values and effect |
 |---|---:|---|
-| `BUILD_TYPE` | `Release` | `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`. This value sets `CMAKE_BUILD_TYPE`. |
+| `CMAKE_BUILD_TYPE` | `RelWithDebInfo` | `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`. Standard CMake build-type variable; when unspecified, OPALX defaults to `RelWithDebInfo`. An existing cached value is preserved, and setting an empty `-DCMAKE_BUILD_TYPE=` restores the default. |
 | `PLATFORMS` | `SERIAL` | Semicolon-separated selection from `SERIAL`, `OPENMP`, `CUDA`, `HIP`, and `SYCL`. CUDA and HIP cannot be enabled together. |
 | `ARCH` | empty | Enables the matching `Kokkos_ARCH_*` setting. CUDA builds require an architecture such as `AMPERE80`; SYCL uses an appropriate `INTEL_*` value. |
 | `BUILD_SHARED_LIBS` | `OFF` | Build the OPALX library as shared rather than static. |
@@ -32,15 +32,21 @@ from one toolchain should not be reused with another.
 Supported `ARCH` values are grouped by target family:
 
 - NVIDIA GPU: `HOPPER90`, `AMPERE80`, `AMPERE86`, `AMPERE87`, `VOLTA70`,
-  `VOLTA72`, `PASCAL61`, `PASCAL60`, and `ADA102`.
+  `VOLTA72`, `PASCAL61`, `PASCAL60`, `ADA89`, `BLACKWELL100`, `BLACKWELL103`,
+  `BLACKWELL120`, and `BLACKWELL121`.
+- AMD GPU: `AMD_GFX90A`, `AMD_GFX942`, `AMD_GFX942_APU`, `AMD_GFX1101`,
+  `AMD_GFX1151`, and `AMD_GFX1152`.
 - CPU: `BDW`, `SKX`, `CNL`, `ZEN`, `ZEN2`, `ZEN3`, `ARM80`, and `ARM81`.
 - Intel accelerator: `INTEL_GEN9`, `INTEL_GEN11`, `INTEL_GEN12LP`,
   `INTEL_DG1`, `INTEL_XEHP`, and `INTEL_PVC`.
 
-For CUDA, OPALX derives `CMAKE_CUDA_ARCHITECTURES` from the numeric suffix of
-`ARCH`. HIP builds instead require an explicit
-`-DCMAKE_HIP_ARCHITECTURES=<arch>`. SYCL architecture configuration also
-depends on the selected compiler and environment.
+`ARCH` values outside this set are rejected at configure time. For CUDA, OPALX
+derives `CMAKE_CUDA_ARCHITECTURES` from the numeric suffix of a NVIDIA `ARCH`;
+combining the CUDA backend with an AMD, CPU, or Intel architecture fails the
+configure step. For HIP, OPALX derives `CMAKE_HIP_ARCHITECTURES` from the
+`AMD_GFX` value of `ARCH`, including suffixed names such as `AMD_GFX942_APU`.
+SYCL architecture configuration also depends on the selected compiler and
+environment.
 
 ## OPALX feature flags
 
@@ -56,7 +62,6 @@ depends on the selected compiler and environment.
 | `OPALX_ENABLE_HIP_PROFILER` | `OFF` | Reserved for HIP profiler integration. The current configuration rejects `ON` because support is not implemented yet. |
 | `OPALX_USE_ALTERNATIVE_VARIANT` | `OFF` | Use the modified variant implementation retained for CUDA 12.2 and GCC 12.3 compatibility. |
 | `OPALX_USE_STANDARD_FOLDERS` | `OFF` | Place generated executables and libraries under build-tree `bin/` and `lib/` directories. |
-| `OPALX_SKIP_FAILING_TESTS` | `OFF` | Exclude tests currently marked as failing from the build and test run. |
 | `OPALX_ENABLE_SCRIPTS` | `OFF` | Generate supported benchmark and test job-script templates. |
 | `OPALX_FIELD_DEBUG` | `OFF` | Compile field-solver field-dump diagnostics. This can create additional output during a simulation. |
 | `OPALX_USE_KOKKOS_MATH_CONSTANTS` | `ON` | Source constants such as `pi`, `e`, and `log10e` from `Kokkos::numbers`; set `OFF` for literal fallback values. |
@@ -101,15 +106,13 @@ OPALX currently enables IPPL FFT and solver support, forwards `PLATFORMS`, and
 disables IPPL Alpine support and IPPL's own tests. These values are set by
 OPALX rather than being independent user options:
 
-| README flag | Current CMake variable | Value |
-|---|---|---:|
-| `IPPL_ENABLE_ALPINE` | `IPPL_ENABLE_ALPINE` | `OFF` |
-| `IPPL_ENABLE_TEST` | `IPPL_ENABLE_TESTS` | `OFF` |
+| CMake variable | Value |
+|---|---|
+| `IPPL_ENABLE_ALPINE` | `OFF` |
+| `IPPL_ENABLE_TESTS` | `OFF` |
 
-The singular `IPPL_ENABLE_TEST` spelling appears in the OPALX README; the
-actual variable forwarded to IPPL is `IPPL_ENABLE_TESTS`. Because OPALX sets
-these cache values with `FORCE`, command-line overrides are not currently
-supported.
+The values are applied through the OPALX CMake presets and forwarded to the
+IPPL build; they are not independent OPALX build options.
 
 ## Inspect a configured build
 
