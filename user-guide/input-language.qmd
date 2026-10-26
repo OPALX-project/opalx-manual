@@ -177,7 +177,7 @@ user-guide section.
 | `RING` | Declares an ordered `RING` sequence for ring tracking and COF. | [Beam Lines](beam-lines/index.qmd#ring-geometry-fringes) |
 | `RBEND` | Defines a rectangular bending magnet. | [RBEND](elements.qmd#bends) |
 | `SBEND` | Defines a sector bending magnet. | [SBEND](elements.qmd#bends) |
-| `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [VERTICALFFAMAGNET](elements.qmd#verticalffamagnet) |
+| `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [Element guide](elements.qmd) |
 | `VARIABLE_RF_CAVITY` | Defines an RF cavity whose phase, amplitude, and frequency are provided by named time models. | [VARIABLE_RF_CAVITY](elements.qmd#variable-rf-cavity) |
 | `LASER` | Defines a passive analytic laser pulse with direction and polarization. | [LASER](elements.qmd#laser) |
 | `MONITOR` | Records beam diagnostics at an element location. | [MONITOR](elements.qmd#monitor) |

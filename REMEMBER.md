@@ -59,7 +59,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Native Git LFS archive round-trip and focused HTML/download recheck on 2026-10-07 | Use native Homebrew Git LFS for publication; re-enable PDF only when requested |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Focused Pages publication-gate repair on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Publish repaired navigation/validation changes; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -807,3 +807,26 @@ Use this template for subsequent entries:
   whitespace review passed. No full-book/PDF or browser-interaction test was run.
   The earlier browser policy block on local-file previews remains; no bypass or
   visual inspection is claimed. No publication or source edits.
+
+
+### 2026-10-26 — restore the HTML publication checks
+
+- Manual baseline: `8e5dac7`; OPALX reference: tag `OPALX-1.0.0` at
+  `1a7bcf5a0`. No physics prose, spin chapter, release checkmarks or
+  assignments were changed.
+- Reproduced publication-gate failures after the FFA chapter edits: the
+  rendered validator still required the removed `verticalffamagnet` anchor
+  and the old ordinal numbers of the variable RF and limitations sections.
+  The input-language catalog still linked to the removed anchor.
+- Require the maintained `scalingffamagnet` section in source and HTML,
+  preserve numbered second-level headings without fixing their ordinal
+  positions, and update the custom sidebar. Add the documented `FFT2D5`
+  solver to its sidebar and rendered-anchor checks. Retarget the vertical
+  FFA catalog link to the element guide without changing its scope text.
+- Validation: 58-chapter source validation including external document
+  links, full HTML render, six report-page renders, 64-page rendered-link
+  validation, 26 latest-change tests (339 assertions), all ten browser tests,
+  final catalog-page render and whitespace/diff review passed. Local
+  rendering needed access to Quarto's normal Sass cache. No PDF build,
+  publication, commit or push was performed; live Actions logs were not
+  accessed because GitHub CLI authentication was unavailable.

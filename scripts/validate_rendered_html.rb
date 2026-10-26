@@ -68,7 +68,7 @@ field_solver_html_path = SITE / "user-guide/field-solver/index.html"
 if field_solver_html_path.file?
   field_solver_html = File.read(field_solver_html_path)
   field_solver_anchors = %w[
-    solver-backends solver-none solver-fft solver-open solver-p3m solver-cg fieldsolver-parameters
+    solver-backends solver-none solver-fft solver-open solver-p3m solver-cg solver-2d5 fieldsolver-parameters
     mesh-pic-cycle boundary-conditions open-periodic-boundaries generic-dirichlet-boundaries
     space-charge-modes monolithic-mode binned-mode explicit-image-charges
     shifted-greens-correction compatibility-selection accuracy-cost
@@ -109,7 +109,7 @@ if elements_html_path.file?
   element_anchors = %w[
     common-element-syntax particle-removal drift collimator box beambeam constant-electric-field-cavity constant-focusing quadrupole multipole
     multipolet solenoid fieldmap rfcavity travelingwave cyclotronsector laser monitor marker probe bends
-    verticalffamagnet variable-rf-cavity element-limitations
+    scalingffamagnet variable-rf-cavity element-limitations
   ]
   element_anchors.each do |anchor|
     errors << "elements render is missing ##{anchor}" unless elements_html.match?(/\bid=["']#{Regexp.escape(anchor)}["']/)
@@ -128,8 +128,9 @@ if elements_html_path.file?
     "cyclotronsector" => /data-number=["']\d+\.15["']/,
     "laser" => /data-number=["']\d+\.16["']/,
     "bends" => /data-number=["']\d+\.20["']/,
-    "variable-rf-cavity" => /data-number=["']\d+\.22["']/,
-    "element-limitations" => /data-number=["']\d+\.23["']/
+    "scalingffamagnet" => /data-number=["']\d+\.\d+["']/,
+    "variable-rf-cavity" => /data-number=["']\d+\.\d+["']/,
+    "element-limitations" => /data-number=["']\d+\.\d+["']/
   }.each do |anchor, numbering|
     section = elements_html[/<section\s+id=["']#{Regexp.escape(anchor)}["'][\s\S]*?<\/section>/]
     errors << "elements ##{anchor} has incorrect automatic numbering" unless section&.match?(numbering)

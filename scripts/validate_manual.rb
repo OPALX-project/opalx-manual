@@ -337,6 +337,7 @@ element_sections = [
   ["## `MARKER` {#marker}", "marker"],
   ["## `PROBE` {#probe}", "probe"],
   ["## `RBEND` and `SBEND` {#bends}", "bends"],
+  ["## `SCALINGFFAMAGNET` {#scalingffamagnet}", "scalingffamagnet"],
   ["## `VARIABLE_RF_CAVITY` {#variable-rf-cavity}", "variable-rf-cavity"],
   ["## Current limitations {#element-limitations}", "element-limitations"]
 ]
