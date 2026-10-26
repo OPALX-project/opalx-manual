@@ -54,8 +54,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -738,3 +738,72 @@ Use this template for subsequent entries:
   interaction tests were not run (dependencies absent); no navigation changes
   were made in this follow-up. Full-page review dates remain unchanged.
   No commit or push performed.
+
+
+### 2026-10-25 - DOC-USER / DOC-PHYS: terminal cyclotron RF endpoint
+
+- Manual base: `a49a273159527c5ed0f9d57d659dcf7dd6e037b7` on `main`.
+  Source authority for this focused update is the uncommitted PR #637 review
+  fix in `/Users/adelmann/git/opalx-master`, based on
+  `61c90499b3f5638f2e26612561e149839774666d`, specifically
+  `TrackReferenceStep.h` and `ParallelTracker.cpp`. Publish with that source fix.
+- Clarified that EKINSTOP belongs to the reference and all physical particles
+  finish the common accepted duration. Documented the terminal-only full-kick
+  allowance, laboratory-metre scale, signed-distance conditions and
+  64-N-epsilon accumulated arithmetic budget, where N counts accepted global
+  frame updates including the terminal step. State its first-order assumptions,
+  rejection of nonfinite or order-one factors, and the convention's possible
+  inclusion of physically later arrivals within the allowance. Distinguished it
+  from ODE, nonlinear trajectory and plane-root localization error; retained
+  strict ordinary crossings and no position/time projection. The reference has
+  no remainder drift after its terminal kick; physical particles crossing earlier
+  continue transport through the remaining common duration.
+  The initial single-step budget was insufficient in the actual integration
+  fixture and has been superseded. The revised implementation passes that
+  accelerating integration fixture for one/two particles on one/two MPI ranks:
+  physical-particle energy is 73.27309842485165--73.27309842485249 MeV,
+  reference energy is 73.27309842467186 MeV, and the common final time is
+  6.037904845375861e-8 s, without position projection. The unphysical reference
+  trial case flushes the previously accepted probe hit on both ranks. All ten
+  focused native OpenMP CTest targets pass. A100 Slurm job 354769 completed
+  successfully in 19 min 25 s: the shared Release build with CUDA 13.2.78,
+  GCC 14.3 and OpenMPI 5.0.10 passed all ten focused CTest targets in 40.63 s,
+  including RFEventStepMPI and ProbeMPI with two ranks. The tested patch was
+  unchanged before and after the run. GH200 validation remains unverified;
+  these checks do not establish PIC convergence or full-cycle physics accuracy.
+- Made the existing physics anchor explicit and linked the User Guide explanation.
+  Existing full-page review dates are retained because this is a focused change.
+- Documentation validation: 58-chapter source validator, both changed-page HTML
+  renders (physics rerendered after the budget revision), focused rendered
+  accumulated-budget equation/limitations/common-duration/anchor checks,
+  64-page rendered-link validator, seven-document catalog validator and whitespace
+  review passed. Documentation checks alone do not establish physics accuracy.
+  Full-page review dates remain unchanged. No full-book/PDF or browser-interaction
+  tests were run.
+  Browser preview of local file URLs was blocked by browser URL policy, so visual
+  inspection was unavailable; no bypass was attempted. No commit or push.
+
+
+### 2026-10-25 - DOC-PHYS: external magnetic-field superposition
+
+- Manual base remains `a49a273159527c5ed0f9d57d659dcf7dd6e037b7`; prior
+  uncommitted cyclotron documentation is preserved. Source review used
+  `/Users/adelmann/git/opalx-master` at23f04f6 plus the pending focused
+  ScalingFFA additive-field correction. Publish the clarification with that fix.
+- Expanded the existing external-field overlap paragraph in Physics / Overview
+  with B_total=B_self+sum(B_j), common-frame rotation and tesla units. The same
+  external superposition contract applies to physical particles and reference
+  transport, including ScalingFFA. A zero contribution outside one support
+  cannot erase other external fields or an existing self magnetic field.
+  Kept the reference free of self-field kicks and linked the existing
+  OrbitThreader explanation to the authoritative summation paragraph.
+- This documents the intended field-summation contract; it does not establish
+  complete FFA tracking accuracy or convergence. Native additive-field and
+  transport validation remain with the implementation task. Existing full-page
+  review date is retained for this focused clarification.
+- Validation: 58-chapter source validator, focused Overview HTML render,
+  64-page rendered-link validator, rendered field-sum formula/common-frame/tesla/
+  support/reference-self-field checks, unique anchor/internal link checks and
+  whitespace review passed. No full-book/PDF or browser-interaction test was run.
+  The earlier browser policy block on local-file previews remains; no bypass or
+  visual inspection is claimed. No publication or source edits.

@@ -211,7 +211,7 @@ this event handler does not populate the external magnetic/RF contribution.
 External field diagnostics require separate explicit sampling. Timesteps must resolve individual
 gap crossings without an intervening unobserved recrossing.
 
-## Energy-target semantics and long-run comparison
+## Energy-target semantics and long-run comparison {#energy-target-semantics-and-long-run-comparison}
 
 With rest energy $M$ in eV and mechanical momentum $\mathbf p$ in units of
 $m_pc$, the reference criterion is
@@ -223,12 +223,49 @@ $$
 It is checked immediately after each complete RF kick, including after a
 decelerating harmonic kick. A target does not impose an artificial fractional
 impulse. Before advancing the bunch clock, the tracker computes the reference's
-terminal substep and retains its pending state. It independently advances the
-physical particle with the same event routine, then publishes the pending
-reference through the usual moving-frame update. Only the terminal timestep is
-shortened. The reported endpoint therefore has the physical post-kick energy and
-gap time, with no remainder drift. Reference state is never substituted for the
-physical particle's state.
+terminal substep and retains its pending state. Every rank receives the accepted
+reference duration and state. All physical particles independently finish that
+same duration, even if an individual particle reaches the target earlier, then
+the pending reference is published through the usual moving-frame update. Only
+the terminal timestep is shortened. The common final time is the reference's
+terminal-gap time, and its endpoint has the complete post-kick energy with no
+reference remainder drift. Physical particles that cross a gap earlier continue
+transport for the remaining duration up to that common time. Reference state is
+never substituted for any physical particle's state.
+
+At this final step only, floating-point drift and frame transformations can
+leave a coincident particle just upstream of the reference's terminal gap plane.
+Let $d$ be signed distance to a gap plane, negative upstream, and let
+$\mathbf r$ and $\mathbf r_{\mathrm{end}}$ be the start and trial endpoint in
+laboratory metres. With double-precision machine epsilon
+$\epsilon_{\mathrm{double}}=2^{-52}$, the terminal endpoint allowance is
+
+$$
+\delta=64\,N\,\epsilon_{\mathrm{double}}L,\qquad
+L=\max\!\left(1\,\mathrm m,\max_{j\in\{x,y,z\}}|r_j|,
+\max_{j\in\{x,y,z\}}|r_{\mathrm{end},j}|\right),
+$$
+
+where $N$ counts accepted global frame updates, including the current terminal
+step, with a minimum of one. Each update performs drift, rigid-frame
+transformations and plane subtraction. The factor $64N$ provides a conservative
+first-order budget for the accumulated arithmetic, assuming
+$64N\epsilon_{\mathrm{double}}\ll1$. A nonfinite factor or a factor greater
+than or equal to one is rejected. This allowance describes numerical endpoint
+resolution; it does not bound ODE discretization, nonlinear trajectory error,
+or plane-root localization error. It grows with the number of frame updates
+even when the timestep is reduced.
+
+An approaching particle with $d_{\mathrm{start}}<-\delta$ and
+$-\delta\le d_{\mathrm{end}}<0$ receives the complete kick at the common final
+time, provided its position lies within the gap's radial support. Arrivals
+inside this allowance are treated as numerically unresolved: the terminal
+convention can give a complete kick to a physically later particle within the
+allowance. Crossings beyond it receive no kick. If both endpoints remain
+upstream within the allowance, it alone does not invent a crossing. This rule
+adds no drift, projects neither position nor time, and does not scale the RF
+impulse. Ordinary steps keep the strict crossing signs and forty-bisection
+localization described above.
 
 Old OPAL's orbit dump instead records the endpoint after the remainder drift.
 Compare energies after the same kick, but compare positions and momenta using a

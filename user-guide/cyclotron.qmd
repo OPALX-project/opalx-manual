@@ -123,9 +123,13 @@ RUN, METHOD="PARALLEL", FIELDSOLVER=FS0;
 ENDTRACK;
 ```
 
-Tracking stops after the first complete RF kick that reaches or exceeds the
-requested kinetic energy. The energy is not clamped to the target value. The
-current energy-stop mode requires a non-restarted `RING`, one positive `DT`
+Tracking stops after the first complete RF kick that makes the reference reach
+or exceed the requested kinetic energy. The energy is not clamped to the target
+value. All physical particles finish the same accepted reference duration;
+reaching the target earlier does not stop an individual particle. The final RF
+endpoint includes a small floating-point allowance, described in
+[energy-target semantics](../physics/cyclotron.qmd#energy-target-semantics-and-long-run-comparison).
+The current energy-stop mode requires a non-restarted `RING`, one positive `DT`
 segment, no explicit `RUN,TURNS`, and a single cyclotron particle container.
 
 ## Closed Orbit Finder {#cyclotron-closed-orbit-finder}

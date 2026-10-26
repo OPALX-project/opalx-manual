@@ -168,14 +168,31 @@ first-order error term; a small low-energy coefficient does not change that
 formal order. Establish accuracy by timestep convergence for the beam and
 fields being studied, including source-frame evolution.
 
+[]{#external-field-superposition}
+
 For external fields, compatible analytic rings select candidate elements from
 the particles' laboratory positions on the device. Coasting cyclotron rings use
 [spatial sector candidates](../cyclotron.qmd) from the current bunch bounds;
 other geometries retain the `OrbitThreader` path-length query. Each selected
-element uses its existing local
-coordinate transformation, support test, and device field kernel; overlapping
-fields are added before the Boris kick. Spatial selection is independent of
-whether the collective solver permits step retries.
+element uses its local coordinate transformation and support test. Overlapping
+external fields, including those of `SCALINGFFAMAGNET` elements, are superposed
+for both physical-particle transport and reference transport. For a physical
+particle at position $\mathbf r$ and time $t$, the magnetic field entering the
+Boris kick is
+
+$$
+\mathbf B_{\mathrm{total}}(\mathbf r,t)
+=\mathbf B_{\mathrm{self}}(\mathbf r,t)
++\sum_{j\in\mathcal S(\mathbf r,t)}\mathbf B_j(\mathbf r,t),
+$$
+
+where $\mathcal S$ contains the active external elements and all magnetic
+fields are in tesla. Each contribution must be rotated into the same coordinate
+frame before addition. Outside an element's support its contribution is zero;
+that zero cannot erase another element's external field or an existing self
+magnetic field. The reference uses the same external-field sum evaluated on its
+own trajectory; it carries no self-field kick. Spatial selection is independent
+of whether the collective solver permits step retries.
 
 The moving reference frame is updated with a quaternion. For normalized old
 and new directions $\mathbf{u}$ and $\mathbf{v}$, its half-angle is computed as
@@ -566,8 +583,8 @@ represents an occupancy model on the reference coordinate: each interval
 stores the set of elements whose field-support extents are active on
 that interval. This is distinct from the geometric placement of the
 corresponding element bodies. In overlapping regions the design particle
-sees the superposition of all active fields, and the reference path is
-determined by integrating this combined field.
+sees the [sum of the active external fields](#external-field-superposition), and
+the reference path is determined by integrating this combined field.
 
 ## Flow Diagram of OPALX {#sec.opalt.flow-diagram-of-opal-t}
 
