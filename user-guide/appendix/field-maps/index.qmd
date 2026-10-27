@@ -87,12 +87,12 @@ reader provides a `FAST` variant.
 
 ### `2DMagnetoStatic` {#opalx-2d-magnetostatic}
 
-::: {.appendix-review-change}
 The header declares `XZ` or `ZX` ordering. Axis bounds are in cm, and each
 count is the number of intervals: a count of `N` gives `N+1` grid points.
 Samples contain `Bz Br` in `XZ` order or `Br Bz` in `ZX` order, in tesla.
-The first axis listed changes fastest. The reader uses bilinear interpolation
-and normalizes the on-axis longitudinal field to a peak magnitude of 1 T.
+Data advance fastest in `z` for `XZ` ordering and in `r` for `ZX` ordering.
+The reader uses bilinear interpolation and normalizes the on-axis longitudinal
+field to a peak magnitude of 1 T.
 
 ```text
 2DMagnetoStatic XZ
@@ -105,7 +105,6 @@ Bz Br
 For `ZX`, put the radial bounds/count first and the longitudinal bounds/count
 second. Radial grids must start at zero; nonzero radial origins are currently
 unsupported.
-:::
 
 ### `2DDynamic` {#opalx-2d-dynamic}
 

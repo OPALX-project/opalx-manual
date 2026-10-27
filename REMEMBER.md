@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: detailed 2DMagnetoStatic format) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: detailed 2DDynamic format) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1209,3 +1209,31 @@ Use this template for subsequent entries:
 - Validation: source checks, focused appendix render, 63-page HTML/link
   checks, ASTRA wording/review-marker checks and git diff --check passed.
   No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps detailed formats: clarify 2DMagnetoStatic ordering
+
+- Manual base `7e8744f` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved clarifying the fastest-varying coordinate in
+  section 25.1.3 and requested checking the spelling of the field unit.
+- Replace the ambiguous first-axis sentence with explicit z-fastest for XZ
+  and r-fastest for ZX ordering, matching the reader loops and test writers.
+- Retain lowercase 'tesla', the SI unit name; its symbol is uppercase T.
+  Other wording and the section's red review wrapper are unchanged.
+- Source review confirmed cm bounds, interval counts, field-column order,
+  tesla inputs, bilinear interpolation, on-axis normalization and zero-origin
+  radial indexing. Full-page review date unchanged; no source changes,
+  commit or push. Source checks, focused appendix render, 63-page HTML/link
+  checks, rendered ordering/unit-name checks and git diff --check passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept 2DMagnetoStatic
+
+- Same manual base `7e8744f` and OPALX master `eb8435a7a`. User accepted the
+  reviewed section 25.1.3 and requested removal of its red styling.
+- Remove only its review wrapper, preserving the accepted ordering clarification,
+  lowercase tesla, header example, normalization and radial-origin guidance.
+  Next detailed format is 2DDynamic; its red review regions remain.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, accepted/remaining section review markers and git diff --check passed.
+  Full-page review date unchanged; no source changes, commit or push.
