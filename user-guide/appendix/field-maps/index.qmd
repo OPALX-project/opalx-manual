@@ -108,7 +108,6 @@ unsupported.
 
 ### `2DDynamic` {#opalx-2d-dynamic}
 
-::: {.appendix-review-change}
 This RF format uses axis bounds in cm and interval counts, giving
 `(Nz_intervals+1)(Nr_intervals+1)` samples. The frequency in MHz appears between
 the two axis records for both orderings. Use a radial grid starting at zero.
@@ -130,22 +129,22 @@ come after the frequency. The current reader consumes data as follows:
 | `XZ` | `Ez Er unused Hphi` |
 | `ZX` | `Er Ez Hphi unused` |
 
+Data advance fastest in `z` for `XZ` ordering and in `r` for `ZX` ordering.
+
 Electric components are in MV/m and `Hphi` is in A/m. Use the column order for
 the selected orientation when preparing or converting a map.
 
 Normalization uses the maximum absolute `Ez` over the entire grid, rather than
-only the axis. The resulting peak is 1 MV/m. `Hphi` is converted to magnetic
+only the axis. The resulting peak absolute `Ez` is 1 MV/m. `Hphi` is converted to magnetic
 flux density with the same normalization factor and the vacuum permeability
 $\mu_0$.
-:::
 
-::: {.appendix-review-change}
 🟡 **Normalization options:** use a two-token header, such as
-`2DDynamic XZ`. Explicit `TRUE`/`FALSE` header flags and disabling normalization
-are currently unavailable for `2DMagnetoStatic` and `2DDynamic`. The ASTRA and
+`2DDynamic XZ`. Explicit `TRUE`/`FALSE` normalization flags currently do not work
+for `2DMagnetoStatic` and `2DDynamic`; omit the flag to use automatic
+normalization. The ASTRA and
 `3DDynamic` normalization flags are available. Future availability of the
 missing 2D options is unconfirmed.
-:::
 
 ### [`3DDynamic`]{.appendix-review-change} {#opalx-3d-dynamic}
 
