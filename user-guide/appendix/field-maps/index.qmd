@@ -187,8 +187,9 @@ $\phi$ in radians; the element also supplies its amplitude and error settings.
 
 OPALX reads the `cylinder` and `grid` formats written by G4beamline. Positions
 are in mm, magnetic fields in tesla, and electric fields in MV/m. Neither reader
-normalizes: the values are used as written, so `BSCALE=1` on a
-[`FIELDMAP`](../../elements.qmd#fieldmap) element reproduces the map.
+normalizes to a field peak. With `BSCALE=1` and `ESCALE=1`, a
+[`FIELDMAP`](../../elements.qmd#fieldmap) element preserves the map's field scale
+after applying any `param` factors.
 
 An optional first line `param` scales the stored values the same way
 G4beamline does. Magnetic values are multiplied by `normB/current` and electric
@@ -200,11 +201,9 @@ the `FIELDMAP` element.
 Symmetry sections (`extendX`, `extendY`, `extendZ`, ...) are rejected by both
 readers.
 
-::: {.appendix-review-change}
 `ZREVERSE` is supported only for a `cylinder` map. The same map filename cannot
-be loaded with opposite `ZREVERSE` settings in one run; use separate files if
-both orientations are needed.
-:::
+be loaded with opposite `ZREVERSE` settings at the same time; use separate files
+if both orientations are needed.
 
 #### `cylinder` maps {#opalx-g4bl-cylinder}
 

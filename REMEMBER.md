@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: G4beamline prose and unsupported headers) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: unsupported headers) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1271,3 +1271,22 @@ Use this template for subsequent entries:
   no source changes, commit or push. Source checks, focused appendix render,
   63-page HTML/link checks, section review-marker checks and git diff --check
   passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept G4beamline section
+
+- Manual base `14fc15e` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User accepted section 25.1.6 with two small corrections.
+- Clarify no peak normalization: BSCALE=1 and ESCALE=1 preserve the field scale
+  after file param factors. Narrow the same-filename ZREVERSE restriction to
+  simultaneous loading, matching the filename-keyed live map dictionary.
+- Remove the accepted ZREVERSE paragraph's red wrapper. The remaining section
+  already used normal text; retain its layout, interpolation, units, scaling,
+  rejected-option and memory guidance. Unsupported-header review remains red.
+- Source review covered cylinder/grid parsing, field and unit scaling,
+  ZREVERSE mirroring/sign/cache behavior, point matching and duplicate/missing
+  data checks, electric-array allocation and field-map allocation errors.
+  G4beamline's official user guide also confirms the file units and param keys.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, G4beamline wording/section review-marker checks and git diff --check
+  passed. Full-page review date unchanged; no source changes, commit or push.
