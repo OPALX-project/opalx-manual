@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps prose (next: future-support paragraph) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: detailed ASTRA formats) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1113,3 +1113,81 @@ Use this template for subsequent entries:
 - Validation: source checks, focused appendix render, 63-page HTML/link
   checks, rendered introduction/table review markers and git diff --check
   passed. Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept FIELDMAP and add SOLENOID
+
+- Manual base `a2bfd75` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved the existing FIELDMAP row and requested a
+  source-checked SOLENOID row before reviewing the cavities.
+- FIELDMAP's static-type check and the factory's implemented readers confirm
+  the four listed static formats and explicit rejection of dynamic RF maps.
+- SOLENOID loads through the same factory and delegates bulk particle fields
+  to the map reader. It can use 2DMagnetoStatic, AstraMagnetoStatic, G4beamline
+  cylinder and magnetic-only grid maps. Its point/reference methods discard
+  map electric fields, while the grid bulk kernel can apply them; therefore
+  direct maps containing electric fields to FIELDMAP and avoid claiming they
+  are supported consistently by SOLENOID. No claim of parser rejection for
+  SOLENOID dynamic/electric maps is added. Strength scaling is outside this
+  focused compatibility check.
+- Move this table outside its red wrapper and mark its header and cavity rows
+  individually. FIELDMAP and the added SOLENOID row now use normal text; other
+  compatibility text remains red. Preserve all existing accepted map rows.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, SOLENOID link/scope and accepted/unreviewed row markers, and
+  git diff --check passed. Full-page review date unchanged; no source changes,
+  commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: cross-check cavity rows
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User requested
+  placing RFCAVITY TYPE=IDEAL directly below TYPE=STANDING, then checking
+  all three cavity rows. Move the IDEAL row without changing any wording.
+- RFCavity's particle dispatch explicitly supports Astra1DDynamic,
+  FM2DDynamic and FM3DDynamic, matching the STANDING row. IDEAL initialization
+  bypasses maps and validateIdeal rejects a nonempty FMAPFN. TravelingWave's
+  particle dispatch requires Astra1DDynamic and initialization rejects a
+  nonzero source-map start coordinate. All three existing rows are correct.
+- Retain their red review markers pending the user's acceptance. No changes
+  to the already accepted FIELDMAP and SOLENOID rows or other draft regions.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered cavity-row order/review markers and git diff --check
+  passed. No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept table and check following prose
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User accepted the
+  three cavity rows and requested normal text for the compatibility heading,
+  explanatory sentence and both table headings. Remove only their red markers;
+  keep the row order and wording. The complete compatibility table is accepted.
+- Cross-check the following statements. OpalCyclotronSector uses the separate
+  CyclotronSectorFieldMap loader, and SINGLEGAP configuration constructs a
+  CyclotronRFProfile, bypassing the ordinary Fieldmap factory. This claim is
+  correct. The linked cyclotron guide describes configuration and identifies
+  these inputs but lacks complete file layouts; propose replacing 'Their
+  formats are described' with 'See the cyclotron guide for their configuration'.
+- The ordinary Fieldmap factory explicitly ignores its fast argument, so FAST
+  does not select a different evaluation mode. FIELDMAP forwards independent
+  magnetic and electric scales in bulk, point and reference evaluation. Source
+  behavior establishes no future-support commitment.
+- Leave the red cyclotron and FAST paragraphs unchanged pending discussion.
+  Validation: source checks, focused appendix render, 63-page HTML/link checks,
+  rendered compatibility/remaining-review markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept cyclotron/FAST prose
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User approved the
+  minimal cyclotron link correction and clearing red from the reviewed prose.
+- Replace only 'Their formats are described in the cyclotron guide' with
+  'See the cyclotron guide for their configuration'. Remove the shared red
+  wrapper around the cyclotron-loader and verified FAST paragraphs.
+- The compatibility section is now normal text. Other pending review regions,
+  including the earlier future-support paragraph and detailed format sections,
+  remain red. No source behavior changes; no commit or push performed.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, corrected link wording and section review-marker checks, and
+  git diff --check passed.

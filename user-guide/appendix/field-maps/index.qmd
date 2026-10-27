@@ -47,27 +47,26 @@ Comments begin with `#`. G4beamline maps have no descriptor; OPALX recognizes
 them by their first keyword, an optional `param` line followed by `cylinder` or
 `grid`. The file extension does not matter.
 
-### [Element compatibility]{.appendix-review-change} {#opalx-map-element-compatibility}
+### Element compatibility {#opalx-map-element-compatibility}
 
-::: {.appendix-review-change}
 Reader availability does not mean that every element accepts that format.
 
 | Element/model | Accepted maps |
 |---|---|
 | [`FIELDMAP`](../../elements.qmd#fieldmap) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and `grid`; dynamic maps are rejected |
+| [`SOLENOID`](../../elements.qmd#solenoid) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and magnetic-only `grid` maps; use `FIELDMAP` for maps containing electric fields |
 | [`RFCAVITY`, `TYPE="STANDING"`](../../elements.qmd#rfcavity) | `AstraDynamic`, `2DDynamic`, `3DDynamic` |
-| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0` |
 | [`RFCAVITY`, `TYPE="IDEAL"`](../../elements.qmd#rfcavity-ideal) | no field map; `FMAPFN` is rejected |
+| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0` |
 
 `CYCLOTRONSECTOR` and `RFCAVITY, TYPE="SINGLEGAP"` use separate loaders for
-sector fields and voltage profiles. Their formats are described in the
-[cyclotron guide](../../cyclotron.qmd).
+sector fields and voltage profiles. See the
+[cyclotron guide](../../cyclotron.qmd) for their configuration.
 
 ⚪ The `FAST` accelerated field-map mode is currently unavailable; changing
 `FAST` does not select a different field evaluation mode. Future support is
 unconfirmed. For static-map placement and the independent `BSCALE` and `ESCALE`
 multipliers, see the [`FIELDMAP` reference](../../elements.qmd#fieldmap).
-:::
 
 ### `AstraDynamic` and `AstraMagnetoStatic` {#opalx-astra-field-maps}
 
