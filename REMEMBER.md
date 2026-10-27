@@ -56,12 +56,12 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Focused Appendix B parser corrections on 2026-10-26 (local review); focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Publish approved Appendix B corrections when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the red Field Maps and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Appendix B focused HTML render and link checks on 2026-10-26; BINNING relocation, navigation and publication verified on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Verify Appendix B publication after an authorized push; re-enable PDF only when requested |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Field Maps and Auto-phasing availability drafts rendered on 2026-10-27; Appendix C navigation removal and full HTML rebuild on 2026-10-26; Appendix B focused HTML render and link checks on 2026-10-26; BINNING relocation, navigation and publication verified on 2026-10-26; native Git LFS archive round-trip on 2026-10-07 | Verify appendix changes after an authorized push; re-enable PDF only when requested |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -914,3 +914,97 @@ Use this template for subsequent entries:
 - Prepare a commit message for the complete Appendix B correction. No commit
   or push was requested or performed. Keep the complete-page review date
   unchanged; the broader grammar completeness audit remains pending.
+
+
+### 2026-10-26 — retain Appendix C outside navigation
+
+- Manual baseline `f8447aa`. Remove Appendix C — OPAL-MADX Conversion Guide
+  from the book chapter list and its Command Format referral. Preserve the
+  conversion source byte-for-byte and retain the historical migration entry.
+  Remove its mandatory HTML/PDF presence checks.
+- Full local HTML book (56 chapters) and six report renders completed in the
+  primary `_site`; rendered-link checks passed across 63 pages. Confirm no
+  Appendix C navigation/search entries or stale generated page remain, and
+  Appendix B now links directly to Auto-phasing. No PDF build or code tests.
+- User steered directly into the next appendix audit before the final report;
+  the navigation removal is complete locally, with no commit or push.
+
+### 2026-10-26 — Field Maps and Auto-phasing discussion audit
+
+- Manual baseline `f8447aa`; fetch current OPALX master `eb8435a7a`. Map, RF,
+  tracker, option and H5 sources are unchanged from local `1a7bcf5a0`, so no
+  checkout change was needed. Preserve all untracked files.
+- Mark current OPALX corrections and missing guidance red using page-local
+  styles and review notices. The retained OPAL blocks remain byte-identical;
+  keep the full-page review dates because the historical material was not
+  re-audited against legacy OPAL.
+- Field Maps: add supported `3DDynamic` (seven reader families), layout/units/
+  normalization/interpolation and validation rules. Clarify element-specific
+  compatibility, separate cyclotron loaders, ASTRA reconstruction, `FAST` and
+  `ZREVERSE` restrictions. Correct current 2D column ordering and normalization
+  scope; flag the explicit-normalization-token defect and radial-origin limit.
+- Auto-phasing: correct crest versus input `LAG`, defaults, scope and reference
+  objective; document `AUTOPHASE=0` at `SSTART`, DC units, local search limits,
+  design-energy convergence/cached traveling-wave core scale, diagnostic phase
+  time reference, and unconnected automatic phase-saving. These are source
+  observations for discussion, not implementation fixes.
+- Validation: source/document checks (56 chapters), focused Field Maps and
+  Auto-phasing HTML renders, 63-page rendered-link checks, red-region/anchor/
+  legacy-block checks, and whitespace review passed. Independent reviews
+  refined the off-axis normalization caveat, positive-length requirement and
+  logged-phase time reference. Local browser inspection confirmed readable
+  red tables, layouts, equations and caveats alongside unchanged text.
+- No OPALX tests or numerical studies ran; the requested regression/unit-test
+  sufficiency assumption is retained. No code changed, commit, push or
+  publication. Spin and audit assignments/marks remain unchanged. A separate
+  existing SOLENOID scaling-contract discrepancy was recorded in the audit
+  evidence for physics review, without changing its manual contract here.
+
+
+### 2026-10-27 — refocus appendices on availability
+
+- User clarified that the appendix audit concerns the manual: describe what
+  is available, partially available, unavailable and confirmed for future use.
+  Reframe the Field Maps and Auto-phasing red drafts on unchanged master
+  `eb8435a7a`; no OPALX code changes or fix prioritization.
+- Add compact availability overviews using available/partial/unavailable
+  markers. Describe the supported subset for 2D and G4beamline formats, RF
+  model scope, phase controls, energy targeting and automatic phase saving.
+  No confirmed roadmap was established, so future support is explicitly
+  unconfirmed; historical OPAL plans do not become current commitments.
+- Retain useful formats, units, physics, phase/time conventions and input
+  restrictions. Remove internal parser/cache/writer explanations, method
+  names and code-repair directions. General restart functionality is not
+  labeled unavailable: the limitation is automatic saving of newly optimized
+  cavity phases for H5 restart.
+- Keep discussion changes red, heading anchors stable and historical OPAL
+  blocks byte-identical. Appendix C remains retained outside navigation.
+  Validation passed: source/document checks (56 chapters), both focused HTML
+  renders in the primary `_site`, rendered links across 63 pages, availability
+  markers/tables, stable anchors, unchanged historical blocks and whitespace.
+  Independent availability reviews and local visual inspection confirmed the
+  red overviews, format guidance and future-unconfirmed wording. No OPALX tests,
+  commit, push or publication.
+
+
+### 2026-10-27 — use the public tracking start parameter
+
+- Correct the Auto-phasing red draft's internal `SSTART` label to the public
+  `TRACK, ZSTART=...` input attribute. State metres/default zero and link to
+  the TRACK reference. `TrackCmd.cpp` registers `ZSTART`; `TrackRun.cpp` passes
+  its value to the internal tracker start position.
+- This corrects manual terminology, with no OPALX code or behavior change.
+  Focused local HTML render, 63-page rendered-link checks, red wording/link
+  checks and whitespace review pass. A registration scan found no further
+  internal names presented as inputs. No commit or push.
+
+
+### 2026-10-27 — render the complete local manual
+
+- At the user's request, render all 56 book chapters and the six unnumbered
+  report pages as HTML in `/Users/adelmann/git/opalx-manual/_site`. Source and
+  document checks and rendered-link checks across 63 HTML pages pass.
+- Preserve the red availability drafts, public `ZSTART` terminology and
+  retained Appendix C source outside navigation. Render logs contain no
+  Quarto warnings or errors. PDF publication remains paused; no PDF build,
+  OPALX tests, commit or push.

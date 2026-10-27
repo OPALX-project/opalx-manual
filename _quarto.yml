@@ -55,7 +55,6 @@ book:
       chapters:
         - user-guide/appendix/field-maps/index.qmd
         - user-guide/appendix/language-syntax/index.qmd
-        - user-guide/appendix/opal-madx/index.qmd
         - user-guide/appendix/autophase/index.qmd
     - part: "Physics"
       chapters:

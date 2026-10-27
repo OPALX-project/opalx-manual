@@ -8,8 +8,7 @@ last-reviewed: "2026-07-23"
 
 
 OPALX and OPAL use the same MAD-like command grammar. The dialect is close to
-MAD9; for older MAD-style inputs, see the
-[conversion guide](../../user-guide/appendix/opal-madx/index.qmd).
+MAD9.
 
 ## Statements and Comments
 

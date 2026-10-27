@@ -61,7 +61,6 @@ end
   "retained OPAL field-solver material" => "Particle-Particle-Particle-Mesh",
   "User Guide Appendix A" => "Field Maps",
   "User Guide Appendix B" => "Language Syntax",
-  "User Guide Appendix C" => "OPAL-MADX Conversion",
   "User Guide Appendix D" => "Auto-phasing"
 }.each do |description, required_text|
   errors << "PDF is missing #{description}" unless text.include?(required_text)

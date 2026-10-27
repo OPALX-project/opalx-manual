@@ -300,7 +300,6 @@ end
 %w[
   user-guide/appendix/field-maps/index.html
   user-guide/appendix/language-syntax/index.html
-  user-guide/appendix/opal-madx/index.html
   user-guide/appendix/autophase/index.html
 ].each do |relative|
   errors << "render is missing User Guide appendix #{relative}" unless (SITE / relative).file?
