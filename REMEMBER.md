@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the red Field Maps and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the remaining red Field Maps future-support paragraph and review-copy notice with the supervisor, plus Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1008,3 +1008,302 @@ Use this template for subsequent entries:
   retained Appendix C source outside navigation. Render logs contain no
   Quarto warnings or errors. PDF publication remains paused; no PDF build,
   OPALX tests, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: AstraDynamic
+
+- Manual base `21f1678` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. The user approved the AstraDynamic availability-row clarification.
+- State explicitly that AstraDynamic supplies the on-axis RF profile for both
+  standing-wave RFCAVITY and TRAVELINGWAVE. For TRAVELINGWAVE the source map
+  must start at z=0 m; this is the map coordinate, not lattice placement.
+- Verified RFCavity and TravelingWave particle-reader dispatch and the explicit
+  nonzero-map-start rejection in TravelingWave::initialise.
+- Remove red styling from this accepted row only. Move the table outside the
+  enclosing red block and mark its header and six unreviewed rows individually
+  so those entries retain their red review styling. All other draft sections
+  remain marked for review; next row is AstraMagnetoStatic.
+- Validation: 56-chapter source checks, focused appendix render, full book
+  and six-report renders, 63-page HTML/link validation, rendered table styling
+  checks and git diff --check passed. The initial focused-render link check
+  found stale unrelated preview pages; a full rebuild resolved those failures.
+  Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: label AstraDynamic as 1D
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User approved
+  explicitly describing AstraDynamic as a 1D on-axis RF field map. Update the
+  accepted availability row, retaining normal text color.
+- Review the next row, AstraMagnetoStatic: its reader takes z/Bz samples and
+  generates Fourier coefficients; host/device field evaluation reconstructs
+  off-axis magnetic components from the profile. The existing availability
+  claim is supported. Keep this row red pending the user's wording review.
+- Validation: source checks, focused appendix HTML render, rendered wording
+  and review-style checks, 63-page HTML/link validation and git diff --check
+  passed. No commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept AstraMagnetoStatic
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. The user approved
+  the wording: 1D on-axis static magnetic field map with Fourier reconstruction.
+  The reader consumes z/Bz pairs, forms Fourier coefficients and reconstructs
+  magnetic fields off axis, as verified in the preceding review.
+- Update that availability row and remove its three red span markers. The
+  AstraDynamic row remains accepted; five remaining availability rows stay red.
+  Next row: 3DDynamic. Full-page review date remains unchanged.
+- Validation: source checks, focused appendix HTML render, 63-page HTML/link
+  checks, rendered accepted/unreviewed row markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps review: note table overlap in the PR
+
+- User explicitly requested leaving both accepted ASTRA overview rows as they
+  are. Do not add element names to AstraMagnetoStatic or remove cavity names
+  and the source-map-origin restriction from AstraDynamic at this stage.
+- Include this note in the eventual manual PR: the availability overview
+  retains cavity references in the AstraDynamic row, although supported
+  elements are also listed in the dedicated Element compatibility table below.
+  This review leaves that overlap in place.
+- No appendix wording, review colors, commit or push changed by this note.
+
+
+### 2026-10-27 — Field Maps row review: accept 3DDynamic and table headings
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User accepted the
+  explicit 3D Cartesian RF field-map wording and local x=y=0 condition for
+  automatic phase estimation. Verified FM3DDynamic on-axis sampling and
+  RFCavity phase estimation and particle application during the preceding review.
+- Remove red span markers from the 3DDynamic row and all three availability
+  table headings at the user's request. The first three rows are now accepted;
+  four unreviewed rows remain red. Next row: 2DMagnetoStatic.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered heading/row review markers and git diff --check passed.
+  Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept both 2D formats
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User requested
+  minimal changes and explicitly deferred fixing the normalization-flag parser.
+- In the 2DMagnetoStatic and 2DDynamic overview rows, replace only the claim
+  that flags are unavailable with: explicit TRUE/FALSE normalization flags
+  currently do not work; omit the flag to use automatic normalization.
+- Remove red markers from both accepted rows. Retain their existing radial
+  origin, column-order wording and partial-availability labels. The two
+  G4beamline rows remain red. Next row: cylinder.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered wording/review markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept G4beamline rows and introduction
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User approved both
+  G4beamline availability rows and the paragraph defining availability labels.
+- Remove red styling only, retaining the accepted wording. All seven table
+  rows and the headings now use normal text. The future-support paragraph and
+  remaining review regions stay red. Next: the future-support paragraph.
+- Source review confirmed the cylinder reader's Bz/Br-only block support and
+  explicit rejection of electric/Bphi/data/symmetry sections; the grid reader's
+  six/nine-column data support and rejection of points/symmetry sections; and
+  the factory's cylinder-only ZREVERSE check. Existing tests cover these limits.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered introduction/table review markers and git diff --check
+  passed. Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept FIELDMAP and add SOLENOID
+
+- Manual base `a2bfd75` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved the existing FIELDMAP row and requested a
+  source-checked SOLENOID row before reviewing the cavities.
+- FIELDMAP's static-type check and the factory's implemented readers confirm
+  the four listed static formats and explicit rejection of dynamic RF maps.
+- SOLENOID loads through the same factory and delegates bulk particle fields
+  to the map reader. It can use 2DMagnetoStatic, AstraMagnetoStatic, G4beamline
+  cylinder and magnetic-only grid maps. Its point/reference methods discard
+  map electric fields, while the grid bulk kernel can apply them; therefore
+  direct maps containing electric fields to FIELDMAP and avoid claiming they
+  are supported consistently by SOLENOID. No claim of parser rejection for
+  SOLENOID dynamic/electric maps is added. Strength scaling is outside this
+  focused compatibility check.
+- Move this table outside its red wrapper and mark its header and cavity rows
+  individually. FIELDMAP and the added SOLENOID row now use normal text; other
+  compatibility text remains red. Preserve all existing accepted map rows.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, SOLENOID link/scope and accepted/unreviewed row markers, and
+  git diff --check passed. Full-page review date unchanged; no source changes,
+  commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: cross-check cavity rows
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User requested
+  placing RFCAVITY TYPE=IDEAL directly below TYPE=STANDING, then checking
+  all three cavity rows. Move the IDEAL row without changing any wording.
+- RFCavity's particle dispatch explicitly supports Astra1DDynamic,
+  FM2DDynamic and FM3DDynamic, matching the STANDING row. IDEAL initialization
+  bypasses maps and validateIdeal rejects a nonempty FMAPFN. TravelingWave's
+  particle dispatch requires Astra1DDynamic and initialization rejects a
+  nonzero source-map start coordinate. All three existing rows are correct.
+- Retain their red review markers pending the user's acceptance. No changes
+  to the already accepted FIELDMAP and SOLENOID rows or other draft regions.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered cavity-row order/review markers and git diff --check
+  passed. No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept table and check following prose
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User accepted the
+  three cavity rows and requested normal text for the compatibility heading,
+  explanatory sentence and both table headings. Remove only their red markers;
+  keep the row order and wording. The complete compatibility table is accepted.
+- Cross-check the following statements. OpalCyclotronSector uses the separate
+  CyclotronSectorFieldMap loader, and SINGLEGAP configuration constructs a
+  CyclotronRFProfile, bypassing the ordinary Fieldmap factory. This claim is
+  correct. The linked cyclotron guide describes configuration and identifies
+  these inputs but lacks complete file layouts; propose replacing 'Their
+  formats are described' with 'See the cyclotron guide for their configuration'.
+- The ordinary Fieldmap factory explicitly ignores its fast argument, so FAST
+  does not select a different evaluation mode. FIELDMAP forwards independent
+  magnetic and electric scales in bulk, point and reference evaluation. Source
+  behavior establishes no future-support commitment.
+- Leave the red cyclotron and FAST paragraphs unchanged pending discussion.
+  Validation: source checks, focused appendix render, 63-page HTML/link checks,
+  rendered compatibility/remaining-review markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps compatibility: accept cyclotron/FAST prose
+
+- Same manual base `a2bfd75` and OPALX master `eb8435a7a`. User approved the
+  minimal cyclotron link correction and clearing red from the reviewed prose.
+- Replace only 'Their formats are described in the cyclotron guide' with
+  'See the cyclotron guide for their configuration'. Remove the shared red
+  wrapper around the cyclotron-loader and verified FAST paragraphs.
+- The compatibility section is now normal text. Other pending review regions,
+  including the earlier future-support paragraph and detailed format sections,
+  remain red. No source behavior changes; no commit or push performed.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, corrected link wording and section review-marker checks, and
+  git diff --check passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept ASTRA section
+
+- Manual base `592c683` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved the two proposed precision corrections and removal
+  of red from the AstraDynamic/AstraMagnetoStatic subsection (25.1.2).
+- Replace coefficient count with number of retained Fourier modes and specify
+  that normalization uses the input profile's absolute on-axis peak. Resampling
+  and truncation do not guarantee the reconstructed peak is exactly the target.
+- Source review confirmed the header syntax, units/frequency placement,
+  resampling/mirroring/Fourier construction, working optional normalization
+  flags, zero-peak rejection before optional normalization, and no FAST variants.
+- Remove only this subsection's red wrapper; preserve all other wording and
+  pending review regions. Full-page review date remains unchanged.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, ASTRA wording/review-marker checks and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps detailed formats: clarify 2DMagnetoStatic ordering
+
+- Manual base `7e8744f` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved clarifying the fastest-varying coordinate in
+  section 25.1.3 and requested checking the spelling of the field unit.
+- Replace the ambiguous first-axis sentence with explicit z-fastest for XZ
+  and r-fastest for ZX ordering, matching the reader loops and test writers.
+- Retain lowercase 'tesla', the SI unit name; its symbol is uppercase T.
+  Other wording and the section's red review wrapper are unchanged.
+- Source review confirmed cm bounds, interval counts, field-column order,
+  tesla inputs, bilinear interpolation, on-axis normalization and zero-origin
+  radial indexing. Full-page review date unchanged; no source changes,
+  commit or push. Source checks, focused appendix render, 63-page HTML/link
+  checks, rendered ordering/unit-name checks and git diff --check passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept 2DMagnetoStatic
+
+- Same manual base `7e8744f` and OPALX master `eb8435a7a`. User accepted the
+  reviewed section 25.1.3 and requested removal of its red styling.
+- Remove only its review wrapper, preserving the accepted ordering clarification,
+  lowercase tesla, header example, normalization and radial-origin guidance.
+  Next detailed format is 2DDynamic; its red review regions remain.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, accepted/remaining section review markers and git diff --check passed.
+  Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept 2DDynamic
+
+- Manual base `0a888f8` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved three small wording changes and removal of red
+  from section 25.1.4, including the shared normalization-options note.
+- State z-fastest for XZ and r-fastest for ZX; identify the normalized peak
+  as absolute Ez; describe explicit TRUE/FALSE flags as currently not working
+  and direct users to omit them for automatic normalization.
+- Source review confirmed cm/MHz units, interval counts, radial-origin
+  assumption, frequency placement, XZ/ZX field columns, MV/m and A/m field
+  units, whole-grid Ez normalization and mu0 conversion of Hphi.
+- Remove the two review wrappers only; retain the rest of the accepted text
+  and leave following 3DDynamic content red. No source changes or parser fix.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, wording/section review-marker checks and git diff --check passed.
+  Full-page review date unchanged; no commit or push.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept 3DDynamic
+
+- Manual base `2eb88b6` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User accepted section 25.1.5 as written and requested removal
+  of its red styling. Remove only its heading marker and content wrapper.
+- Source review confirmed header/layout, cm/MHz/MV-per-m/A-per-m units,
+  z-fastest grid storage, interval counts, trilinear interpolation, working
+  normalization flags and on-axis normalization, off-axis restrictions for
+  automatic phase estimation, finite-value/bounds/data-count validation and
+  RFCAVITY cosine/negative-sine field factors. No wording changes needed.
+- Remaining red regions are preserved. Full-page review date unchanged;
+  no source changes, commit or push. Source checks, focused appendix render,
+  63-page HTML/link checks, section review-marker checks and git diff --check
+  passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept G4beamline section
+
+- Manual base `14fc15e` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User accepted section 25.1.6 with two small corrections.
+- Clarify no peak normalization: BSCALE=1 and ESCALE=1 preserve the field scale
+  after file param factors. Narrow the same-filename ZREVERSE restriction to
+  simultaneous loading, matching the filename-keyed live map dictionary.
+- Remove the accepted ZREVERSE paragraph's red wrapper. The remaining section
+  already used normal text; retain its layout, interpolation, units, scaling,
+  rejected-option and memory guidance. Unsupported-header review remains red.
+- Source review covered cylinder/grid parsing, field and unit scaling,
+  ZREVERSE mirroring/sign/cache behavior, point matching and duplicate/missing
+  data checks, electric-array allocation and field-map allocation errors.
+  G4beamline's official user guide also confirms the file units and param keys.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, G4beamline wording/section review-marker checks and git diff --check
+  passed. Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept unsupported-header section
+
+- Manual base `a39ceb7` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User accepted section 25.1.7 as written and requested removal
+  of its red styling. Remove only the section's review-color wrapper.
+- Verified factory/header dispatch and the ASTRA test map writers. The supported
+  AstraDynamic/AstraMagnetoStatic formats use explicit z/field pairs; legacy
+  OPAL 1DDynamic/1DMagnetoStatic readers use grid headers and field-only records.
+  Both existing ASTRA ParseAndDimensions tests passed. The dynamic test helper
+  has a stale 1DDynamic comment; its actual writer uses AstraDynamic. No source
+  changes made.
+- Leave the future-support paragraph and review-copy notice red for remaining
+  review. Keep the full-page review date unchanged; no commit or push.
+- Validation: 56-chapter source checks, focused appendix render, 63-page
+  HTML/link checks, rendered review-marker checks and git diff --check passed.

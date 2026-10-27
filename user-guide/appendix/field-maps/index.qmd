@@ -21,20 +21,21 @@ Review copy: red text proposes availability labels and user documentation update
 ::::: {.feature-opalx}
 ## Current OPALX Field Maps {#opalx-field-maps}
 
-::: {.appendix-review-change}
 OPALX provides the seven field-map formats below. Availability describes the
 current supported scope: ✅ **Available**, 🟡 **Partially available** (a subset
 of the format or its options), and ⚪ **Unavailable**.
 
 | Format | Availability now | Current scope |
 |---|---|---|
-| `AstraDynamic` | ✅ Available | On-axis RF profile for standing-wave `RFCAVITY`; `TRAVELINGWAVE` requires a map beginning at `z=0` |
-| `AstraMagnetoStatic` | ✅ Available | Static magnetic on-axis profile with Fourier reconstruction |
-| `3DDynamic` | ✅ Available | Cartesian RF map for standing-wave `RFCAVITY`; automatic phase estimation requires the axis inside the map |
-| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; explicit normalization flags are unavailable |
-| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; explicit normalization flags are unavailable |
+| `AstraDynamic` | ✅ Available | 1D on-axis RF field map for standing-wave `RFCAVITY` and `TRAVELINGWAVE`; for `TRAVELINGWAVE`, the source map must start at `z=0 m` |
+| `AstraMagnetoStatic` | ✅ Available | 1D on-axis static magnetic field map with Fourier reconstruction. |
+| `3DDynamic` | ✅ Available | 3D Cartesian RF field map for standing-wave `RFCAVITY`; automatic phase estimation requires the map to cover the local axis `x=y=0`. |
+| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
+| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
 | G4beamline `cylinder` | 🟡 Partially available | `Bz`/`Br` block format; electric fields, `Bphi`, `data` and symmetry sections are unavailable |
 | G4beamline `grid` | 🟡 Partially available | Six- or nine-column `data` format; `points`, symmetry sections and `ZREVERSE` are unavailable |
+
+::: {.appendix-review-change}
 
 Future support for the missing options and formats is **unconfirmed**. The
 historical OPAL descriptions below, including material formerly marked
@@ -46,54 +47,52 @@ Comments begin with `#`. G4beamline maps have no descriptor; OPALX recognizes
 them by their first keyword, an optional `param` line followed by `cylinder` or
 `grid`. The file extension does not matter.
 
-### [Element compatibility]{.appendix-review-change} {#opalx-map-element-compatibility}
+### Element compatibility {#opalx-map-element-compatibility}
 
-::: {.appendix-review-change}
 Reader availability does not mean that every element accepts that format.
 
 | Element/model | Accepted maps |
 |---|---|
 | [`FIELDMAP`](../../elements.qmd#fieldmap) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and `grid`; dynamic maps are rejected |
+| [`SOLENOID`](../../elements.qmd#solenoid) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and magnetic-only `grid` maps; use `FIELDMAP` for maps containing electric fields |
 | [`RFCAVITY`, `TYPE="STANDING"`](../../elements.qmd#rfcavity) | `AstraDynamic`, `2DDynamic`, `3DDynamic` |
-| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0` |
 | [`RFCAVITY`, `TYPE="IDEAL"`](../../elements.qmd#rfcavity-ideal) | no field map; `FMAPFN` is rejected |
+| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0` |
 
 `CYCLOTRONSECTOR` and `RFCAVITY, TYPE="SINGLEGAP"` use separate loaders for
-sector fields and voltage profiles. Their formats are described in the
-[cyclotron guide](../../cyclotron.qmd).
+sector fields and voltage profiles. See the
+[cyclotron guide](../../cyclotron.qmd) for their configuration.
 
 ⚪ The `FAST` accelerated field-map mode is currently unavailable; changing
 `FAST` does not select a different field evaluation mode. Future support is
 unconfirmed. For static-map placement and the independent `BSCALE` and `ESCALE`
 multipliers, see the [`FIELDMAP` reference](../../elements.qmd#fieldmap).
-:::
 
 ### `AstraDynamic` and `AstraMagnetoStatic` {#opalx-astra-field-maps}
 
-::: {.appendix-review-change}
 The ASTRA readers spline-resample non-equidistant on-axis data onto an
 equidistant grid, mirror the profile periodically, and construct a truncated
-Fourier representation for off-axis field evaluation. The coefficient count
-in the header controls the reconstruction.
+Fourier representation for off-axis field evaluation. The number of retained
+Fourier modes specified in the header controls the reconstruction.
 
 The first line is `AstraDynamic N_Fourier [TRUE|FALSE]` or
 `AstraMagnetoStatic N_Fourier [TRUE|FALSE]`. `AstraDynamic` then reads a frequency
 in MHz and `(z [m], Ez [MV/m])` records; `AstraMagnetoStatic` reads
 `(z [m], Bz [T])` records immediately after its header. The optional flag defaults
-to `TRUE` and controls normalization to a peak on-axis field of 1 MV/m or 1 T,
-respectively. Supply increasing axial samples and a nonzero on-axis field;
+to `TRUE` and controls normalization of the input profile to a peak absolute
+on-axis field of 1 MV/m or 1 T, respectively. Supply increasing axial samples
+and a nonzero on-axis field;
 both readers reject a zero peak even with normalization disabled. Neither
 reader provides a `FAST` variant.
-:::
 
 ### `2DMagnetoStatic` {#opalx-2d-magnetostatic}
 
-::: {.appendix-review-change}
 The header declares `XZ` or `ZX` ordering. Axis bounds are in cm, and each
 count is the number of intervals: a count of `N` gives `N+1` grid points.
 Samples contain `Bz Br` in `XZ` order or `Br Bz` in `ZX` order, in tesla.
-The first axis listed changes fastest. The reader uses bilinear interpolation
-and normalizes the on-axis longitudinal field to a peak magnitude of 1 T.
+Data advance fastest in `z` for `XZ` ordering and in `r` for `ZX` ordering.
+The reader uses bilinear interpolation and normalizes the on-axis longitudinal
+field to a peak magnitude of 1 T.
 
 ```text
 2DMagnetoStatic XZ
@@ -106,11 +105,9 @@ Bz Br
 For `ZX`, put the radial bounds/count first and the longitudinal bounds/count
 second. Radial grids must start at zero; nonzero radial origins are currently
 unsupported.
-:::
 
 ### `2DDynamic` {#opalx-2d-dynamic}
 
-::: {.appendix-review-change}
 This RF format uses axis bounds in cm and interval counts, giving
 `(Nz_intervals+1)(Nr_intervals+1)` samples. The frequency in MHz appears between
 the two axis records for both orderings. Use a radial grid starting at zero.
@@ -132,26 +129,25 @@ come after the frequency. The current reader consumes data as follows:
 | `XZ` | `Ez Er unused Hphi` |
 | `ZX` | `Er Ez Hphi unused` |
 
+Data advance fastest in `z` for `XZ` ordering and in `r` for `ZX` ordering.
+
 Electric components are in MV/m and `Hphi` is in A/m. Use the column order for
 the selected orientation when preparing or converting a map.
 
 Normalization uses the maximum absolute `Ez` over the entire grid, rather than
-only the axis. The resulting peak is 1 MV/m. `Hphi` is converted to magnetic
+only the axis. The resulting peak absolute `Ez` is 1 MV/m. `Hphi` is converted to magnetic
 flux density with the same normalization factor and the vacuum permeability
 $\mu_0$.
-:::
 
-::: {.appendix-review-change}
 🟡 **Normalization options:** use a two-token header, such as
-`2DDynamic XZ`. Explicit `TRUE`/`FALSE` header flags and disabling normalization
-are currently unavailable for `2DMagnetoStatic` and `2DDynamic`. The ASTRA and
+`2DDynamic XZ`. Explicit `TRUE`/`FALSE` normalization flags currently do not work
+for `2DMagnetoStatic` and `2DDynamic`; omit the flag to use automatic
+normalization. The ASTRA and
 `3DDynamic` normalization flags are available. Future availability of the
 missing 2D options is unconfirmed.
-:::
 
-### [`3DDynamic`]{.appendix-review-change} {#opalx-3d-dynamic}
+### `3DDynamic` {#opalx-3d-dynamic}
 
-::: {.appendix-review-change}
 `3DDynamic` supplies a Cartesian RF map for mapped standing-wave `RFCAVITY`.
 Its complete layout is:
 
@@ -186,14 +182,14 @@ Mapped standing-wave `RFCAVITY` supplies the RF time dependence: electric
 amplitudes multiply $\cos(\omega t+\phi)$ and magnetic amplitudes multiply
 $-\sin(\omega t+\phi)$. Here $t$ is in seconds, $\omega$ in rad/s and
 $\phi$ in radians; the element also supplies its amplitude and error settings.
-:::
 
 ### G4beamline maps {#opalx-g4bl-field-maps}
 
 OPALX reads the `cylinder` and `grid` formats written by G4beamline. Positions
 are in mm, magnetic fields in tesla, and electric fields in MV/m. Neither reader
-normalizes: the values are used as written, so `BSCALE=1` on a
-[`FIELDMAP`](../../elements.qmd#fieldmap) element reproduces the map.
+normalizes to a field peak. With `BSCALE=1` and `ESCALE=1`, a
+[`FIELDMAP`](../../elements.qmd#fieldmap) element preserves the map's field scale
+after applying any `param` factors.
 
 An optional first line `param` scales the stored values the same way
 G4beamline does. Magnetic values are multiplied by `normB/current` and electric
@@ -205,11 +201,9 @@ the `FIELDMAP` element.
 Symmetry sections (`extendX`, `extendY`, `extendZ`, ...) are rejected by both
 readers.
 
-::: {.appendix-review-change}
 `ZREVERSE` is supported only for a `cylinder` map. The same map filename cannot
-be loaded with opposite `ZREVERSE` settings in one run; use separate files if
-both orientations are needed.
-:::
+be loaded with opposite `ZREVERSE` settings at the same time; use separate files
+if both orientations are needed.
 
 #### `cylinder` maps {#opalx-g4bl-cylinder}
 
@@ -274,7 +268,6 @@ needed, use a coarser grid or a smaller box, or run fewer MPI ranks per node.
 
 ### Recognized but unsupported headers {#opalx-unsupported-field-map-headers}
 
-::: {.appendix-review-change}
 The following additional or legacy formats are unavailable in current OPALX.
 A recognized header alone does not make a format usable.
 
@@ -293,7 +286,6 @@ currently audited OPALX source tree.
 Missing files, unavailable formats and malformed records are rejected with an
 error. The error handling described in the historical OPAL section applies to
 that historical version.
-:::
 :::::
 
 
