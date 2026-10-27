@@ -21,20 +21,21 @@ Review copy: red text proposes availability labels and user documentation update
 ::::: {.feature-opalx}
 ## Current OPALX Field Maps {#opalx-field-maps}
 
-::: {.appendix-review-change}
 OPALX provides the seven field-map formats below. Availability describes the
 current supported scope: ✅ **Available**, 🟡 **Partially available** (a subset
 of the format or its options), and ⚪ **Unavailable**.
 
 | Format | Availability now | Current scope |
 |---|---|---|
-| `AstraDynamic` | ✅ Available | On-axis RF profile for standing-wave `RFCAVITY`; `TRAVELINGWAVE` requires a map beginning at `z=0` |
-| `AstraMagnetoStatic` | ✅ Available | Static magnetic on-axis profile with Fourier reconstruction |
-| `3DDynamic` | ✅ Available | Cartesian RF map for standing-wave `RFCAVITY`; automatic phase estimation requires the axis inside the map |
-| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; explicit normalization flags are unavailable |
-| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; explicit normalization flags are unavailable |
+| `AstraDynamic` | ✅ Available | 1D on-axis RF field map for standing-wave `RFCAVITY` and `TRAVELINGWAVE`; for `TRAVELINGWAVE`, the source map must start at `z=0 m` |
+| `AstraMagnetoStatic` | ✅ Available | 1D on-axis static magnetic field map with Fourier reconstruction. |
+| `3DDynamic` | ✅ Available | 3D Cartesian RF field map for standing-wave `RFCAVITY`; automatic phase estimation requires the map to cover the local axis `x=y=0`. |
+| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
+| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
 | G4beamline `cylinder` | 🟡 Partially available | `Bz`/`Br` block format; electric fields, `Bphi`, `data` and symmetry sections are unavailable |
 | G4beamline `grid` | 🟡 Partially available | Six- or nine-column `data` format; `points`, symmetry sections and `ZREVERSE` are unavailable |
+
+::: {.appendix-review-change}
 
 Future support for the missing options and formats is **unconfirmed**. The
 historical OPAL descriptions below, including material formerly marked

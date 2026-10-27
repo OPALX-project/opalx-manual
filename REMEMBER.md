@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the red Field Maps and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps prose (next: future-support paragraph) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1008,3 +1008,108 @@ Use this template for subsequent entries:
   retained Appendix C source outside navigation. Render logs contain no
   Quarto warnings or errors. PDF publication remains paused; no PDF build,
   OPALX tests, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: AstraDynamic
+
+- Manual base `21f1678` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. The user approved the AstraDynamic availability-row clarification.
+- State explicitly that AstraDynamic supplies the on-axis RF profile for both
+  standing-wave RFCAVITY and TRAVELINGWAVE. For TRAVELINGWAVE the source map
+  must start at z=0 m; this is the map coordinate, not lattice placement.
+- Verified RFCavity and TravelingWave particle-reader dispatch and the explicit
+  nonzero-map-start rejection in TravelingWave::initialise.
+- Remove red styling from this accepted row only. Move the table outside the
+  enclosing red block and mark its header and six unreviewed rows individually
+  so those entries retain their red review styling. All other draft sections
+  remain marked for review; next row is AstraMagnetoStatic.
+- Validation: 56-chapter source checks, focused appendix render, full book
+  and six-report renders, 63-page HTML/link validation, rendered table styling
+  checks and git diff --check passed. The initial focused-render link check
+  found stale unrelated preview pages; a full rebuild resolved those failures.
+  Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: label AstraDynamic as 1D
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User approved
+  explicitly describing AstraDynamic as a 1D on-axis RF field map. Update the
+  accepted availability row, retaining normal text color.
+- Review the next row, AstraMagnetoStatic: its reader takes z/Bz samples and
+  generates Fourier coefficients; host/device field evaluation reconstructs
+  off-axis magnetic components from the profile. The existing availability
+  claim is supported. Keep this row red pending the user's wording review.
+- Validation: source checks, focused appendix HTML render, rendered wording
+  and review-style checks, 63-page HTML/link validation and git diff --check
+  passed. No commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept AstraMagnetoStatic
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. The user approved
+  the wording: 1D on-axis static magnetic field map with Fourier reconstruction.
+  The reader consumes z/Bz pairs, forms Fourier coefficients and reconstructs
+  magnetic fields off axis, as verified in the preceding review.
+- Update that availability row and remove its three red span markers. The
+  AstraDynamic row remains accepted; five remaining availability rows stay red.
+  Next row: 3DDynamic. Full-page review date remains unchanged.
+- Validation: source checks, focused appendix HTML render, 63-page HTML/link
+  checks, rendered accepted/unreviewed row markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps review: note table overlap in the PR
+
+- User explicitly requested leaving both accepted ASTRA overview rows as they
+  are. Do not add element names to AstraMagnetoStatic or remove cavity names
+  and the source-map-origin restriction from AstraDynamic at this stage.
+- Include this note in the eventual manual PR: the availability overview
+  retains cavity references in the AstraDynamic row, although supported
+  elements are also listed in the dedicated Element compatibility table below.
+  This review leaves that overlap in place.
+- No appendix wording, review colors, commit or push changed by this note.
+
+
+### 2026-10-27 — Field Maps row review: accept 3DDynamic and table headings
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User accepted the
+  explicit 3D Cartesian RF field-map wording and local x=y=0 condition for
+  automatic phase estimation. Verified FM3DDynamic on-axis sampling and
+  RFCavity phase estimation and particle application during the preceding review.
+- Remove red span markers from the 3DDynamic row and all three availability
+  table headings at the user's request. The first three rows are now accepted;
+  four unreviewed rows remain red. Next row: 2DMagnetoStatic.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered heading/row review markers and git diff --check passed.
+  Full-page review date unchanged; no source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept both 2D formats
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User requested
+  minimal changes and explicitly deferred fixing the normalization-flag parser.
+- In the 2DMagnetoStatic and 2DDynamic overview rows, replace only the claim
+  that flags are unavailable with: explicit TRUE/FALSE normalization flags
+  currently do not work; omit the flag to use automatic normalization.
+- Remove red markers from both accepted rows. Retain their existing radial
+  origin, column-order wording and partial-availability labels. The two
+  G4beamline rows remain red. Next row: cylinder.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered wording/review markers and git diff --check passed.
+  No source changes, commit or push.
+
+
+### 2026-10-27 — Field Maps row review: accept G4beamline rows and introduction
+
+- Same manual base `21f1678` and OPALX master `eb8435a7a`. User approved both
+  G4beamline availability rows and the paragraph defining availability labels.
+- Remove red styling only, retaining the accepted wording. All seven table
+  rows and the headings now use normal text. The future-support paragraph and
+  remaining review regions stay red. Next: the future-support paragraph.
+- Source review confirmed the cylinder reader's Bz/Br-only block support and
+  explicit rejection of electric/Bphi/data/symmetry sections; the grid reader's
+  six/nine-column data support and rejection of points/symmetry sections; and
+  the factory's cylinder-only ZREVERSE check. Existing tests cover these limits.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, rendered introduction/table review markers and git diff --check
+  passed. Full-page review date unchanged; no source changes, commit or push.
