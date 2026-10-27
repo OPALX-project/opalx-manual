@@ -56,7 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: detailed ASTRA formats) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review remaining red Field Maps sections (next: detailed 2DMagnetoStatic format) and Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
@@ -1191,3 +1191,21 @@ Use this template for subsequent entries:
 - Validation: source checks, focused appendix render, 63-page HTML/link
   checks, corrected link wording and section review-marker checks, and
   git diff --check passed.
+
+
+### 2026-10-27 — Field Maps detailed formats: accept ASTRA section
+
+- Manual base `592c683` on `docs/field-map-appendix-review`; OPALX master
+  `eb8435a7a`. User approved the two proposed precision corrections and removal
+  of red from the AstraDynamic/AstraMagnetoStatic subsection (25.1.2).
+- Replace coefficient count with number of retained Fourier modes and specify
+  that normalization uses the input profile's absolute on-axis peak. Resampling
+  and truncation do not guarantee the reconstructed peak is exactly the target.
+- Source review confirmed the header syntax, units/frequency placement,
+  resampling/mirroring/Fourier construction, working optional normalization
+  flags, zero-peak rejection before optional normalization, and no FAST variants.
+- Remove only this subsection's red wrapper; preserve all other wording and
+  pending review regions. Full-page review date remains unchanged.
+- Validation: source checks, focused appendix render, 63-page HTML/link
+  checks, ASTRA wording/review-marker checks and git diff --check passed.
+  No source changes, commit or push.

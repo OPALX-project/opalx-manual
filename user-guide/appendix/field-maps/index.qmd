@@ -70,21 +70,20 @@ multipliers, see the [`FIELDMAP` reference](../../elements.qmd#fieldmap).
 
 ### `AstraDynamic` and `AstraMagnetoStatic` {#opalx-astra-field-maps}
 
-::: {.appendix-review-change}
 The ASTRA readers spline-resample non-equidistant on-axis data onto an
 equidistant grid, mirror the profile periodically, and construct a truncated
-Fourier representation for off-axis field evaluation. The coefficient count
-in the header controls the reconstruction.
+Fourier representation for off-axis field evaluation. The number of retained
+Fourier modes specified in the header controls the reconstruction.
 
 The first line is `AstraDynamic N_Fourier [TRUE|FALSE]` or
 `AstraMagnetoStatic N_Fourier [TRUE|FALSE]`. `AstraDynamic` then reads a frequency
 in MHz and `(z [m], Ez [MV/m])` records; `AstraMagnetoStatic` reads
 `(z [m], Bz [T])` records immediately after its header. The optional flag defaults
-to `TRUE` and controls normalization to a peak on-axis field of 1 MV/m or 1 T,
-respectively. Supply increasing axial samples and a nonzero on-axis field;
+to `TRUE` and controls normalization of the input profile to a peak absolute
+on-axis field of 1 MV/m or 1 T, respectively. Supply increasing axial samples
+and a nonzero on-axis field;
 both readers reject a zero peak even with normalization disabled. Neither
 reader provides a `FAST` variant.
-:::
 
 ### `2DMagnetoStatic` {#opalx-2d-magnetostatic}
 
