@@ -146,9 +146,8 @@ normalization. The ASTRA and
 `3DDynamic` normalization flags are available. Future availability of the
 missing 2D options is unconfirmed.
 
-### [`3DDynamic`]{.appendix-review-change} {#opalx-3d-dynamic}
+### `3DDynamic` {#opalx-3d-dynamic}
 
-::: {.appendix-review-change}
 `3DDynamic` supplies a Cartesian RF map for mapped standing-wave `RFCAVITY`.
 Its complete layout is:
 
@@ -183,7 +182,6 @@ Mapped standing-wave `RFCAVITY` supplies the RF time dependence: electric
 amplitudes multiply $\cos(\omega t+\phi)$ and magnetic amplitudes multiply
 $-\sin(\omega t+\phi)$. Here $t$ is in seconds, $\omega$ in rad/s and
 $\phi$ in radians; the element also supplies its amplitude and error settings.
-:::
 
 ### G4beamline maps {#opalx-g4bl-field-maps}
 
