@@ -136,7 +136,7 @@ format:
 documents-base-url: "https://github.com/OPALX-project/opalx-documents/blob/main"
 manual-repository-url: "https://github.com/OPALX-project/opalx-manual"
 source-code-url: "https://github.com/OPALX-project/OPALX"
-regression-tests-url: "https://amas.pages.psi.ch/opal-live-doc/opalx-regression-test/overview/index.html"
+regression-tests-url: "https://amas.pages.psi.ch/opalx-regression/results"
 regression-tests-source-url: "https://github.com/OPALX-project/regression-tests-x/blob/master"
 doxygen-url: "https://amas.pages.psi.ch/opal-live-doc/opalx-doxygen/index.html"
 legacy-opal-manual-url: "https://opalx-project.github.io/opal-manual"
