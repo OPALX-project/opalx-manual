@@ -268,7 +268,6 @@ needed, use a coarser grid or a smaller box, or run fewer MPI ranks per node.
 
 ### Recognized but unsupported headers {#opalx-unsupported-field-map-headers}
 
-::: {.appendix-review-change}
 The following additional or legacy formats are unavailable in current OPALX.
 A recognized header alone does not make a format usable.
 
@@ -287,7 +286,6 @@ currently audited OPALX source tree.
 Missing files, unavailable formats and malformed records are rejected with an
 error. The error handling described in the historical OPAL section applies to
 that historical version.
-:::
 :::::
 
 
