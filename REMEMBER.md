@@ -1009,6 +1009,7 @@ Use this template for subsequent entries:
   Quarto warnings or errors. PDF publication remains paused; no PDF build,
   OPALX tests, commit or push.
 
+<<<<<<< Updated upstream
 
 ### 2026-10-27 — Field Maps row review: AstraDynamic
 
@@ -1307,3 +1308,34 @@ Use this template for subsequent entries:
   review. Keep the full-page review date unchanged; no commit or push.
 - Validation: 56-chapter source checks, focused appendix render, 63-page
   HTML/link checks, rendered review-marker checks and git diff --check passed.
+=======
+### 2026-10-27 — Getting Started release audit (chapters 2–5)
+
+- Manual baseline 21f1678; OPALX release OPALX-1.0.0 at 1a7bcf5a0.
+  Make the exact release tag and checkout verification explicit; add the
+  required Fortran compiler and full unit-test configure/build/run commands.
+- Add a drift smoke-test command sequence with its required distribution
+  file; distinguish it from numerical reference comparisons and state the
+  independently evolving regression-repository limitation. Clarify the cluster
+  source directory and GPU-aware MPI requirement. Worked examples inspected
+  without edits; full-page review dates retained.
+- Source validation (56 chapters), focused four-page HTML render, rendered
+  links (63 pages), and diff review pass. No browser visual inspection, fresh
+  OPALX build, simulation or PDF build. Release/default-branch regression
+  compatibility remains untested at runtime. No commit or push.
+- Detailed focused audit record: GETTING_STARTED_AUDIT.md.
+
+### 2026-10-27 — red Getting Started review copy
+
+- Mark the release-audit changes red, including command blocks and the Fortran
+  row; preserve normal formatting for unchanged text and worked inputs.
+- Render all four Getting Started HTML pages locally in `_site`. Source checks,
+  rendered links (63 pages), generated red markup and whitespace checks pass.
+  Browser visual inspection blocked by the file-URL policy. No commit or push.
+
+### 2026-10-27 — rerender local review manual
+
+- Rendered the full 56-chapter HTML manual and six report pages into `_site`
+  at the user's request, retaining red Getting Started and appendix changes.
+- Rendered-link validation passed across 63 pages. No PDF, commit or push.
+>>>>>>> Stashed changes

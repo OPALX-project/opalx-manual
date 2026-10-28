@@ -6,12 +6,26 @@ status: current
 last-reviewed: "2026-07-22"
 ---
 
+```{=html}
+<style>
+.getting-started-review-change, .getting-started-review-change * { color: #b00020 !important; }
+body.quarto-dark .getting-started-review-change,
+body.quarto-dark .getting-started-review-change * { color: #ff8080 !important; }
+</style>
+```
+
+::: {.getting-started-review-change}
+Review copy: changes from the Getting Started release audit are marked in red.
+:::
+
+
 OPALX uses CMake and Kokkos to select the execution backend. The following
 toolchain is recommended for current development and production builds:
 
 | Dependency | Recommended version | Notes |
 |---|---:|---|
 | GCC | 13 | Use the same host compiler throughout the dependency stack. |
+| [Fortran compiler]{.getting-started-review-change} | [e.g. gfortran from GCC 13]{.getting-started-review-change} | [Required to build the fetched BLAS/LAPACK dependency.]{.getting-started-review-change} |
 | OpenMPI | 4 or 5 | Either major version is suitable; use the MPI wrappers from the selected installation. |
 | CUDA | 12.9 | Required only for NVIDIA GPU builds. Match the architecture setting to the target GPU. |
 | CMake | 3.24 or newer | OPALX currently declares CMake 3.24 as its minimum version. |
@@ -36,10 +50,25 @@ the build.
 
 ## Clone the source
 
+::: {.getting-started-review-change}
 ```bash
-git clone https://github.com/OPALX-project/OPALX.git
+git clone --branch OPALX-1.0.0 --depth 1 https://github.com/OPALX-project/OPALX.git
 cd OPALX
 ```
+
+This checks out the **OPALX 1.0.0 release**, whose Git tag is
+`OPALX-1.0.0`, in detached-HEAD state. All build commands below use this
+checkout. To confirm the selected release, run:
+
+```bash
+git describe --tags --exact-match
+# Expected: OPALX-1.0.0
+```
+
+For ongoing development, clone the default branch separately rather than
+reusing a release build directory.
+
+:::
 
 ## Configure a CPU build
 
@@ -78,11 +107,23 @@ Select the architecture that matches the target GPU. HIP builds use
 
 ## Enable tests
 
-Add `-DOPALX_ENABLE_UNIT_TESTS=ON` when configuring, then run:
+::: {.getting-started-review-change}
+To build and run the unit tests for the serial backend:
 
 ```bash
+cmake -S . -B build_serial \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPLATFORMS=SERIAL \
+  -DOPALX_ENABLE_UNIT_TESTS=ON
+cmake --build build_serial -j 8
 ctest --test-dir build_serial --output-on-failure
 ```
+
+For a small end-to-end check of the executable, run the regression input in
+[Run a First Simulation](first-simulation.qmd#regression-smoke-test). Unit tests
+and simulation regression checks serve different purposes.
+
+:::
 
 See [Build, Test, and CI](../developer-guide/build-test-ci.qmd) for the full
 developer workflow and [Configuration Reference](../reference/configuration.qmd)

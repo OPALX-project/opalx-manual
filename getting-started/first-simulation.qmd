@@ -6,18 +6,58 @@ status: experimental
 last-reviewed: "2026-07-22"
 ---
 
+```{=html}
+<style>
+.getting-started-review-change, .getting-started-review-change * { color: #b00020 !important; }
+body.quarto-dark .getting-started-review-change,
+body.quarto-dark .getting-started-review-change * { color: #ff8080 !important; }
+</style>
+```
+
+::: {.getting-started-review-change}
+Review copy: changes from the Getting Started release audit are marked in red.
+:::
+
+
 Start with an input file from the maintained OPALX regression suite. Those
 inputs are executable specifications and are checked continuously against the
 current parser and physics implementation.
 
-1. Choose a small serial regression case.
-2. Copy its `.in` file and required supporting files into a new working
-   directory.
-3. Run the executable from that directory.
+::: {.getting-started-review-change}
+## Run a small regression input {#regression-smoke-test}
+
+From the root of the OPALX checkout, after building the serial executable:
 
 ```bash
-/path/to/build_serial/src/opalx example.in --info 2
+export OPALX_EXE="$PWD/build_serial/src/opalx"
+git clone https://github.com/OPALX-project/regression-tests-x.git
+mkdir -p run-drift
+cp regression-tests-x/RegressionTests/Drift-1-fromfile/Drift-1-fromfile.in run-drift/
+cp regression-tests-x/RegressionTests/Drift-1-fromfile/distr-gauss.txt run-drift/
+cd run-drift
+"$OPALX_EXE" Drift-1-fromfile.in --info 2
 ```
+
+This case tracks 1,000 electrons through a drift with self-fields disabled
+(`FIELDSOLVER, TYPE=NONE`). Keep `distr-gauss.txt` beside the input: the
+particle distribution is read from that file. The run writes
+`Drift-1-fromfile.stat`; check that it completes successfully and produces
+statistics.
+
+This is a **smoke test**, not an automated numerical regression comparison.
+The regression repository also supplies a `.rt` file defining checked metrics
+and tolerances, and a `reference/` directory with reference results. See the
+[regression repository]({{< meta regression-tests-source-url >}}/README.md)
+for its structure and the dashboard below for current results. Do not
+regenerate references merely to make a failing check pass.
+
+The regression repository evolves independently of OPALX releases. Record its
+revision with `git -C ../regression-tests-x rev-parse HEAD` when reporting a
+result; its default branch is not a frozen 1.0.0 test suite.
+
+## Launch on a GPU
+
+:::
 
 For a multi-GPU run, map each MPI rank to a device:
 
