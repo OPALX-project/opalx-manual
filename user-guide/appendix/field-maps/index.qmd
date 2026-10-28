@@ -6,18 +6,6 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
-```{=html}
-<style>
-.appendix-review-change, .appendix-review-change * { color: #b00020 !important; }
-body.quarto-dark .appendix-review-change,
-body.quarto-dark .appendix-review-change * { color: #ff8080 !important; }
-</style>
-```
-
-::: {.appendix-review-change}
-Review copy: red text proposes availability labels and user documentation updates for discussion. Retained OPAL sections describe historical OPAL capabilities.
-:::
-
 ::::: {.feature-opalx}
 ## Current OPALX Field Maps {#opalx-field-maps}
 
@@ -35,12 +23,9 @@ of the format or its options), and ⚪ **Unavailable**.
 | G4beamline `cylinder` | 🟡 Partially available | `Bz`/`Br` block format; electric fields, `Bphi`, `data` and symmetry sections are unavailable |
 | G4beamline `grid` | 🟡 Partially available | Six- or nine-column `data` format; `points`, symmetry sections and `ZREVERSE` are unavailable |
 
-::: {.appendix-review-change}
-
 Future support for the missing options and formats is **unconfirmed**. The
 historical OPAL descriptions below, including material formerly marked
 planned, do not establish a current OPALX implementation commitment.
-:::
 
 The descriptor is read from the beginning of the first non-comment record.
 Comments begin with `#`. G4beamline maps have no descriptor; OPALX recognizes

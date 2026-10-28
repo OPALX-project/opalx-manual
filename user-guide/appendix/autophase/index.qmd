@@ -6,18 +6,6 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
-```{=html}
-<style>
-.appendix-review-change, .appendix-review-change * { color: #b00020 !important; }
-body.quarto-dark .appendix-review-change,
-body.quarto-dark .appendix-review-change * { color: #ff8080 !important; }
-</style>
-```
-
-::: {.appendix-review-change}
-Review copy: red text proposes availability labels and user documentation updates for discussion. Retained OPAL sections describe historical OPAL capabilities.
-:::
-
 
 :::: {.feature-opal}
 ## Standing Wave Cavity
@@ -179,39 +167,30 @@ reduced convolution form.
 ::::
 
 :::: {.feature-opalx}
-## [Current OPALX Availability]{.appendix-review-change} {#current-opalx-implementation}
+## Current OPALX Availability {#current-opalx-implementation}
 
-::: {.appendix-review-change}
 OPALX can search for the RF crest phase of a nominal on-axis reference
 particle. Availability below describes what can currently be used:
-✅ **Available**, 🟡 **Partially available**, and ⚪ **Unavailable**.
+✅ **Available** and ⚪ **Unavailable**.
 
 | Capability | Availability now | Current scope |
 |---|---|---|
 | Crest-phase search for mapped `RFCAVITY`, `TYPE="IDEAL"` and `TRAVELINGWAVE` | ✅ Available | Local maximization of nominal on-axis reference-particle exit energy |
 | Input phase offset and per-cavity phase preservation | ✅ Available | `LAG` adds an offset from crest; `APVETO=TRUE` preserves the specified phase |
-| Global disabling with `AUTOPHASE=0` | 🟡 Partially available | When using `TRACK, ZSTART=...`, also set `APVETO=TRUE` on cavities whose phases must be preserved |
-| `DESIGNENERGY` amplitude tuning | 🟡 Partially available | Best-effort exit-energy targeting for `RFCAVITY`; whole-structure amplitude tuning for `TRAVELINGWAVE` is not fully available |
 | Automatic phasing of `SINGLEGAP` and `VARIABLE_RF_CAVITY` | ⚪ Unavailable | Configure their phases explicitly |
 | Automatic H5 saving of newly optimized phases for restart | ⚪ Unavailable | Prepare the required operating phases explicitly for restart |
 
-Future availability of the incomplete or unavailable capabilities is
-**unconfirmed**. The retained OPAL derivations and examples describe
-historical OPAL behavior; they are not a current OPALX roadmap.
-:::
+Future availability of the unavailable capabilities is **unconfirmed**.
+The retained OPAL derivations and examples describe historical OPAL behavior;
+they are not a current OPALX roadmap.
 
 ### Scope and Control
 
-::: {.appendix-review-change}
 Use `OPTION, AUTOPHASE=n;` to set the number of local phase refinements. The
-default is `6`; enter a nonnegative integer. Zero disables the normal
-design-orbit search. `ZSTART` on [`TRACK`](../../tracking.qmd#track-command)
-specifies the starting reference position in metres (default `0`). To preserve
-cavity phases while advancing the reference to that position, set
-`APVETO=TRUE` on those cavities as well.
+default is `6`; use a positive integer for automatic phasing.
 
 `APVETO` defaults to `FALSE`. Setting it to `TRUE` preserves the configured
-phase and bypasses both phase searching and design-energy amplitude tuning.
+phase and bypasses automatic phase searching.
 After automatic phasing, subsequent encounters reuse the selected phase.
 
 Mapped standing-wave `RFCAVITY` accepts the RF formats listed in
@@ -219,11 +198,9 @@ Mapped standing-wave `RFCAVITY` accepts the RF formats listed in
 `TRAVELINGWAVE` currently requires an `AstraDynamic` map beginning at `z=0`.
 The ideal uniform-field model uses no map. `SINGLEGAP` and
 `VARIABLE_RF_CAVITY` have no automatic phase search in current OPALX.
-:::
 
 ### Search Strategy
 
-::: {.appendix-review-change}
 The search first estimates a crest phase from the cavity model, then refines
 it by tracking trial phases through the cavity. The reference starts on the
 cavity axis at the field entrance, with the incoming longitudinal momentum
@@ -247,11 +224,9 @@ intentionally moves operation away from crest. Input `FREQ` is in MHz, with
 $\omega=2\pi\,10^6\,\mathrm{FREQ}$ in rad/s. For mapped RF
 cavities, a map frequency differing by more than 1% replaces the element
 frequency; the resulting effective frequency is used for phasing.
-:::
 
 ### Initial Estimate for `RFCAVITY`
 
-::: {.appendix-review-change}
 For mapped standing-wave cavities, the initial estimate uses the sampled
 on-axis field and an iterative time-of-flight and energy approximation. The
 historical standing-wave derivation in the OPAL section provides context;
@@ -261,20 +236,16 @@ For `RFCAVITY, TYPE="IDEAL"`, the initial estimate tracks the on-axis
 reference particle through the uniform RF field. Phase refinement and
 tracking time-step convergence are separate checks. See the
 [ideal cavity input](../../elements.qmd#rfcavity-ideal).
-:::
 
 ### Initial Estimate for `TRAVELINGWAVE`
 
-::: {.appendix-review-change}
 The traveling-wave estimate accounts for the entry fringe, two phase-shifted
 core contributions and the exit fringe. The supported `AstraDynamic` source
 map and the element's cell and phase settings define these contributions.
 The phase estimate is then refined using the tracked exit energy.
-:::
 
 ### Refinement by Direct Tracking
 
-::: {.appendix-review-change}
 The initial local step is $\pi/360$ radians, or 0.5 degrees. The search
 follows the direction of increasing exit energy, then halves the step once
 per refinement. After `n` refinements the step is $0.5^\circ/2^n$; the default
@@ -284,32 +255,16 @@ This finds a local maximum around the initial estimate; a global maximum is
 not guaranteed. Increasing `AUTOPHASE` refines the phase step but does not
 establish tracking time-step convergence. The input `LAG` is added after the
 crest search.
-:::
 
 ### Special Cases
 
-::: {.appendix-review-change}
 **DC-like operation — ✅ available.** At an effective frequency of at most
 1.000001 Hz ($1.000001\times10^{-6}$ MHz), OPALX adds `0` or `pi` to the
 configured phase according to the sign of amplitude times particle charge.
-There is no RF phase scan or design-energy amplitude adjustment in this case.
-
-**Design-energy targeting — 🟡 partially available.** `DESIGNENERGY` defaults
-to `-1` MeV. A positive value requests an exit kinetic energy in MeV and
-requires a positive nominal `L`, including for a mapped cavity. Nonpositive
-values disable this adjustment; `APVETO=TRUE` also bypasses it.
-
-For `RFCAVITY`, target matching is best effort: the search uses an absolute
-energy tolerance of $10^{-7}$ MeV and at most 1000 amplitude iterations.
-Inspect the achieved exit energy. Whole-structure amplitude tuning for
-`TRAVELINGWAVE` is not fully available. Specify its `VOLT` explicitly and keep
-`DESIGNENERGY` nonpositive when a consistent structure amplitude is required.
-Future support is unconfirmed.
-:::
+There is no RF phase scan in this case.
 
 ### Outputs and Persistence
 
-::: {.appendix-review-change}
 The chosen operating phase is retained for subsequent encounters in the
 current run.
 
@@ -334,17 +289,13 @@ as an absolute `LAG` with `APVETO=TRUE`.
 currently unavailable.** Future support is unconfirmed. Prepare the required
 operating phases explicitly when setting up a restart; use `APVETO=TRUE` if
 those absolute phases must be preserved.
-:::
 
 ### Practical Summary
 
-::: {.appendix-review-change}
 - Use automatic phasing for supported mapped or ideal cavities, and treat
   `LAG` as the requested offset from crest.
 - Use `APVETO=TRUE` when a specified absolute cavity phase must remain fixed.
-- Follow the stated limits of global disabling and design-energy tuning.
-  Automatic saving of newly optimized phases for H5 restart is unavailable.
+- Automatic saving of newly optimized phases for H5 restart is unavailable.
 - Formats and algorithms described only in the historical OPAL section are
   not automatically available in OPALX or confirmed for a future release.
-:::
 ::::

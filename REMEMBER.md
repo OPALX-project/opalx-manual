@@ -1339,3 +1339,53 @@ Use this template for subsequent entries:
   at the user's request, retaining red Getting Started and appendix changes.
 - Rendered-link validation passed across 63 pages. No PDF, commit or push.
 >>>>>>> Stashed changes
+
+
+### 2026-10-28 — move partial Auto-phasing capabilities to issues
+
+- User requested two OPALX issues for global disabling with `AUTOPHASE=0`
+  during `TRACK.ZSTART` advancement and `DESIGNENERGY` amplitude tuning,
+  and removal of these partial-feature entries from section 27.3. Manual
+  baseline `c083099`; issue evidence freshly checked on master `9a14973b`.
+- Remove both availability rows, their related explanations/workarounds and
+  partial-status legend from Appendix D. Retain the four available/unavailable
+  rows, other red review text and historical OPAL content unchanged. No source
+  code changed, commit or push; preserve untracked GETTING_STARTED_AUDIT.md.
+- Prepared two issue titles/bodies with commit-pinned evidence and proposed
+  acceptance criteria. Reproductions are explicitly unrun; independent review
+  confirmed scope and source links. Actual issue creation and duplicate search
+  await GitHub CLI authentication, which has been requested from the user.
+- Validation: source/document checks (56 chapters), focused local Appendix D
+  HTML render, rendered links (63 pages), four-row/removal/red-marker/legacy
+  checks and whitespace review passed. No OPALX tests or PDF build.
+
+
+### 2026-10-28 — file the separated Auto-phasing issues
+
+- After the user completed GitHub CLI sign-in, check related open and closed
+  issues and create OPALX #648 (honor `AUTOPHASE=0` during `TRACK.ZSTART`
+  advancement) and #649 (consistent traveling-wave `DESIGNENERGY` tuning).
+  Verify both are open with the intended titles and nonempty bodies.
+- Both issue bodies contain commit-pinned evidence, proposed acceptance
+  criteria and an explicit statement that reproductions have not been run.
+  The two partial features remain removed from the locally rendered manual.
+- No code changes, tests, commit or push.
+
+
+### 2026-10-28 — remove appendix review markings and render locally
+
+- Remove the remaining red review CSS, notices, div wrappers and inline
+  heading wrapper from the User Guide appendices. Appendix A had a remaining
+  future-status wrapper; Appendix D retained the current-section wrappers.
+  Appendix B and the retained Appendix C source were already clean.
+- Preserve all appendix text except review notices, explicit anchors,
+  availability icons, historical OPAL blocks and the Auto-phasing removals
+  tracked by OPALX #648/#649. Pre-cleanup snapshots and rendered-text comparison
+  confirm preservation; independent diff review passed. Getting Started review
+  markings and untracked GETTING_STARTED_AUDIT.md remain unchanged.
+- Render the full 56-chapter HTML book and six report pages in the primary
+  `_site`. Source/document checks, links across 63 rendered pages, retained
+  content/anchor/icon checks and whitespace review pass; no Quarto warnings or
+  errors. Visually inspect clean Field Maps and Auto-phasing pages locally.
+- Start a local preview server on 127.0.0.1:8766 because the previous server
+  was no longer running. No PDF, OPALX tests, commit or push.
