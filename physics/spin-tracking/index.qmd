@@ -3,7 +3,7 @@ title: "Spin Tracking"
 description: "Thomas-BMT spin transport and its placement in the OPALX tracker step."
 audience: physics
 status: experimental
-last-reviewed: "2026-10-12"
+last-reviewed: "2026-10-29"
 ---
 
 This section describes how *OPALX* evolves the per-particle spin
@@ -37,10 +37,23 @@ with the momentum and the fields. Because $\vec\Omega$ is built only
 from dot and cross products of $\vec\beta$, $\vec E$ and $\vec B$,
 turning all of them and $\vec P$ by the same rotation gives the same
 precession; the choice of axes changes only the components that are
-written out. The `mean_polx`, `mean_poly`, `mean_polz` columns of the
-`.stat` file and the `polx`, `poly`, `polz` data of the phase-space
-file are therefore along the bunch-frame axes, like the momentum. A
-`MONITOR` writes the spin in its own frame, like position and momentum.
+written out. The spin columns of the `.stat` file and the `polx`,
+`poly`, `polz` data of the phase-space file are therefore along the
+bunch-frame axes, like the momentum. A `MONITOR` with `TYPE=SPATIAL`
+writes the spin in its own frame, like position and momentum. A
+`MONITOR` with `TYPE=TEMPORAL` writes the spin along the bunch-frame
+axes, like its momentum.
+
+Each particle container with spin adds these columns to the `.stat`
+file:
+
+| Column | Meaning |
+|---|---|
+| `mean_polx`, `mean_poly`, `mean_polz` | Mean of each component of $\vec P$ over the particles. |
+| `mean_pol_mag` | Length of the mean vector, $\lvert\langle\vec P\rangle\rvert$. |
+| `rms_polx`, `rms_poly`, `rms_polz` | Standard deviation of each component, $\sqrt{\langle P_i^2\rangle - \langle P_i\rangle^2}$. |
+
+: {tbl-colwidths="[38, 62]"}
 
 The magnitude $|\vec P|$ is bounded by the spin-$\tfrac{1}{2}$ Bloch
 sphere,
@@ -114,10 +127,11 @@ classical anomaly:
 | Muon ($\mu^\pm$) | $1.16592061 \times 10^{-3}$ | [@pdgMuon2024] |
 | Proton, antiproton | $1.792847386$ | [@jackson1999] |
 
-Species not listed default to $G = 0$. In the current OPALX release
-only the muon channel is actively spin-tracked downstream; extending
-the integrator itself to another species is just a matter of populating
-$G$ from the species table.
+Species not listed default to $G = 0$. Only beams with
+`PARTICLE=MUON` may set `POLARIZATION`; `BEAM` rejects it for every
+other species. The electron, positron, proton and antiproton values are
+therefore tabulated but not used yet. The sign of the muon charge
+comes from the beam's `CHARGE`.
 
 ## OPALX unit conventions {#sec-spin-units}
 
@@ -157,32 +171,27 @@ By construction this preserves $|\vec P|$ to machine precision per step,
 independent of $\phi$, so the magnitude drift typical of explicit
 non-symplectic schemes is eliminated.
 
-The remaining accuracy concern is the **constant-$\vec\Omega$
-assumption** across the step. For small per-step rotations the error
-incurred by holding $\vec\Omega$ frozen at its value at the start of the
-step is third order in $\phi$. To bound this error robustly when the
-beamline contains strong fields or when $\Delta t$ is large compared to
-the spin-precession period, OPALX sub-steps whenever the per-step
-rotation exceeds a threshold $\phi_{\max} = 0.1$ rad: the timestep is
-split into
-$$
-  N_{\text{sub}} = \left\lceil \frac{\phi}{\phi_{\max}} \right\rceil
-$$ {#eq-substep-count}
-equal sub-rotations of angle $\phi / N_{\text{sub}}$ each, with
-$\vec\Omega$ re-evaluated identically for each (since $\vec E, \vec B,
-\gamma$ do not change inside a single tracker step). The threshold
-$\phi_{\max} = 0.1$ rad bounds the rotation-truncation error at the
-$10^{-4}$ relative level per step. $\vec P$ is stored in double
-precision, like the momentum.
+The rotation is exact for a fixed $\vec\Omega$ at any angle, so no
+sub-steps are taken. The error comes from how much $\vec\Omega$ changes
+during the step, through the change of the momentum and of the fields
+along the trajectory. If the spin turns by a large angle per step,
+reduce `DT`. $\vec P$ is stored in double precision, like the momentum.
 
 ## Placement in the tracker step {#sec-spin-step-order}
 
-The polarization update is applied after both external and space-charge
-contributions to $\vec E$ and $\vec B$ have been accumulated at each
-particle, but *before* the momentum kick that closes the time step.
-This ordering guarantees that the $\vec E, \vec B$ used to construct
-$\vec\Omega$ in [@eq-tbmt-omega] are precisely the fields the particle
-experiences during the step — the same fields the Boris kick uses — so
-the momentum and spin halves of the step see a consistent
-electromagnetic environment, and no extra mid-step field-interpolation
-is required.
+Each time step rotates $\vec P$ twice, each time by half the
+particle's own time step, $\Delta t/2$:
+
+1. After the external and space-charge fields have been computed at
+   the half-step position, $\vec P$ is turned by $\Delta t/2$ with the
+   momentum before the Boris kick.
+2. The Boris kick updates the momentum with the same fields.
+3. $\vec P$ is turned by another $\Delta t/2$ with the same $\vec E$
+   and $\vec B$ and the momentum after the kick.
+4. The second half drift moves the particle.
+
+Both halves use the fields the kick uses, so momentum and spin see the
+same fields. Because the two halves are placed symmetrically around the
+kick, the spin update is second order in $\Delta t$. $\vec\beta$ and
+$\gamma$ in [@eq-tbmt-omega] are computed from the momentum that each
+half uses.

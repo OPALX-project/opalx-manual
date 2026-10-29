@@ -166,11 +166,11 @@ user-guide section.
 | `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | [CONSTANTFOCUSING](elements.qmd#constant-focusing) |
 | `CONSTANTEFIELDCAVITY` | Applies a spatially uniform, constant electric field inside the element. | [CONSTANTEFIELDCAVITY](elements.qmd#constant-electric-field-cavity) |
 | `QUADRUPOLE` | Defines a thick normal or skew quadrupole. | [QUADRUPOLE](elements.qmd#quadrupole) |
-| `MULTIPOLE` | Defines a thick hard-edge multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |
+| `MULTIPOLE` | Defines a thick hard-edge quadrupole-to-decapole multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |
 | `MULTIPOLET` | Defines a combined-function multipole with fringe and placement controls. | [MULTIPOLET](elements.qmd#multipolet) |
-| `SOLENOID` | Defines a solenoid from normalized strength or a field map. | [SOLENOID](elements.qmd#solenoid) |
+| `SOLENOID` | Defines a solenoid from a field map scaled by `KS`. | [SOLENOID](elements.qmd#solenoid) |
 | `FIELDMAP` | Places a static magnetic or electric field map by a 6D pose; the map sets the length. | [FIELDMAP](elements.qmd#fieldmap) |
-| `RFCAVITY` | Defines a standing-wave or single-gap RF cavity, normally from a field map. | [RFCAVITY](elements.qmd#rfcavity) |
+| `RFCAVITY` | Defines a standing-wave cavity from a field map, an ideal uniform RF field, or a single-gap cyclotron kick. | [RFCAVITY](elements.qmd#rfcavity) |
 | `TRAVELINGWAVE` | Defines a traveling-wave RF structure with cell and phase-advance controls. | [TRAVELINGWAVE](elements.qmd#travelingwave) |
 | `CYCLOTRONSECTOR` | Defines a PSI-style cyclotron sector field with optional named trim coils. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
 | `TRIMCOIL` | Defines a named cyclotron trim-coil field model referenced by `CYCLOTRONSECTOR`. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
@@ -179,10 +179,10 @@ user-guide section.
 | `SBEND` | Defines a sector bending magnet. | [SBEND](elements.qmd#bends) |
 | `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [Element guide](elements.qmd) |
 | `VARIABLE_RF_CAVITY` | Defines an RF cavity whose phase, amplitude, and frequency are provided by named time models. | [VARIABLE_RF_CAVITY](elements.qmd#variable-rf-cavity) |
-| `LASER` | Defines a passive analytic laser pulse with direction and polarization. | [LASER](elements.qmd#laser) |
+| `LASER` | Defines an analytic laser pulse with direction and polarization; it cannot be tracked yet. | [LASER](elements.qmd#laser) |
 | `MONITOR` | Records beam diagnostics at an element location. | [MONITOR](elements.qmd#monitor) |
 | `PROBE` | Records particle crossings over a configured probe span and accumulates peak diagnostics. | [PROBE](elements.qmd#probe) |
-| `MARKER` | Marks a named lattice location without applying a field. | [MARKER](elements.qmd#marker) |
+| `MARKER` | Names a lattice location; it is not placed and has no effect in tracking. | [MARKER](elements.qmd#marker) |
 
 ## Time-dependence definitions {#time-dependence-definitions}
 

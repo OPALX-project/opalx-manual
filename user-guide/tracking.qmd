@@ -84,7 +84,8 @@ TRACK, LINE=Line1, BEAMS={ElectronBeam, PositronBeam},
 `BEAMS` takes precedence whenever it is non-empty. Each entry must resolve to a
 `BEAM`, and OPALX creates one particle container per entry. The order is
 significant: the first beam supplies the reference state used to construct the
-tracking block. Photon beams are rejected when `RUN` starts.
+tracking block, so it cannot be a beam that receives decay daughters. Photon
+beams are rejected when `RUN` starts.
 
 See [Beam Definitions](beam.qmd) for per-container properties and source
 selection.

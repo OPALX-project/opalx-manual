@@ -25,7 +25,9 @@ compatibility guarantee.
 
 For the main `.stat` files, the [bunch moments and RMS emittance
 conventions](../user-guide/conventions/index.qmd#bunch-moments-emittance) define
-the position, momentum-spread, correlation, and emittance columns. The full
+the position, momentum-spread, correlation, and emittance columns. Beams with
+`POLARIZATION` add the spin columns listed in
+[Spin Tracking](../physics/spin-tracking/index.qmd#sec-spin-pol-vector). The full
 statistics schema remains to be documented.
 
 Each completed format page will specify:
@@ -174,7 +176,9 @@ The checkpoint contains:
 - Current step-size segment and the completed-step offset within it. Restart
   positioning uses these values directly.
 - Every particle container's position, momentum, per-particle time step, ID,
-  bin, charge, mass, species, and optional spin.
+  bin, charge, mass, species, and optional spin. On restart, `POLARIZATION`
+  must be set on the same beams as in the checkpointed run; each particle's
+  saved spin is restored, not the `BEAM` value.
 - Per-container path position, reference position and momentum,
   reference-to-lab transform, and current segment-stop state.
 - Autophased RF-cavity phases.

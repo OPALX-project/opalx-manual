@@ -3,7 +3,7 @@ title: "Decay Processes"
 description: "Relativistic decay timing and daughter sampling for charged pions and muons."
 audience: physics
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-29"
 ---
 
 This section describes how *OPALX* models the spontaneous decay of
@@ -15,12 +15,34 @@ muon decay $\mu^\pm \to e^\pm + \nu + \bar\nu$ (three-body, polarized,
 ([@sec-decay-timing]) and a common Lorentz boost to the lab frame
 ([@sec-decay-boost]).
 
-Decay is implemented as a *global process* applied once per tracker
-step, after the momentum kick. Particles flagged for decay in a given
-step are marked for deletion from the parent container and replaced by
-daughters created in a paired container; downstream tracking continues
-on the daughters with their new species mass, charge, and, where
-applicable, polarization vector defined as in the spin-tracking section.
+Decay is a *global process*, applied once per tracker step to every
+beam that sets `GLOBALPROCESSES={DECAY}`. The input rules are listed in
+[Beam Definitions](../../user-guide/beam.qmd#multiple-species-decay-and-spin).
+
+## Place in the time step {#sec-decay-step}
+
+One time step runs in this order:
+
+1. first half drift, field evaluation, first spin half-step;
+2. Boris kick, second spin half-step, second half drift;
+3. decay of every beam with `DECAY`, in the order of `TRACK.BEAMS`,
+   using the tracker time step $\Delta t$;
+4. deletion of the decayed parents.
+
+A daughter starts at its parent's position at the end of the step and
+takes the parent's time step. It is created on the same MPI rank, in the
+beam named by the parent's `DAUGHTERBEAM`. That beam uses the reference
+particle and frame of the first beam of its decay chain, so the daughter
+needs no change of frame. Daughters are first moved in the next step.
+Because beams are handled in `TRACK.BEAMS` order, a muon created by a
+pion decay can itself decay in the same step if the muon beam is listed
+after the pion beam.
+
+Without `DAUGHTERBEAM`, decayed parents are only removed.
+
+Decays add no column to the `.stat` file and are not written to a loss
+file. The beam's particle count drops, and at `--info 2` the log reports
+the number of particles deleted by global processes in each step.
 
 ## Decay timing: relativistic Markov law {#sec-decay-timing}
 
@@ -36,8 +58,8 @@ where $\gamma = \sqrt{1 + |\vec P|^2}$ is computed per-particle from
 the stored momentum $\vec P$ in $\beta\gamma$ units. Each step OPALX
 draws $u \sim U(0,1)$ and marks the particle for decay if
 $u < p_{\text{decay}}$; the parent is then collected into a compact
-view (alongside its position, momentum, and — when spin tracking is
-active — polarization) before daughters are sampled.
+view (alongside its position, momentum, and, when spin tracking is
+active, polarization) before daughters are sampled.
 
 Rest-frame lifetimes used in OPALX (`Physics.h`):
 
@@ -100,22 +122,36 @@ $$ {#eq-pion-helicity}
 The convention follows the standard accelerator notation in which
 positive helicity means $\vec P$ parallel to the daughter momentum.
 
-A subtle but useful point: the boost that takes the muon from the
-pion rest frame to the lab is along $\hat p^{\,*}_\mu$ itself, so the
-projection of $\vec P_\mu$ along that axis is invariant under the
-boost. Writing the rest-frame unit vector $\hat p^{\,*}_\mu$
-directly into the per-particle polarization storage is therefore the
-exact lab-frame value of $\vec P_\mu$ — no additional spin rotation
-is required at boost time. This is what makes the daughter-muon
-polarization computation cheap.
+[@eq-pion-helicity] holds in the muon rest frame reached from the
+*pion* rest frame. `Pol` holds the spin in the muon rest frame reached
+from the *lab* frame by one pure boost. For a moving pion the two
+differ by a rotation, so OPALX transforms the spin as a four-vector.
+In the pion rest frame the muon spin four-vector is
+$$
+  S^{*} = h\,\Big(\frac{p^*}{m_\mu},\;
+          \frac{E^*}{m_\mu}\,\hat p^{\,*}_\mu\Big),
+$$ {#eq-pion-spin-4vector}
+with $p^*, E^*$ in units where $c = 1$. $S^{*}$ is boosted to the lab
+frame with the pion velocity $\vec\beta$ ([@eq-lorentz-boost] applied
+to $(S^{*0}, \vec S^{\,*})$), which gives $S = (S^0, \vec S)$. The
+stored polarization is then
+$$
+  \vec P_\mu = \vec S - \frac{S^0}{\gamma_\mu + 1}\,\vec u_\mu ,
+$$ {#eq-pion-spin-rest}
+where $\vec u_\mu$ is the muon lab momentum in $\beta\gamma$ units and
+$\gamma_\mu = \sqrt{1 + |\vec u_\mu|^2}$. For a pion at rest this
+reduces to $\vec P_\mu = h\,\hat p^{\,*}_\mu$.
 
 ## Muon decay: $\mu^\pm \to e^\pm + \nu + \bar\nu$ {#sec-muon-decay}
 
 Muon decay is a three-body weak process. With two unobserved
 neutrinos, the daughter electron is described by a non-trivial joint
-energy-angle distribution. We use the standard Michel parameterization
-in the limit of an unpolarized electron with massless neutrinos
-[@pdgMuonDecayParams2024].
+energy-angle distribution. OPALX uses the V-A Michel distribution
+[@pdgMuonDecayParams2024] with the electron mass set to zero in the
+spectrum shape and no radiative corrections. The electron mass enters
+only through the lower limit $x_{\min}$ below and through the momentum
+$|\vec p| = \sqrt{E_e^2 - m_e^2}$. The electron polarization is not
+tracked, and the neutrinos are not created.
 
 ### Energy marginal: Michel spectrum
 
@@ -144,13 +180,12 @@ $\hat{\vec P}$ in the muon rest frame, and the asymmetry coefficient is
 $$
   \alpha(x) = s\,|\vec P|\;\frac{2x - 1}{3 - 2x},
   \qquad
-  s = \begin{cases} +1 & \text{for}\ \mu^- \\ -1 & \text{for}\ \mu^+ \end{cases}
+  s = \begin{cases} +1 & \text{for}\ \mu^+ \\ -1 & \text{for}\ \mu^- \end{cases}
 $$ {#eq-muon-asymmetry}
-The sign $s$ reflects the conventional V-A coupling — for $\mu^-$
-the high-energy electron is preferentially emitted *along*
-$\hat{\vec P}$, while for $\mu^+$ the high-energy positron prefers
-the opposite direction. This is the V-A signature that motivates
-spin-dependent muon decay tracking in the first place.
+The sign $s$ follows from the V-A coupling: for $\mu^+$ the
+high-energy positron is preferentially emitted *along* $\hat{\vec P}$,
+while for $\mu^-$ the high-energy electron prefers the opposite
+direction. OPALX takes the sign from the parent beam's `CHARGE`.
 
 ### Inverse-CDF sampling of $\cos\theta$
 
@@ -211,13 +246,10 @@ $\vec P_{\,\text{daughter}} = \vec p_{\,\text{lab}} / m_d$, so that
 the downstream Boris pusher and T-BMT pusher consume it without unit
 conversion.
 
-The polarization vector of the daughter muon from pion decay is
-written directly in the rest frame ([@eq-pion-helicity]) and, as
-noted above, requires no boost rotation because the daughter
-momentum direction is the boost axis. For muon decay the daughter
-electron polarization is not stored — the rest of the simulation
-treats decay electrons as unpolarized — but the muon decay sampler
-needs the *parent* polarization, which is read from the muon
+The polarization of the daughter muon from pion decay is boosted with
+the same formula, as described in [@sec-pion-decay]. For muon decay the
+daughter electron polarization is not stored, but the muon decay
+sampler needs the *parent* polarization, which is read from the muon
 container's polarization view at decay time.
 
 ## Numerical implementation {#sec-decay-numerics}
@@ -229,9 +261,9 @@ sampling of the Michel spectrum; everything else is closed-form.
   [@eq-decay-prob]; survivors retain their state, marked particles
   are compacted into a dense view of $(\vec R, \vec P,
   \Delta t, \vec P_{\text{pol}})$ tuples by a Kokkos parallel scan.
-- **Michel $x$.** Rejection against $f_{\max} = 2$; average
-  acceptance is $\int_0^1 f(x)\,dx / f_{\max}\;\approx\;0.41$, so
-  the rejection loop is short and predictable.
+- **Michel $x$.** $x$ is drawn uniformly on $[x_{\min}, 1]$ and
+  accepted against $f_{\max} = 2$. Since $\int_0^1 f(x)\,dx = 1$, about
+  half of the draws are accepted.
 - **Muon $\cos\theta$.** Closed-form root of [@eq-muon-cosCDF] —
   no rejection, no iteration.
 - **Pion $\cos\theta$.** A single uniform draw.
@@ -239,15 +271,22 @@ sampling of the Michel spectrum; everything else is closed-form.
   $\vec P_{\text{daughter}} = \vec p_{\,\text{lab}} / m_d$,
   consistent with the rest of OPALX's $\beta\gamma$ convention.
 
-Random numbers are sourced from a Kokkos `XorShift64_Pool` seeded
-per-container, so each rank's decay stream is reproducible and
-statistically independent across MPI ranks.
+Random numbers come from one Kokkos `XorShift64_Pool` per decaying
+beam, used both to select the decaying particles and to sample the
+daughters. Its seed is
+$$
+  \text{seed} = s_0 + 104729\,(i_{\text{beam}} + 1) + 8191\,(i_{\text{rank}} + 1),
+$$
+where $s_0$ is `OPTION, SEED`, or $1234567$ when `SEED = -1`, $i_{\text{beam}}$
+is the position of the beam in `TRACK.BEAMS` and $i_{\text{rank}}$ is the
+MPI rank. Unlike other random draws, `SEED = -1` therefore gives a fixed
+seed for decay. The result depends on the number of MPI ranks and on how
+the particles are divided among them.
 
 ## Validation {#sec-decay-validation}
 
-The samplers are verified by distribution-level unit tests that
-compare $10^{4}$–$10^{6}$ generated daughters against the analytic
-forms above.
+The samplers are verified by unit tests that compare $10^{4}$–$10^{6}$
+generated daughters against the analytic forms above.
 
 - **Pion decay.** [TestPionDecaySpectrum.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Physics/TestPionDecaySpectrum.cpp)
   checks that every daughter muon has $|\vec p| = p^*$ from
@@ -259,12 +298,23 @@ forms above.
   $E_\pm = \gamma E^* \pm \beta\gamma\,p^*$.
 
 - **Muon decay.** [TestMuonDecaySpectrum.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Physics/TestMuonDecaySpectrum.cpp)
-  fires fully-polarized muons at rest, fixes the reduced energy
-  $x$, and compares the daughter $\cos\theta$ histogram against the
-  analytic linear-in-$c$ slope $\alpha(x)$ from [@eq-muon-asymmetry].
-  The same test is run for $\mu^-$ and $\mu^+$ to confirm the V-A
-  sign flip.
+  decays $10^5$ fully polarized muons at rest, with $x$ sampled from
+  the full Michel spectrum. It compares the daughter $\cos\theta$
+  histogram with $\tfrac12(1 + A\,c)$, where $A = s\,|\vec P|/3$ is
+  the asymmetry of [@eq-muon-asymmetry] averaged over $x$, and checks
+  that the mean $\cos\theta$ has the sign of the muon charge. It runs
+  for $\mu^-$ and $\mu^+$.
+  [TestMuonDecay.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Physics/TestMuonDecay.cpp)
+  checks the Michel spectrum and its limits.
 
-These tests are run automatically as part of the ctest suite and
-guard the kinematic and polarization correctness of the samplers
-against regressions.
+- **Decay process.** [TestDecay.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Processes/GlobalProcesses/TestDecay.cpp)
+  checks the decay law and its momentum dependence, reproducibility
+  with the same seed, removal without a daughter beam, daughter
+  position and count, energy conservation for boosted parents, the
+  daughter species check, and the pion-daughter spin of
+  [@eq-pion-spin-rest].
+  [TestDecayChain.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Track/TestDecayChain.cpp)
+  checks how decay chains are resolved from `DAUGHTERBEAM` and that
+  invalid settings are rejected.
+
+These tests run as part of the ctest suite.

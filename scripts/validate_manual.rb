@@ -368,9 +368,9 @@ if elements_page.file?
   end
   {
     "regression-driven scope" => "every element type found in the current",
-    "MULTIPOLE runtime order warning" =>
-      "bulk particle kernel applies only indices 0 and 1",
-    "strength-error limitation" => "not applied by the current field kernel",
+    "MULTIPOLE order limit" => "Each array may have at most five entries",
+    "strength-error behavior" => "added to `K1` for both particles and the reference particle",
+    "global P0 rigidity" => "`P0` is not taken from `BEAM`",
     "RFCAVITY autophase behavior" => "`OPTION.AUTOPHASE>0`",
     "cyclotron sector element" => "`CYCLOTRONSECTOR` loads a PSI median-plane",
     "unsupported variable-radius MULTIPOLET mode" =>
@@ -613,7 +613,7 @@ source_audited_inputs = {
     PHASE_MODEL AMPLITUDE_MODEL FREQUENCY_MODEL NUMCELLS MODE
     WAVELENGTH PULSEENERGY PULSELENGTH WAISTX WAISTY DIR STOKES
     XSTART XEND YSTART YEND WIDTH STEP
-    K0 K0S K2 K2S K3 K3S ANGLE E1 E2 HGAP FINT GAP GREATERTHANPI
+    K0 K0S K2 K2S K3 K3S ANGLE E1 E2 HGAP FINT GAP GREATERTHANPI H1 H2 SLICES STEPSIZE
     B0 FIELD_INDEX HEIGHT
     COEFFICIENTS FREQUENCIES PHASE_OFFSETS AMPLITUDES DC_OFFSETS VALUES TIMES ORDER
   ]

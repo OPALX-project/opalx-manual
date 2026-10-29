@@ -18,8 +18,8 @@ of the format or its options), and ⚪ **Unavailable**.
 | `AstraDynamic` | ✅ Available | 1D on-axis RF field map for standing-wave `RFCAVITY` and `TRAVELINGWAVE`; for `TRAVELINGWAVE`, the source map must start at `z=0 m` |
 | `AstraMagnetoStatic` | ✅ Available | 1D on-axis static magnetic field map with Fourier reconstruction. |
 | `3DDynamic` | ✅ Available | 3D Cartesian RF field map for standing-wave `RFCAVITY`; automatic phase estimation requires the map to cover the local axis `x=y=0`. |
-| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
-| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; explicit `TRUE`/`FALSE` normalization flags currently do not work; omit the flag to use automatic normalization |
+| `2DMagnetoStatic` | 🟡 Partially available | Normalized magnetic maps with radial origin `r=0`; an explicit `TRUE`/`FALSE` normalization flag makes the map fail to load; omit the flag to use automatic normalization |
+| `2DDynamic` | 🟡 Partially available | Normalized RF maps with radial origin `r=0`; use the documented `XZ`/`ZX` columns; an explicit `TRUE`/`FALSE` normalization flag makes the map fail to load; omit the flag to use automatic normalization |
 | G4beamline `cylinder` | 🟡 Partially available | `Bz`/`Br` block format; electric fields, `Bphi`, `data` and symmetry sections are unavailable |
 | G4beamline `grid` | 🟡 Partially available | Six- or nine-column `data` format; `points`, symmetry sections and `ZREVERSE` are unavailable |
 
@@ -39,10 +39,21 @@ Reader availability does not mean that every element accepts that format.
 | Element/model | Accepted maps |
 |---|---|
 | [`FIELDMAP`](../../elements.qmd#fieldmap) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and `grid`; dynamic maps are rejected |
-| [`SOLENOID`](../../elements.qmd#solenoid) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and magnetic-only `grid` maps; use `FIELDMAP` for maps containing electric fields |
+| [`SOLENOID`](../../elements.qmd#solenoid) | `2DMagnetoStatic`, `AstraMagnetoStatic`, G4beamline `cylinder` and magnetic-only `grid` maps. `SOLENOID` does not check the map type, so other maps load but give wrong fields; use `FIELDMAP` for maps containing electric fields |
 | [`RFCAVITY`, `TYPE="STANDING"`](../../elements.qmd#rfcavity) | `AstraDynamic`, `2DDynamic`, `3DDynamic` |
 | [`RFCAVITY`, `TYPE="IDEAL"`](../../elements.qmd#rfcavity-ideal) | no field map; `FMAPFN` is rejected |
-| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0` |
+| [`TRAVELINGWAVE`](../../elements.qmd#travelingwave) | `AstraDynamic`; the source map must begin at `z=0`. Other dynamic maps load but stop the run at the first step |
+| [`RBEND`](../../elements.qmd#bends) | `1DProfile1` fringe profile or the built-in `"1DPROFILE1-DEFAULT"`, read by the bend itself; see [below](#opalx-rbend-profile) |
+
+A wrong map given to `SOLENOID` is not rejected: an RF map is applied as a
+static field without its time dependence, and the electric field of a `grid`
+map is applied to the particles without the `KS` factor and is not seen by the
+reference particle.
+
+For `RFCAVITY` and `TRAVELINGWAVE`, if `FREQ` differs from the map frequency by
+more than 1 %, OPALX prints a warning and uses the map frequency. A `3DDynamic`
+map that declares frequency 0 therefore gives a static field whatever `FREQ`
+says. A static map given to `RFCAVITY` stops the run.
 
 `CYCLOTRONSECTOR` and `RFCAVITY, TYPE="SINGLEGAP"` use separate loaders for
 sector fields and voltage profiles. See the
@@ -55,20 +66,24 @@ multipliers, see the [`FIELDMAP` reference](../../elements.qmd#fieldmap).
 
 ### `AstraDynamic` and `AstraMagnetoStatic` {#opalx-astra-field-maps}
 
-The ASTRA readers spline-resample non-equidistant on-axis data onto an
-equidistant grid, mirror the profile periodically, and construct a truncated
-Fourier representation for off-axis field evaluation. The number of retained
-Fourier modes specified in the header controls the reconstruction.
+The ASTRA readers resample the on-axis data with a natural cubic spline onto
+an equidistant grid with as many points as there are accepted samples, mirror
+the profile periodically, and construct a truncated Fourier representation for
+off-axis field evaluation. `N_Fourier` in the header is the number of
+harmonics kept, counting the constant term: harmonics $0$ to
+$N_{\mathrm{Fourier}}-1$. It must be positive; this is not checked.
 
 The first line is `AstraDynamic N_Fourier [TRUE|FALSE]` or
 `AstraMagnetoStatic N_Fourier [TRUE|FALSE]`. `AstraDynamic` then reads a frequency
 in MHz and `(z [m], Ez [MV/m])` records; `AstraMagnetoStatic` reads
 `(z [m], Bz [T])` records immediately after its header. The optional flag defaults
 to `TRUE` and controls normalization of the input profile to a peak absolute
-on-axis field of 1 MV/m or 1 T, respectively. Supply increasing axial samples
-and a nonzero on-axis field;
-both readers reject a zero peak even with normalization disabled. Neither
-reader provides a `FAST` variant.
+on-axis field of 1 MV/m or 1 T, respectively. Supply at least two samples with
+increasing $z$ and a nonzero on-axis field; both readers reject a zero peak
+even with normalization disabled. A sample whose $z$ does not exceed the
+previous one by more than $10^{-10}$ m is skipped without a message. End the
+file with a newline: a last line without one is ignored. Neither reader
+provides a `FAST` variant.
 
 ### `2DMagnetoStatic` {#opalx-2d-magnetostatic}
 
@@ -77,7 +92,9 @@ count is the number of intervals: a count of `N` gives `N+1` grid points.
 Samples contain `Bz Br` in `XZ` order or `Br Bz` in `ZX` order, in tesla.
 Data advance fastest in `z` for `XZ` ordering and in `r` for `ZX` ordering.
 The reader uses bilinear interpolation and normalizes the on-axis longitudinal
-field to a peak magnitude of 1 T.
+field to a peak magnitude of 1 T. The on-axis `Bz` must not be zero everywhere;
+this is not checked and gives invalid fields. Exactly
+`(Nz_intervals+1)(Nr_intervals+1)` samples are read; further data are rejected.
 
 ```text
 2DMagnetoStatic XZ
@@ -88,14 +105,15 @@ Bz Br
 ```
 
 For `ZX`, put the radial bounds/count first and the longitudinal bounds/count
-second. Radial grids must start at zero; nonzero radial origins are currently
-unsupported.
+second. Radial grids must start at zero. A nonzero radial origin is not
+detected: the grid is used as if it started at $r=0$.
 
 ### `2DDynamic` {#opalx-2d-dynamic}
 
 This RF format uses axis bounds in cm and interval counts, giving
 `(Nz_intervals+1)(Nr_intervals+1)` samples. The frequency in MHz appears between
-the two axis records for both orderings. Use a radial grid starting at zero.
+the two axis records for both orderings. Use a radial grid starting at zero;
+as for `2DMagnetoStatic`, a nonzero radial origin is not detected.
 
 ```text
 2DDynamic XZ
@@ -122,7 +140,7 @@ the selected orientation when preparing or converting a map.
 Normalization uses the maximum absolute `Ez` over the entire grid, rather than
 only the axis. The resulting peak absolute `Ez` is 1 MV/m. `Hphi` is converted to magnetic
 flux density with the same normalization factor and the vacuum permeability
-$\mu_0$.
+$\mu_0$. `Ez` must not be zero everywhere; this is not checked.
 
 🟡 **Normalization options:** use a two-token header, such as
 `2DDynamic XZ`. Explicit `TRUE`/`FALSE` normalization flags currently do not work
@@ -152,12 +170,13 @@ components are in A/m and are converted to magnetic flux density using
 $\mu_0$. The reader uses trilinear interpolation.
 
 By default, all six components are divided by the maximum absolute on-axis
-`Ez` sampled at `x=y=0`. Use `3DDynamic FALSE` when the map does not contain that
+`Ez`, interpolated to `x=y=0` in every z plane. Use `3DDynamic FALSE` when the map does not contain that
 axis or has zero on-axis `Ez`. With `FALSE`, physical field values retain their
 input scale before the element amplitude is applied. Nonfinite field records
 are rejected regardless of the flag. Disabling normalization does not remove
-the on-axis requirement of automatic phase estimation; an off-axis-only map
-cannot supply that estimate.
+the on-axis requirement of automatic phase estimation: with an off-axis-only
+map, automatic phasing stops the run. For such a map set `APVETO=TRUE` and
+give `LAG` explicitly.
 
 Frequency must be finite and nonnegative. Bounds must be finite and strictly
 increasing, with at least one interval per axis. Every field component must be
@@ -177,7 +196,7 @@ normalizes to a field peak. With `BSCALE=1` and `ESCALE=1`, a
 after applying any `param` factors.
 
 An optional first line `param` scales the stored values the same way
-G4beamline does. Magnetic values are multiplied by `normB/current` and electric
+G4beamline does; only one `param` line is accepted. Magnetic values are multiplied by `normB/current` and electric
 values by `normE/gradient`. Each key defaults to `1`. `current=0` is rejected,
 and so is `gradient=0` in a `grid` map. The `current=` and `gradient=` that
 G4beamline gives where it places a map correspond to `BSCALE` and `ESCALE` on
@@ -186,7 +205,8 @@ the `FIELDMAP` element.
 Symmetry sections (`extendX`, `extendY`, `extendZ`, ...) are rejected by both
 readers.
 
-`ZREVERSE` is supported only for a `cylinder` map. The same map filename cannot
+`ZREVERSE` is an attribute of `FIELDMAP` and `SOLENOID` and is supported only
+for a `cylinder` map. The same map filename cannot
 be loaded with opposite `ZREVERSE` settings at the same time; use separate files
 if both orientations are needed.
 
@@ -206,13 +226,17 @@ Br
 The `cylinder` line gives the first z (`Z0`), the number of points and the
 spacing in z (`nZ`, `dZ`), and the same in r (`nR`, `dR`). Each count must be
 at least 2. r always starts at 0. `X0`, `Y0`, and `tolerance` are accepted and
-ignored. A `Bz` block follows, and optionally a `Br` block; a missing `Br` block
-means $B_r=0$. In each block a row is one z point and a column one r point,
+ignored, as are other unknown keys; `Z0`, `nZ`, `dZ`, `nR` and `dR` are
+required, and `dZ` and `dR` must be positive. A `Bz` block is required and a
+`Br` block is optional, in either order; a missing `Br` block means $B_r=0$.
+Each row must hold exactly `nR` values. In each block a row is one z point and a column one r point,
 with column 0 on the axis. `Er`, `Ez`, and `Bphi` blocks and the one-point-per-row
 `data` form are rejected.
 
 The field is interpolated bilinearly in r and z, as for `2DMagnetoStatic`.
-`ZREVERSE` mirrors the map in z and negates $B_z$; $B_r$ is unchanged.
+`ZREVERSE` mirrors the map about its own $z=0$ and negates $B_z$; $B_r$ is
+unchanged. The map then covers $[-z_{\mathrm{end}}, -Z_0]$ instead of
+$[Z_0, z_{\mathrm{end}}]$, which moves the element when $Z_0 \neq -z_{\mathrm{end}}$.
 
 #### `grid` maps {#opalx-g4bl-grid}
 
@@ -235,7 +259,8 @@ order does not matter. A row more than a quarter of a spacing off the grid, a
 row that repeats a point, and a point with no row are all errors. A `points`
 section in place of `data` is rejected, and so is `ZREVERSE`.
 
-The field is interpolated trilinearly. Storage for the electric field is
+The field is interpolated trilinearly. A point on or beyond the upper face of
+the grid in any axis gets no field. Storage for the electric field is
 allocated only when a nonzero electric value appears, so nine-column maps whose
 electric columns are all zero cost no more than six-column maps.
 
@@ -246,8 +271,8 @@ A `grid` map takes 24 bytes per grid point for the magnetic field, and another
 $60\times25\times553$ map above takes about 20 MB. Every MPI rank holds its own
 copy, and GPU builds keep one copy in CPU memory and one in GPU memory.
 
-If memory runs out while a map is loaded, OPALX stops with a message that names
-the map. On Linux the operating system may instead accept the request and end
+If memory runs out while any map is loaded, OPALX stops with a message that
+names the map. On Linux the operating system may instead accept the request and end
 the job without a message once the memory is filled. To reduce the memory
 needed, use a coarser grid or a smaller box, or run fewer MPI ranks per node.
 
@@ -258,15 +283,47 @@ A recognized header alone does not make a format usable.
 
 | Format or family | Availability now | Future support |
 |---|---|---|
-| Legacy `1DDynamic`, `1DMagnetoStatic`, `1DProfile1`, `1DElectroStatic` | ⚪ Unavailable | Unconfirmed |
+| Legacy `1DDynamic`, `1DMagnetoStatic`, `1DElectroStatic` | ⚪ Unavailable | Unconfirmed |
 | `2DElectroStatic` | ⚪ Unavailable | Unconfirmed |
 | Legacy `3DMagnetoStatic` (including Extended) and `3DElectroStatic` | ⚪ Unavailable | Unconfirmed |
 | H5hut/HDF5 field blocks | ⚪ Unavailable | Unconfirmed |
 | `AstraElectroStatic` | ⚪ Unavailable | Unconfirmed |
-| Built-in `1DPROFILE1-DEFAULT` profile | ⚪ Unavailable | Unconfirmed |
 
 Recognition is not support: these formats are unavailable in the
-currently audited OPALX source tree.
+currently audited OPALX source tree. A file of one of these types stops the run
+with `Couldn't determine type of fieldmap in file "<file>"`. This also happens
+when a `1DProfile1` file or `"1DPROFILE1-DEFAULT"` is given to an element other
+than `RBEND`.
+
+### `RBEND` fringe profiles {#opalx-rbend-profile}
+
+`RBEND` reads a `1DProfile1` file given in `FMAPFN` with its own reader; no
+other element accepts this format, and `SBEND` ignores `FMAPFN`. The file uses
+the OPAL Type 2 layout described in the historical section: the header
+`1DProfile1 N_entrance N_exit gap`, then `begin origin end flag` for the
+entrance and the same for the exit, then `N_entrance+1` entrance coefficients
+followed by `N_exit+1` exit coefficients. Entrance positions are measured from
+the entrance face and exit positions from the exit face. A Type 1 file, whose
+exit positions include the magnet length, is not detected and puts the exit
+fringe in the wrong place.
+
+The values are read in order, so line breaks do not matter. Lengths are in
+centimetres; the flag must be an integer and is ignored. Each order may be at
+most 15, `begin < origin < end` must hold for both faces, and the gap must be
+positive. If a profile rises away from the magnet, the signs of its odd
+coefficients are flipped so that it falls. Comments start with `#` or `//`; any
+data after the coefficients is rejected.
+
+`FMAPFN="1DPROFILE1-DEFAULT"` uses OPAL's default fifth-order profile for a
+0.02 m gap, with each fringe reaching 0.1 m from its face. OPALX shifts both
+faces so the integral of the profile equals `L`. If no such shift exists, the
+run stops with `Cannot match default fringe effective length; supply an
+explicit 1DProfile1 map.`
+
+When `HGAP` or `GAP` is given, the profile is stretched to that gap; otherwise
+the file's gap is used. The field amplitude is not read from the file: it is
+set so that the design orbit bends by `ANGLE`, using `DESIGNENERGY` if given
+and `P0` otherwise. With a profile, `K0` to `K3S` and `FINT` are rejected.
 
 Missing files, unavailable formats and malformed records are rejected with an
 error. The error handling described in the historical OPAL section applies to

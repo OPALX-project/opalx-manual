@@ -56,8 +56,8 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the remaining red Field Maps future-support paragraph and review-copy notice with the supervisor, plus Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Spin, decay and element interfaces on 2026-10-29 (BEAMBEAM, PROBE, FFA magnets and MULTIPOLET excluded); Field Maps and Auto-phasing availability audit on 2026-10-27 (discussion copies); focused Appendix B parser corrections on 2026-10-26; focused cyclotron EKINSTOP semantics on 2026-10-25; focused FIELDMAP interface review on 2026-10-05; focused BOX and COLLIMATOR interface review on 2026-10-07 | Review the remaining red Field Maps future-support paragraph and review-copy notice with the supervisor, plus Auto-phasing drafts; publish approved manual changes when authorized; recheck BEAMBEAM restrictions, FIELDMAP and BOX at merge; complete remaining interface audit |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Spin tracking, decay processes, bend and multipole sections on 2026-10-29; focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | Focused cleanup on 2026-09-10 | Complete the first contextual review of vague "path" wording |
@@ -1389,3 +1389,43 @@ Use this template for subsequent entries:
   errors. Visually inspect clean Field Maps and Auto-phasing pages locally.
 - Start a local preview server on 127.0.0.1:8766 because the previous server
   was no longer running. No PDF, OPALX tests, commit or push.
+
+
+### 2026-10-29 - DOC-USER/DOC-PHYS: spin, decay and elements
+
+- OPALX revision: `9a14973b0` (master). Manual base: `be61370`, branch
+  `update-spin-decay-elements`.
+- Reviewed: Spin Tracking and Decay Processes pages in full; BEAM spin and
+  decay rules; MONITOR spin output; restart spin rule; User Guide elements
+  common syntax, QUADRUPOLE, MULTIPOLE, SOLENOID, RFCAVITY/TRAVELINGWAVE
+  `FAST`, LASER, MARKER, RBEND/SBEND, VARIABLE_RF_CAVITY, time dependences;
+  bend and multipole physics sections; RBEND `1DProfile1` reader.
+- Changed: spin is turned twice per step by half the step, around the Boris
+  kick, with no sub-steps; `.stat` spin columns; TEMPORAL monitor spin axes.
+  Decay: corrected V-A sign (mu+ positron along the spin), pion-daughter spin
+  boost, Michel acceptance, seed formula, step order, daughter placement,
+  DAUGHTERBEAM rules. Elements: MULTIPOLE rules (no dipole, five entries,
+  errors applied, all orders for particles and reference), global `P0`
+  rigidity, bend attributes (dipole and quadrupole only, Enge fringe, RBEND
+  `E1`/`E2`, `GAP`, `DESIGNENERGY`, `FMAPFN`), SOLENOID `KS` and `ZREVERSE`,
+  `FAST` unused, LASER not trackable, MARKER not placed. Bend page: removed the
+  unimplemented sliced model, the linear fringe ramp, the Bmad comparison and
+  the C-type chicane example (with their figures and input files), which
+  described earlier bend code; class diagrams use the current classes.
+  Validator strings for MULTIPOLE updated.
+- Field maps: User Guide `FIELDMAP` section checked against the source, no
+  change needed. OPALX part of Appendix A checked line by line: corrected the
+  `SOLENOID` row (it does not check the map type), the 2D flag effect (the map
+  fails to load), `FREQ` replaced by the map frequency, ASTRA resampling and
+  sample rules, 2D zero-field and radial-origin limits, 3D off-axis phasing,
+  G4beamline key, block and `ZREVERSE` range rules, unsupported-header error
+  text, and the `RBEND` `1DProfile1` Type 2 layout.
+- Not changed (user decision): BEAMBEAM and PROBE sections, which describe
+  unmerged OPALX branches; SCALINGFFAMAGNET, VERTICALFFAMAGNET, MULTIPOLET and
+  the end-field models.
+- Verification: source validator, full HTML and report renders (no warnings),
+  rendered-HTML validator on 63 pages, whitespace check. Browser tests not run.
+- Open items: new bend benchmarks against the current code are needed; ENGE and
+  ASYMMETRIC_ENGE formula text in the elements page is wrong; OPALX
+  `Beam.cpp` help text says POLARIZATION is along lab axes.
+- Next trigger: merge of BEAMBEAM or PROBE, or the next element interface change.
