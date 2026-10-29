@@ -25,14 +25,14 @@ Regression coverage is stated separately from parser registration.
 | `CONSTANTEFIELDCAVITY` | Uniform electric field | none |
 | `CONSTANTFOCUSING` | Collective linear focusing for DIH studies | none |
 | `QUADRUPOLE` | Normalized quadrupole | none |
-| `MULTIPOLE` | Normalized dipole/quadrupole arrays | none |
+| `MULTIPOLE` | Normalized quadrupole to decapole arrays | none |
 | `MULTIPOLET` | Physical multipole coefficients with fringe fields | optional time model |
 | `SOLENOID` | Mapped solenoid field | field map |
 | `FIELDMAP` | Static magnetic or electric field map; no maintained regression input | field map |
 | `RFCAVITY` | Mapped standing-wave or ideal uniform RF field; cyclotron single-gap kick | field map or voltage profile, except for `TYPE="IDEAL"` |
 | `TRAVELINGWAVE` | Traveling-wave RF field | field map |
 | `CYCLOTRONSECTOR` | PSI-style cyclotron sector field | field map and optional trim coils |
-| `LASER` | Source registered; no maintained regression input | none |
+| `LASER` | Source registered; `TRACK` rejects it | none |
 | `MONITOR` | Source registered; no maintained regression input | output file |
 | `MARKER` | Source registered; no maintained regression input | none |
 | `PROBE` | Cyclotron segment recording; coasting and RF integration checks | `.h5`/`.loss`, `.hist`, `.peaks` |
@@ -61,18 +61,21 @@ and accepts the following common attributes.
 | `ELEMEDGE` | unset | Places the entrance at path length $s$ in metres. May be combined with `PSI`, but not with absolute pose attributes. |
 | `X`, `Y`, `Z` | `0 m` | Absolute lab-frame origin. Explicitly set at least one of `X`, `Y`, `Z`, `THETA`, or `PHI` to select pose placement. |
 | `THETA`, `PHI`, `PSI` | `0 rad` | Absolute rotations about local $y$, $x$, and $z$. `PSI` is also the optional roll for `ELEMEDGE` placement. |
-| `DX`, `DY`, `DZ` | `0 m` | Local translational misalignment applied after placement. |
+| `DX`, `DY`, `DZ` | `0 m` | Local translational misalignment applied after placement. It moves the element for the particles only; the reference particle sees the element at its nominal place. |
 | `DTHETA`, `DPHI`, `DPSI` | `0 rad` | Local rotational misalignment. |
-| `APERTURE` | none | Transverse aperture string, for example `CIRCLE(0.02)`, `ELLIPSE(0.03,0.02)`, `RECTANGLE(0.03,0.02)`, or `SQUARE(0.02)`. Dimensions are full widths in metres. Without it, the element has no transverse limit. See [Particle removal](#particle-removal). |
+| `APERTURE` | none | Transverse aperture string, for example `CIRCLE(0.02)`, `ELLIPSE(0.03,0.02)`, `RECTANGLE(0.03,0.02)`, or `SQUARE(0.02)`. Dimensions are full widths in metres. Other shapes and a third argument are rejected. Without it, the element has no transverse limit. See [Particle removal](#particle-removal). |
 | `DELETEONTRANSVERSEEXIT` | `TRUE` | Requests particle deletion when an element reports a transverse aperture exit. |
-| `TYPE` | unset | Type-specific design selector; currently relevant to `RFCAVITY` below. |
-| `WAKEF`, `PARTICLEMATTERINTERACTION`, `OUTFN` | unset | Parsed common compatibility attributes, but not acted on by the eight element implementations on this page. |
+| `TYPE` | unset | Type-specific selector, used by `RFCAVITY` and `MONITOR` below. Only listed values are accepted: `STANDING`, `SINGLEGAP` and `IDEAL` for `RFCAVITY`; `RING`, `CARBONCYCL`, `CYCIAE`, `AVFEQ`, `FFA`, `BANDRF`, `SYNCHROCYCLOTRON`, `SINGLEGAP`, `STANDING`, `TEMPORAL` and `SPATIAL` for other elements. |
+| `OUTFN` | unset | Output file name, used by `MONITOR`. |
+| `WAKEF`, `PARTICLEMATTERINTERACTION` | unset | Parsed but not acted on. `RBEND` and `SBEND` reject them. |
 
 : {tbl-colwidths="[28, 15, 57]"}
 
 Exactly one placement strategy is required. Supplying both `ELEMEDGE` and an
 absolute pose fails; supplying neither also fails. `PSI` alone does not select
-absolute placement.
+absolute placement. All elements of one line must use the same strategy: a line
+that mixes `ELEMEDGE` and absolute poses is rejected. `MARKER` is the exception;
+its placement attributes are ignored.
 
 ### Particle removal: `APERTURE`, `COLLIMATOR`, and `BOX` {#particle-removal}
 
@@ -80,7 +83,7 @@ Three inputs delete particles from the beam.
 
 | Input | Deletes particles | Where | Use it for |
 |---|---|---|---|
-| `APERTURE` | outside the given shape | any element | the beam pipe or the bore of a magnet or cavity |
+| `APERTURE` | outside the given shape | most elements, see below | the beam pipe or the bore of a magnet or cavity |
 | [`COLLIMATOR`](#collimator) | outside its `APERTURE` | a field-free element that must have `APERTURE` and `L > 0` | an aperture restriction with no field, such as an iris |
 | [`BOX`](#box) | inside a block, $\lvert x\rvert <$ `WIDTH`/2 and $\lvert y\rvert <$ `HEIGHT`/2 | a field-free element, moved and tilted by its placement | a piece of material beside the beam, such as one collimator jaw |
 
@@ -100,6 +103,13 @@ All three follow the same rules:
 - The boundary itself counts as outside: a particle exactly on it is deleted
   by `APERTURE` and `COLLIMATOR` and kept by `BOX`.
 - `DELETEONTRANSVERSEEXIT=FALSE` turns deletion off for that element.
+- `BOX` rejects `APERTURE`. `RBEND` and `SBEND` accept it only with `HGAP > 0`
+  and a vertical half-width no larger than `HGAP`; see [bends](#bends).
+  `MARKER` ignores it.
+- `MULTIPOLE`, `QUADRUPOLE`, `RBEND`, `SBEND` and `RFCAVITY` with
+  `TYPE="IDEAL"` apply their field only inside the aperture. With
+  `DELETEONTRANSVERSEEXIT=FALSE`, a particle outside it is kept but sees no
+  field from that element.
 - No loss file is written. Deleted particles reduce `numParticles` in the
   `.stat` file. With `--info 2`, the log reports how many particles were
   marked for deletion in each step.
@@ -331,7 +341,11 @@ direction reverses with particle charge.
 ## `QUADRUPOLE` {#quadrupole}
 
 `QUADRUPOLE` is a convenience wrapper around `MULTIPOLE`. It converts
-normalized strengths to physical gradients using the reference rigidity.
+normalized strengths to physical gradients with the rigidity
+$B\rho = P_0/c$, where `P0` is the global reference momentum in GeV/$c$
+(default 1). `P0` is not taken from `BEAM`; set it with `REAL P0 = ...;`
+before the element definitions (see
+[control statements](control-statements/index.qmd)).
 
 ```opal
 Q1: QUADRUPOLE, L=0.5, ELEMEDGE=0.0, K1=0.54;
@@ -341,42 +355,47 @@ Q1: QUADRUPOLE, L=0.5, ELEMEDGE=0.0, K1=0.54;
 |---|---:|---:|---|
 | `K1` | `0` | $\mathrm m^{-2}$ | Normal normalized quadrupole strength. |
 | `K1S` | `0` | $\mathrm m^{-2}$ | Skew normalized quadrupole strength. |
-| `DK1` | `0` | $\mathrm m^{-2}$ | Parsed and stored normal error, but not applied by the current field kernel. |
-| `DK1S` | `0` | $\mathrm m^{-2}$ | Parsed and stored skew error, but not applied by the current field kernel. |
+| `DK1` | `0` | $\mathrm m^{-2}$ | Normal error, added to `K1` for both particles and the reference particle. |
+| `DK1S` | `0` | $\mathrm m^{-2}$ | Skew error, added to `K1S` in the same way. |
 
 : {tbl-colwidths="[18, 12, 18, 52]"}
 
 Use a positive `L`. Although inherited help text mentions integrated zero-length
-strengths, the current particle kernel has no nonzero field interval when
-`L=0`.
+strengths, the field is applied only on $0\le z<L$, so `L=0` gives no field.
+
+The field does not depend on the beam's charge: the gradient is
+$g = B\rho\,K_1$ for every species. A positive `K1` focuses positive particles
+horizontally and defocuses negative particles horizontally.
 
 ## `MULTIPOLE` {#multipole}
 
-`MULTIPOLE` accepts arrays of normalized normal and skew strengths. Array index
-zero is dipole and index one is quadrupole.
+`MULTIPOLE` is a straight multipole from quadrupole to decapole, defined by
+arrays of normalized normal and skew strengths. Index 0 is the dipole, index 1
+the quadrupole, up to index 4, the decapole.
 
 ```opal
-M1: MULTIPOLE, L=0.5, ELEMEDGE=0.0, KN={0.0,0.54};
+M1: MULTIPOLE, L=0.5, ELEMEDGE=0.0, KN={0.0,0.54,1.2};
 ```
 
-| Parameter | Default | Current behavior |
-|---|---:|---|
-| `KN` | empty | Normal normalized strengths: index 0 dipole, index 1 quadrupole. |
-| `KS` | empty | Skew normalized strengths with the same indexing. |
-| `DKN` | empty | Parsed and stored normal-error array, but not applied by the current field kernel. Missing entries are padded with zero. |
-| `DKS` | empty | Parsed and stored skew-error array, but not applied by the current field kernel. Missing entries are padded with zero. |
+| Parameter | Default | Unit | Current behavior |
+|---|---:|---:|---|
+| `KN` | empty | $\mathrm m^{-(n+1)}$ | Normal normalized strengths $K_n$, index $n$ from 0 (dipole) to 4 (decapole). |
+| `KS` | empty | $\mathrm m^{-(n+1)}$ | Skew normalized strengths with the same indexing. |
+| `DKN` | empty | $\mathrm m^{-(n+1)}$ | Normal errors, added to `KN` for both particles and the reference particle. Missing entries are padded with zero. |
+| `DKS` | empty | $\mathrm m^{-(n+1)}$ | Skew errors, added to `KS` in the same way. |
 
-::: {.callout-warning title="Current order limit"}
-The parser accepts longer arrays, but the current particle and reference
-kernels do not agree: the bulk particle kernel applies only indices 0 and 1,
-while the host/reference kernel evaluates higher orders. A higher-order entry
-can therefore change the threaded reference orbit without applying the same
-field to tracked particles. Use `MULTIPOLET` instead.
-:::
+: {tbl-colwidths="[14, 12, 18, 56]"}
 
-Strengths are multiplied by the reference rigidity before tracking. As for
-`QUADRUPOLE`, use positive length; zero-length integrated operation is not
-effective in the current parallel kernel.
+Each array may have at most five entries, and its first (dipole) entry must be
+zero; otherwise the element is rejected. `MULTIPOLE` is placed as a straight
+element, so a dipole field would steer the beam away from it. Use `SBEND` or
+`RBEND` for a dipole.
+
+Particles and the reference particle use the same field for all orders. The
+strengths are converted with $B\rho = P_0/c$ from the global `P0`, as for
+`QUADRUPOLE`, and do not depend on the beam's charge. The field is described in
+[Element Physics](../physics/elements/index.qmd#sec-elements-multipoles). As
+for `QUADRUPOLE`, use positive length; `L=0` gives no field.
 
 ## `MULTIPOLET` {#multipolet}
 
@@ -415,8 +434,7 @@ aperture; do not substitute the common `APERTURE` string for them. The six-entry
 
 ## `SOLENOID` {#solenoid}
 
-`SOLENOID` loads a magnetic field map and scales it with a normalized solenoid
-strength. The map defines the actual longitudinal field-support interval,
+`SOLENOID` loads a magnetic field map and multiplies it by `KS`. The map defines the actual longitudinal field-support interval,
 which may differ from nominal `L`.
 
 ```opal
@@ -427,10 +445,11 @@ S1: SOLENOID,
 
 | Parameter | Default | Current behavior |
 |---|---:|---|
-| `KS` | unset ($0$ when read) | Normalized field-map scale in $\mathrm m^{-1}$. It is converted using the reference rigidity. |
-| `DKS` | unset ($0$ when read) | Additive scale error for tracked particles; the reference-particle field omits this error. |
+| `KS` | unset ($0$ when read) | Plain multiplier on the field map. It is not converted with a rigidity: for a map normalized to 1 T, `KS` is the field in tesla. |
+| `DKS` | unset ($0$ when read) | Additive error on `KS` for tracked particles; the reference-particle field omits this error. |
 | `FMAPFN` | unset | Required field-map filename. Tracking cannot apply a solenoid without a loaded map. |
-| `FAST` | `TRUE` | Passed to the field-map loader as its fast/accuracy selection. |
+| `ZREVERSE` | `FALSE` | Reads the map back to front: mirrors it in $z$ and negates $B_z$, as when the magnet is turned around. Only G4beamline cylinder maps support it. |
+| `FAST` | `TRUE` | Parsed but not used. |
 
 The element does not generate an analytic hard-edge solenoid when `FMAPFN` is
 missing. Keep the field map beside the input or use an unambiguous relative
@@ -520,7 +539,7 @@ Gun: RFCAVITY,
 | `FREQ` | unset | MHz | RF frequency. For `STANDING`, a field-map value differing by more than 1% replaces it with a warning. `IDEAL` requires a finite, nonnegative value; zero selects a static field. |
 | `LAG`, `DLAG` | unset | rad | Nominal phase and additive phase error, using a cosine convention. |
 | `FMAPFN` | unset | path | Required for `STANDING`; supported maps are `FM2DDynamic`, `FM3DDynamic`, and `Astra1DDynamic`. Must be omitted for `IDEAL`. |
-| `FAST` | `TRUE` | Boolean | Passed to the field-map loader; has no effect for `IDEAL`. |
+| `FAST` | `TRUE` | Boolean | Parsed but not used. |
 | `APVETO` | `FALSE` | Boolean | If true, excludes this cavity from automatic phase optimization. |
 | `DESIGNENERGY` | `-1` | MeV | Positive target exit kinetic energy; the autophaser also adjusts amplitude to reach it. Negative disables the target. |
 | `GEOMETRY` | unset | name | Parsed boundary-geometry compatibility attribute; not connected by the current element update. |
@@ -593,8 +612,8 @@ TW1: TRAVELINGWAVE,
 | `VOLT`, `DVOLT` | unset | MV/m | Nominal field-map amplitude and additive error. |
 | `FREQ` | unset | MHz | RF frequency converted internally to angular frequency. |
 | `LAG`, `DLAG` | unset | rad | Nominal phase and additive phase error. |
-| `FMAPFN` | unset | path | Required traveling-wave field map. |
-| `FAST` | `TRUE` | Boolean | Passed to the field-map loader. |
+| `FMAPFN` | unset | path | Required traveling-wave field map. It must be an `Astra1DDynamic` map whose $z$ range starts at 0. |
+| `FAST` | `TRUE` | Boolean | Parsed but not used. |
 | `APVETO` | `FALSE` | Boolean | Excludes the structure from automatic phase optimization when true. |
 | `NUMCELLS` | unset | cells | Number of cells, converted from real input to an integer. Use a positive integer. |
 | `MODE` | `1/3` | turns | RF phase advance between neighboring cells, expressed as a fraction of $2\pi$. |
@@ -643,8 +662,9 @@ files.
 
 ## `LASER` {#laser}
 
-`LASER` defines a passive analytic laser pulse. It is registered by the current
-source but is not exercised by the maintained regression suite.
+`LASER` defines an analytic laser pulse. The definition is accepted, but a
+`TRACK` whose line contains a `LASER` stops with the error
+`Tracking of the "LASER" element is not implemented yet.`
 
 ```opal
 L1: LASER, L=0.0, ELEMEDGE=0.0,
@@ -675,7 +695,7 @@ M1: MONITOR, L=0.01, ELEMEDGE=0.5, TYPE=SPATIAL, OUTFN="monitor.h5";
 | Parameter | Default | Current behavior |
 |---|---:|---|
 | `L` | at least `0.01` m at update | Element geometry length. Sampling takes place at the local $z=0$ plane, rather than throughout this length. |
-| `TYPE` | spatial collection | Exactly `TEMPORAL` selects a bunch snapshot triggered by the reference crossing; every other value selects individual spatial crossings. Use `SPATIAL` explicitly for clarity. |
+| `TYPE` | spatial collection | `TEMPORAL` selects a bunch snapshot triggered by the reference crossing; `SPATIAL`, another value from the common `TYPE` list, or no value selects individual spatial crossings. Values outside that list are rejected. Use `SPATIAL` explicitly for clarity. |
 | `OUTFN` | element name | Output stem. A supplied extension is stripped before `.h5` or `.loss` is added. |
 
 The monitor accepts the common placement attributes. Its sampling plane is the
@@ -697,8 +717,8 @@ additional field integration to the crossing. See the
 for the intersection and drift formulas.
 
 Spatial records use the monitor-local coordinates. Temporal positions use a
-reference-aligned snapshot frame, while the stored momenta are taken from the
-current particle container. These records should not be interpreted as
+reference-aligned snapshot frame, while the stored momenta and spins are taken
+from the current particle container, along the bunch-frame axes. These records should not be interpreted as
 laboratory coordinates without accounting for the corresponding frame.
 
 ### Output files and timestamps {#monitor-output-times}
@@ -711,7 +731,11 @@ not particle losses.
 
 HDF5 particle datasets include `id`, `x`, `y`, `z`, `px`, `py`, `pz`, `q`,
 `m`, and `time`. Positions use metres, normalized momentum is dimensionless,
-and times use seconds. Each saved set also carries reference `TIME`, mean
+and times use seconds. For a beam with `POLARIZATION`, the HDF5 file also
+holds `polx`, `poly` and `polz`, and the ASCII file adds the columns `polx`,
+`poly` and `polz` after `time`. The recorded spin is the value at the start of
+the crossing step; it is not turned to the crossing time. See
+[Spin Tracking](../physics/spin-tracking/index.qmd). Each saved set also carries reference `TIME`, mean
 particle time `meanTime`, and time spread `rmsTime`.
 
 | HDF5 quantity | `SPATIAL` | Current `TEMPORAL` convention |
@@ -741,11 +765,12 @@ longitudinal arrival information.
 ## `MARKER` {#marker}
 
 `MARKER` identifies a lattice location without adding a field. It accepts the
-common placement attributes. Built-in `#S` and `#E` markers denote the start
+common placement attributes but ignores them: a `MARKER` is not placed and
+does nothing during tracking. Built-in `#S` and `#E` markers denote the start
 and end of a line.
 
 ```opal
-IP: MARKER, ELEMEDGE=1.2;
+IP: MARKER;
 ```
 
 ## `PROBE` {#probe}
@@ -815,31 +840,48 @@ first accepted endpoint; no crossing is inferred across an unobserved interval.
 
 `RBEND` defines rectangular bend geometry whose `L` is the straight body
 length. `SBEND` defines sector geometry whose `L` is the design-orbit arc
-length. Both apply normal and skew components through octupole order.
+length. Both apply normal and skew dipole and quadrupole fields.
 
 ```opal
+REAL P0 = 0.1;   // GeV/c, reference momentum for the strengths
 B1: SBEND, L=0.5, ELEMEDGE=1.0, ANGLE=0.1,
     K1=0.0, HGAP=0.02, FINT=0.5;
 ```
 
 | Parameter | Unit | Current behavior |
 |---|---:|---|
-| `ANGLE` | rad | Requested bend angle. |
-| `K0`, `K0S` | $\mathrm m^{-1}$ | Normal and skew dipole coefficients. If `K0` is omitted, OPALX derives the normal dipole from `ANGLE` and geometry. |
-| `K1`, `K1S` | $\mathrm m^{-2}$ | Normal and skew quadrupole coefficients. |
-| `K2`, `K2S` | $\mathrm m^{-3}$ | Normal and skew sextupole coefficients. |
-| `K3`, `K3S` | $\mathrm m^{-4}$ | Normal and skew octupole coefficients. |
-| `HGAP` | m | Half gap; OPALX stores twice this value as the full gap. |
-| `FINT` | none | Fringe integral; default `0.5`. |
-| `HAPERT` | m | Positive values install a rectangular transverse aperture. |
-| `DESIGNENERGY` | eV | Optional design energy forwarded to the bend. |
-| `E1`, `E2` | rad | Parsed but explicitly rejected by the current native bend port. |
-| `GAP`, `GREATERTHANPI` | - | Rejected compatibility attributes. Use `HGAP`; bends beyond the old compatibility path are unsupported. |
-| `WAKEF`, `PARTICLEMATTERINTERACTION` | name | Rejected by the current native bend port. |
+| `ANGLE` | rad | Bend angle of the design orbit. |
+| `K0`, `K0S` | $\mathrm m^{-1}$ | Normal and skew dipole strengths. If `K0` is omitted, it is derived from `ANGLE`: `ANGLE/L` for `SBEND`, $2\sin(\mathrm{ANGLE}/2)/L$ for `RBEND` (`ANGLE` divided by the arc length when `E1` or `E2` is given). A given `K0` replaces this value. |
+| `K1`, `K1S` | $\mathrm m^{-2}$ | Normal and skew quadrupole strengths. |
+| `K2`, `K2S`, `K3`, `K3S` | $\mathrm m^{-3}$, $\mathrm m^{-4}$ | Parsed but not applied: the field has dipole and quadrupole terms only. |
+| `HGAP` | m | Half gap, default 0. `HGAP > 0` gives an Enge fringe field reaching five full gaps past each face and a vertical aperture of $\pm$`HGAP`. `HGAP = 0` gives a hard edge and no aperture. |
+| `GAP` | m | `RBEND` only: full gap, instead of `HGAP`. Giving both is rejected. `SBEND` rejects `GAP`. |
+| `FINT` | none | Fringe integral, default `0.5`. Used only with `HGAP > 0`, for the vertical edge focusing. |
+| `HAPERT` | m | Horizontal half-aperture. Must be positive, needs `HGAP > 0`, and cannot be combined with `APERTURE`. |
+| `E1`, `E2` | rad | `RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them. |
+| `FMAPFN` | path | `RBEND` only: a `1DProfile1` fringe-profile file, or `"1DPROFILE1-DEFAULT"` for OPAL's default profile. The dipole is then calibrated to `ANGLE`; `K0`…`K3S` and `FINT` are rejected. `SBEND` ignores it. |
+| `DESIGNENERGY` | MeV | `RBEND` only: kinetic energy the field is set for. The field is scaled by $p(\mathrm{DESIGNENERGY})/P_0$. Must be positive. `SBEND` rejects it. |
+| `H1`, `H2` | $\mathrm m^{-1}$ | Pole-face curvature: rejected by `RBEND`, ignored by `SBEND`. |
+| `GREATERTHANPI` | - | Rejected by `SBEND`, ignored by `RBEND`. |
+| `SLICES`, `STEPSIZE`, `NSLICES` | - | Parsed but not used. |
+| `WAKEF`, `PARTICLEMATTERINTERACTION` | name | Rejected. |
+
+: {tbl-colwidths="[22, 14, 64]"}
+
+The strengths are converted with $B\rho = P_0/c$ from the global `P0`
+(GeV/$c$, default 1), as for `QUADRUPOLE`; set `P0` to the beam's reference
+momentum. Unlike `MULTIPOLE`, the bend divides the field by the charge of the
+beam, so the bend direction is the same for either sign of charge.
+
+`APERTURE` is accepted only with `HGAP > 0`, and its vertical half-width must not
+exceed `HGAP`. Particles are removed only inside the body, $0\le s<L$, while the
+field also acts in the fringe regions.
 
 The classes are registered but currently lack maintained regression inputs.
 Treat pole-face, fringe, aperture, and sign conventions as experimental until
-validated for the intended lattice.
+validated for the intended lattice. See
+[Element Physics](../physics/elements/index.qmd#sec-elements-bends) for the
+field model.
 
 ## `SCALINGFFAMAGNET` {#scalingffamagnet}
 
@@ -988,7 +1030,7 @@ VC1: VARIABLE_RF_CAVITY, L=0.2, ELEMEDGE=0.0,
 | `PHASE_MODEL` | Phase in radians. |
 | `AMPLITUDE_MODEL` | Electric field in MV/m. |
 | `FREQUENCY_MODEL` | Frequency in MHz. |
-| `WIDTH`, `HEIGHT`, `L` | Full cavity dimensions in metres. |
+| `WIDTH`, `HEIGHT`, `L` | Full cavity dimensions in metres. `WIDTH` and `HEIGHT` are required; zero or unset values are rejected when tracking starts. |
 
 The field support is $0\le z<L$, $|x|\le\mathrm{WIDTH}/2$, and
 $|y|\le\mathrm{HEIGHT}/2$ in the element frame. The entrance and transverse
@@ -1021,9 +1063,10 @@ this element, even with zero amplitude. See the
   or `COEFFICIENTS`, not both.
 
 `SINUSOIDAL_TIME_DEPENDENCE`
-: Sums components defined by `FREQUENCIES`, optional `PHASE_OFFSETS`,
-  `AMPLITUDES`, and `DC_OFFSETS`. Arrays must describe compatible component
-  counts. With the cavity's time in seconds, `FREQUENCIES` are in Hz;
+: Sums components $\tfrac{a_i}{2}\sin(2\pi f_i t + \phi_i) + o_i$. The length
+  of `FREQUENCIES` sets the number of components. `PHASE_OFFSETS`, `AMPLITUDES`
+  (peak-to-peak) and `DC_OFFSETS` are optional; missing entries default to 0, 1
+  and 0, and extra entries are ignored. With the cavity's time in seconds, `FREQUENCIES` are in Hz;
   these are modulation frequencies, distinct from the MHz output expected
   by `FREQUENCY_MODEL`. The current sinusoidal integral has an inconsistent
   oscillating-amplitude normalization; use a polynomial frequency model
@@ -1039,11 +1082,11 @@ this element, even with zero amplitude. See the
 
 - Registration establishes accepted input syntax, not numerical validation.
   Elements without a maintained regression input are identified above.
-- `QUADRUPOLE` and `MULTIPOLE` strength-error inputs are parser-visible but do
-  not affect the current field kernels.
-- The current bulk-particle `MULTIPOLE` kernel applies dipole and quadrupole
-  components only, while its host/reference kernel also evaluates higher
-  orders. Do not use higher-order `MULTIPOLE` arrays for production tracking.
+- `QUADRUPOLE`, `MULTIPOLE`, `RBEND` and `SBEND` take their rigidity from the
+  global `P0`, not from `BEAM`. Set `P0` to the beam's reference momentum.
+- `RBEND` and `SBEND` apply dipole and quadrupole fields only; `K2` and `K3`
+  are ignored.
+- `LASER` cannot be tracked, and `MARKER` placement attributes have no effect.
 - Field-map elements require their external maps; generated maps and large
   binary support data belong outside the manual repository.
 - Establish step-size, placement, aperture, and field-map convergence for each

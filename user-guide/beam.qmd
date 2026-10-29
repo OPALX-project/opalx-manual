@@ -31,10 +31,10 @@ charge. The named emission-source list must exist when `RUN` resolves the beam.
 | `GAMMA` | unset | - | Reference Lorentz factor; must be greater than one. |
 | `BCHARGE` | `0` | C | Bunch-charge magnitude used with `NALLOC` to calculate macroparticle charge. |
 | `NALLOC` | required | particles | Positive allocation and macroparticle-weight baseline. Real input is converted to an integer size. |
-| `SOURCES` | required | name | `EMISSIONSOURCELIST` used by this non-photon beam. |
+| `SOURCES` | required | name | `EMISSIONSOURCELIST` used by this non-photon beam. Not allowed on a beam that receives decay daughters. |
 | `GLOBALPROCESSES` | empty | names | Uppercase array of global processes. Only `DECAY` is currently accepted. |
 | `DAUGHTERBEAM` | empty | name | Beam/container that receives daughter particles from a configured decay. |
-| `POLARIZATION` | unset | - | Muon-only vector `{Px, Py, Pz}` with $|\mathbf P|\leq1$. Setting it, including to zero, enables spin storage. |
+| `POLARIZATION` | unset | - | Muon-only vector `{Px, Py, Pz}` with $|\mathbf P|\leq1$; requires `PARTICLE`. Setting it, including to zero, enables spin tracking. Every particle starts with this vector, given along the same axes as the distribution momenta. |
 | `BCURRENT`, `BFREQ` | unset | - | Legacy attributes explicitly rejected by OPALX; use `BCHARGE`. |
 
 The predefined `PARTICLE` values are `PHOTON`, `ELECTRON`, `POSITRON`, `MUON`,
@@ -58,20 +58,34 @@ derive macroparticle charge even when the sum of `NPARTDIST` over all sources
 sets a different runtime allocation. Keep `NALLOC` at least as large as that
 sum unless the weighting is intentional.
 
-Every tracked non-photon beam requires a non-empty `SOURCES` name. The target
-list must contain at least one `EMISSIONSOURCE`; it is resolved during `RUN`.
+Every tracked non-photon beam requires a non-empty `SOURCES` name, except a
+beam that receives decay daughters. The target list must contain at least one
+`EMISSIONSOURCE`; it is resolved during `RUN`.
 
-## Multiple species, decay, and spin
+## Multiple species, decay, and spin {#multiple-species-decay-and-spin}
 
 Use `TRACK.BEAMS` to select several beam definitions in a fixed order. OPALX
 creates one particle container per entry. For decay calculations:
 
-- `GLOBALPROCESSES={DECAY}` is implemented for muons and pions.
+- `GLOBALPROCESSES={DECAY}` is implemented for `PARTICLE=MUON` and
+  `PARTICLE=PION`.
+- `DAUGHTERBEAM` is optional. Without it, decayed particles are only removed.
 - `DAUGHTERBEAM` must name another beam selected by the same `TRACK` command.
+  A beam can be the daughter beam of only one beam, and the settings must not
+  form a loop. Chains such as pion to muon to electron are allowed.
+- The daughter species is fixed: a pion beam needs a `PARTICLE=MUON` daughter
+  beam, and a muon beam a `PARTICLE=ELECTRON` daughter beam.
+- A decay keeps the charge: the daughter beam must have the same `CHARGE` as
+  its parent. The default charges are $+1$ for `PION` and $-1$ for `MUON` and
+  `ELECTRON`, so set `CHARGE` where needed. For $\mu^+\to e^+$, use
+  `PARTICLE=ELECTRON, CHARGE=1`; `PARTICLE=POSITRON` is rejected as a daughter.
+- A daughter beam uses the reference particle of the first beam of its chain.
+  It must not set `SOURCES`, `GAMMA`, `ENERGY` or `PC`, and it cannot be the
+  first entry of `TRACK.BEAMS`.
 - Parent and daughter beams must represent one physical particle per
   macroparticle: `BCHARGE = NALLOC * |CHARGE| * q_e`.
-- Muon decay requires `POLARIZATION`; a daughter-muon beam also needs it so the
-  destination container allocates spin storage.
+- Muon decay requires `POLARIZATION`. A daughter muon beam also needs it so the
+  container stores spin; the decay sets each daughter's value.
 
 The [Decay Processes](../physics/decay-processes/index.qmd) chapter gives the
 physics model and validation.
