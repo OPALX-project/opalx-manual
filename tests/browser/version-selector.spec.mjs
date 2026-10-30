@@ -16,11 +16,13 @@ test("defaults to OPALX and switches among all modes", async ({ page }) => {
   await expect(opalx).toBeVisible();
   await expect(opal).toBeHidden();
 
-  await page.getByRole("radio", { name: "OPAL", exact: true }).check();
+  await page.locator(".opal-version-selector").getByText("OPAL", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "OPAL", exact: true })).toBeChecked();
   await expect(opalx).toBeHidden();
   await expect(opal).toBeVisible();
 
-  await page.getByRole("radio", { name: "Both", exact: true }).check();
+  await page.locator(".opal-version-selector").getByText("Both", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "Both", exact: true })).toBeChecked();
   await expect(opalx).toBeVisible();
   await expect(opal).toBeVisible();
 });
@@ -28,7 +30,8 @@ test("defaults to OPALX and switches among all modes", async ({ page }) => {
 test("persists independently of theme and sidebar state", async ({ page }) => {
   await page.goto(dualPage);
   await expect(page.locator("html")).toHaveAttribute("data-opalx-sidebar-state-ready", "true");
-  await page.getByRole("radio", { name: "OPAL", exact: true }).check();
+  await page.locator(".opal-version-selector").getByText("OPAL", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "OPAL", exact: true })).toBeChecked();
 
   const chapterToggle = page.getByRole("button", {
     name: "Toggle Beam and Distributions sections"
@@ -67,7 +70,8 @@ test("makes custom and margin TOCs version-aware", async ({ page }) => {
   await expect(page.locator('[data-opalx-toc-anchor="opal-distribution-units"]')).toBeHidden();
   await expect(page.locator('[data-opalx-toc-anchor="emissionsource"]')).toBeVisible();
 
-  await page.getByRole("radio", { name: "OPAL", exact: true }).check();
+  await page.locator(".opal-version-selector").getByText("OPAL", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "OPAL", exact: true })).toBeChecked();
   await expect(page.locator('[data-opalx-toc-anchor="opal-distribution-units"]')).toBeVisible();
   await expect(page.locator('[data-opalx-toc-anchor="emissionsource"]')).toBeHidden();
 });

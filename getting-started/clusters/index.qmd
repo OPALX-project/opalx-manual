@@ -6,31 +6,17 @@ status: experimental
 last-reviewed: "2026-07-22"
 ---
 
-```{=html}
-<style>
-.getting-started-review-change, .getting-started-review-change * { color: #b00020 !important; }
-body.quarto-dark .getting-started-review-change,
-body.quarto-dark .getting-started-review-change * { color: #ff8080 !important; }
-</style>
-```
-
-::: {.getting-started-review-change}
-Review copy: changes from the Getting Started release audit are marked in red.
-:::
-
 
 Cluster modules, queues, accounts, and scheduler policies change independently
 of OPALX. Treat the examples here as starting points: confirm the current site
 documentation and replace paths, input files, time limits, and resource counts
 before submitting a job.
 
-::: {.getting-started-review-change}
 First check out the release using [Install and Build OPALX](../index.qmd#clone-the-source).
 The configure commands below assume you are in that source directory.
 Distributed GPU runs require GPU-aware MPI, because device buffers are passed
 directly to MPI.
 
-:::
 
 ## Common Slurm workflow
 

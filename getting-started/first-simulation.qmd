@@ -6,24 +6,11 @@ status: experimental
 last-reviewed: "2026-07-22"
 ---
 
-```{=html}
-<style>
-.getting-started-review-change, .getting-started-review-change * { color: #b00020 !important; }
-body.quarto-dark .getting-started-review-change,
-body.quarto-dark .getting-started-review-change * { color: #ff8080 !important; }
-</style>
-```
-
-::: {.getting-started-review-change}
-Review copy: changes from the Getting Started release audit are marked in red.
-:::
-
 
 Start with an input file from the maintained OPALX regression suite. Those
 inputs are executable specifications and are checked continuously against the
 current parser and physics implementation.
 
-::: {.getting-started-review-change}
 ## Run a small regression input {#regression-smoke-test}
 
 From the root of the OPALX checkout, after building the serial executable:
@@ -57,7 +44,6 @@ result; its default branch is not a frozen 1.0.0 test suite.
 
 ## Launch on a GPU
 
-:::
 
 For a multi-GPU run, map each MPI rank to a device:
 

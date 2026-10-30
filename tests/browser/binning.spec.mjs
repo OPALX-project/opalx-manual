@@ -9,7 +9,7 @@ for (const [label, url] of [["explicit", solverPage], ["directory", "/user-guide
     await expect(page.locator("h1.title")).toContainText("Field Solvers");
     await expect(section.locator("h2 .header-section-number")).toHaveText("18.8");
     await expect(section).toContainText("MAXBINS");
-    await expect(section).toContainText("implements only VELOCITYZ and GAMMAZ");
+    await expect(section).toContainText("The parser accepts VELOCITYZ, GAMMAZ.");
     await expect(page.locator('#quarto-sidebar a[href*="/structures/"]')).toHaveCount(0);
 
     const toggle = page.getByRole("button", { name: "Toggle Field Solver sections", exact: true });
@@ -22,7 +22,8 @@ for (const [label, url] of [["explicit", solverPage], ["directory", "/user-guide
     await section.locator("h2").scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath("binning.png") });
 
-    await page.getByRole("radio", { name: "OPAL", exact: true }).check();
+    await page.locator(".opal-version-selector").getByText("OPAL", { exact: true }).click();
+    await expect(page.getByRole("radio", { name: "OPAL", exact: true })).toBeChecked();
     await expect(section).toBeHidden();
     await expect(entry).toBeHidden();
   });
