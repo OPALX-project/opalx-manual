@@ -1,6 +1,6 @@
 ---
 title: "File Formats"
-description: "Status of OPALX input, field-map, distribution, diagnostic, and statistics formats."
+description: "OPALX output inventory, availability, controls, and input and diagnostic file formats."
 audience: user
 status: experimental
 last-reviewed: "2026-08-26"
@@ -19,9 +19,9 @@ The audited formats currently documented are:
 - [COF result JSON](#cof-result-json)
 - [Checkpoint and restart HDF5](#checkpoint-restart)
 
-Other output formats remain **planned** until each reader or writer has been
-traced in the current source. A legacy OPAL variant is not an OPALX
-compatibility guarantee.
+The output inventory below separates current availability from format-documentation
+coverage. Complete format references remain to be written for several implemented
+outputs. A legacy OPAL variant is not an OPALX compatibility guarantee.
 
 For the main `.stat` files, the [bunch moments and RMS emittance
 conventions](../user-guide/conventions/index.qmd#bunch-moments-emittance) define
@@ -38,6 +38,97 @@ Each completed format page will specify:
 - Parallel write behavior.
 - Versioning and backward-compatibility policy.
 - A minimal reader and writer example.
+
+## Output inventory {#output-inventory}
+
+Default names use `<base>` for the input basename. Main statistics and
+phase-space files add `_c0`, `_c1`, and so on when multiple particle containers
+are present. Auxiliary files normally use the `data/` directory; explicit
+filename controls are described in the relevant row.
+
+Frequencies below count global tracking steps unless another event or counter
+is named. **Available** means implemented; file creation still depends on the
+listed controls, the selected model, and the presence of data. The final column
+identifies both existing documentation and remaining format-reference work.
+
+```{=html}
+<style>
+#quarto-document-content #output-inventory-table table {
+  width: 100%;
+  min-width: 42rem;
+  table-layout: fixed;
+  font-size: 0.9rem;
+}
+#quarto-document-content #output-inventory-table th,
+#quarto-document-content #output-inventory-table td {
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#quarto-document-content #output-inventory-table code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#quarto-document-content #output-inventory-table th:nth-child(1) { width: 22%; }
+#quarto-document-content #output-inventory-table th:nth-child(2) { width: 16%; }
+#quarto-document-content #output-inventory-table th:nth-child(3) { width: 27%; }
+#quarto-document-content #output-inventory-table th:nth-child(4) { width: 35%; }
+</style>
+```
+
+::: {.feature-opalx}
+Scroll horizontally on narrow screens to read all columns.
+
+::: {#output-inventory-table .table-responsive tabindex="0" role="region" aria-label="OPALX output inventory"}
+| Output and default filename | Availability | Controls, defaults and timing | Contents, units and format details |
+|---|---|---|---|
+| **Bunch statistics:** `<base>.stat` or `<base>_cN.stat` | Available | `OPTION, STATDUMPFREQ=N`<br>Default `10`; `0` disables. Enabled runs also write a final record if needed. | Particle counts, bunch moments, energy and emittances. Column headers specify units.<br>[Statistics conventions](../user-guide/conventions/index.qmd#statistics-columns) and [spin columns](../physics/spin-tracking/index.qmd#sec-spin-pol-vector). Complete column reference pending. |
+| **Particle phase space:** `<base>.h5` or `<base>_cN.h5` | Available | `PSDUMPFREQ`, `ENABLEHDF5`; optional `EBDUMP` and `RANKDUMP`<br>Requested interval defaults to `10`; `0` disables. HDF5 is enabled by default. | Positions [m], momentum normalized by `mc`, IDs and step time [s]. Optional spin, rank and particle E/B samples.<br>[Output options](../user-guide/options.qmd#output-and-diagnostics) and [spin datasets](../physics/spin-tracking/index.qmd#sec-spin-pol-vector). Complete dataset/metadata reference pending. |
+| **Restart state:** `<base>_checkpoint.h5` | Available | `OPTION, CHECKPOINTFREQ=N`<br>Default `0` disables; positive `N` writes every `N` completed steps. | Versioned particle, tracker and RF state for continuation.<br>[Checkpoint and restart](#checkpoint-restart). |
+| **Monitor particles:** `<OUTFN>.h5` or `<OUTFN>.loss` | Available | Included `MONITOR`; `OUTFN`, `TYPE`, `ASCIIDUMP`, `ENABLEHDF5`<br>Event-driven. Default output stem is the element name; default collection is spatial and output is HDF5. | Sampled positions [m], normalized momentum, IDs and times [s]; optional spin.<br>[Monitor files and timestamps](../user-guide/elements.qmd#monitor-output-times). |
+| **External-field samples:** `data/<FILE_NAME>` for a relative name, or the supplied absolute path | Available | `DUMPEMFIELDS`<br>Explicit request; the configured space/time grid is written once before tracking. Existing files are overwritten. | Cartesian or cylindrical coordinates and time; B [T], E [MV/m].<br>[Field-output command and columns](../user-guide/diagnostics-output.qmd#dumpemfields-command). |
+| **Binning snapshots:** `DUMPBINSFILE` (`.json` appended when missing) | Available | `BINNING, DUMPBINSFILE=..., DUMPBINSFREQ=N`<br>Filename defaults to `NONE` (disabled); frequency defaults to `1` when enabled. | Step, time [s], merge stage, bin counts and widths in the selected binning variable.<br>[Binning](../user-guide/field-solver/index.qmd#binning). Complete JSON reference pending. |
+| **Dirichlet-plane potential:** `data/dirichletplanedumps/phi_dirichlet_legacy_step-NNNNNNNN.dat` | Available for unbinned explicit-image mode; single-rank output only | `EMISSIONSOURCE.ZEROFACEPLANEDUMP=N`<br>Default `0` disables; positive `N` samples every `N` steps while the plane is active. | Grid indices, plane x/y [m] and potential [V]; header includes time [s] and plane position [m].<br>[Explicit image-charge diagnostics](../user-guide/field-solver/index.qmd#explicit-image-charges). |
+| **Spectral tunes:** `<base>-tunes.csv`, `<base>-tune-<row>-samples.csv`, `<base>-tune-<row>-spectrum.csv` | Available | `RUN, SPECTRALTUNES=TRUE`<br>Disabled by default; one analysis per `TUNEINITIAL` row. | Tune summary, sampled transverse signals and spectra. Units are identified by the column names.<br>[Spectral tune files](#spectral-tune-files). |
+| **Closed-orbit result:** exact `OUTPUT` filename | Available | `COF, OUTPUT=...`<br>No file by default; one JSON object after successful convergence when requested. | Converged section coordinates, return matrix, tunes and convergence metadata.<br>[COF result JSON](#cof-result-json). |
+| **Reference trajectory:** `data/<base>_DesignPath.dat` | Available; rank zero outside optimization | Automatic design-reference threading output<br>During the OrbitThreader pass, with a sampling stride derived from the reference timestep and 10 ps. | Reference path, position, momentum, fields, energy and time.<br>[OrbitThreader](../physics/overview/index.qmd#sec.opalt.sec.orbitthreader). Complete output schema pending. |
+| **Element support map:** `data/<base>_ElementPositions.sdds` | Available | Automatic design-reference support-map export<br>After threading. | Element names, types and occupied reference-path intervals.<br>[OrbitThreader](../physics/overview/index.qmd#sec.opalt.sec.orbitthreader). SDDS column reference pending. |
+| **Lattice geometry:** `data/<base>_ElementPositions.txt`, `data/<base>_ElementPositions.py`, `data/<base>_3D.opal` | Available; rank zero outside optimization | Automatic lattice preparation<br>Before particle tracking; no `ENABLEVTK` gate on these files. | Element placement data, a geometry helper and a spatially placed input representation.<br>[Geometry exports](#geometry-exports). Detailed export schemas pending. |
+| **Geometry visualizations:** `<base>_ElementPositions.vtk`, `<base>_ElementPositions.html`, `<base>_ElementPositions.gpl` | Post-processing output | Run the generated `_ElementPositions.py` with its export options<br>Created on request by the helper. | Visualization and plotting exports from the generated geometry helper.<br>[Geometry exports](#geometry-exports). |
+| **Autophasing trace:** `data/<element-name>_AP.dat` | Available; rank-zero output | A non-vetoed automatic RF phase search<br>Per search, outside optimization; vetoed and DC cases produce no trace. | Cavity-local z [m] and kinetic energy [MeV].<br>[Autophasing outputs](../user-guide/appendix/autophase/index.qmd#outputs-and-persistence). |
+| **Timings:** `timing.dat` | Available | Runtime information level (`--info`)<br>At normal termination; standalone COF-only inputs omit it. Information level zero suppresses its content. | Runtime and OrbitThreader timing measurements.<br>[Performance diagnostics](../user-guide/options.qmd#orbitthreader-performance-diagnostics). |
+| **Runtime messages:** stdout/stderr; conditional `errormsg.txt` | Available | Command-line verbosity and message options<br>During the run. The warning file is cleared at startup. | Status, warnings and diagnostic reports. `errormsg.txt` records certain RF-frequency warnings.<br>[Output and logging](../user-guide/introduction/index.qmd#output-and-logging). Redirect stdout/stderr to retain a run log. |
+| **Poisson debug fields:** `data/<base>-rho_scalar-NNNNNN.dat`, `...-phi_scalar-...`, `...-ef_vector-...` | Debug output; single-rank only | Build with `OPALX_FIELD_DEBUG=ON`<br>Default build setting is `OFF`; files use a Poisson-solve counter, not a tracking-step frequency. | Grid charge density, potential and electric-field diagnostics. Complete format/unit reference pending.<br>[Build feature flags](configuration.qmd#opalx-feature-flags). |
+| **Passive ring observations:** configured CSV filename | Internal test diagnostic for eligible bare rings | Internal `OPALX_TEST_PASSIVE_RING_PROBES` configuration<br>Disabled unless configured; observations follow accepted steps. | Selected-particle observations and section-crossing diagnostics.<br>[Passive observations](../physics/overview/index.qmd#passive-ring-probes). Configuration/CSV reference pending. |
+| **Charge-density HDF5:** requested by `RHODUMP` | **Not available** | `OPTION, RHODUMP=TRUE`<br>Option defaults to `FALSE`; enabling it does not add a `rho` dataset. | No charge-density dataset is currently written.<br>[Output options](../user-guide/options.qmd#output-and-diagnostics). |
+| **Cyclotron `PROBE`:** intended `.h5`/`.loss`, `.hist`, `.peaks` files | **Work in progress** | `PROBE`<br>No current tracker output. | Intended detector-segment records and radial summaries.<br>[Current physics status](../physics/overview/index.qmd#cyclotron-probe-diagnostics). |
+| **Retained statistics names:** `.lbal`, `_Monitors.stat` | **Not available** | No active output control<br>No current data-row cadence. | No active data-row output in the current tracker.<br>Legacy/restart references to these names do not establish an active statistics output. |
+:::
+:::
+
+`RHODUMP` is **not available in the current OPALX version**. Enabling it does
+not add a charge-density dataset to the phase-space HDF5 files.
+
+Main statistics and phase-space files are written during tracking, without an
+initial snapshot. A positive dump frequency also requests final output when
+the last step did not already produce it. Phase-space scheduling currently
+also depends on the statistics/status-output calls; keep those enabled when
+using periodic phase-space dumps. Monitor sampling is independent of these
+periodic frequencies. HDF5 monitor mode requires `ENABLEHDF5=TRUE`; select
+`ASCIIDUMP=TRUE` for ASCII monitor records when HDF5 is disabled.
+
+A monitor `.loss` file contains sampled particles. The current tracker reports
+particle-deletion counts without writing a general file of every removed
+particle.
+
+[]{#geometry-exports}
+
+The simulation writes the `_ElementPositions.py` geometry helper. Running that
+helper separately can create the VTK, HTML and Gnuplot exports listed above
+in the directory where the helper is run.
+The `.txt`, `.py`, `_3D.opal` and support-map SDDS exports do not require
+`ENABLEVTK=TRUE`.
+
 
 ## Spectral tune files {#spectral-tune-files}
 
@@ -186,8 +277,8 @@ The checkpoint contains:
 Checkpoint writing does not depend on phase-space output:
 `ENABLEHDF5=FALSE` and `PSDUMPFREQ=0` do not disable it. On restart, OPALX
 rewinds the original per-container `.stat` files to the saved path positions
-and appends the continuation. Corresponding later `.lbal` rows are also
-removed before appending. Existing phase-space `.h5` files are likewise
+and appends the continuation. Existing `.lbal` files also retain restart rewind support. The current
+tracker does not write new load-balancing rows. Existing phase-space `.h5` files are likewise
 rewound to the saved simulation time and appended under their original names.
 If an original output file is unavailable, OPALX creates it and writes the
 restarted portion. Restart also selects the process-wide `APPEND` output mode,
