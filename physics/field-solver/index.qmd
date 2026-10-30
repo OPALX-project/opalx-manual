@@ -3,7 +3,7 @@ title: "Field Solver Physics"
 description: "Derivation and validation guide for OPALX space-charge solvers, including P3M, cathode image fields, and binned rest-frame space charge."
 audience: physics
 status: planned
-last-reviewed: "2026-10-23"
+last-reviewed: "2026-10-30"
 toc-depth: 3
 ---
 

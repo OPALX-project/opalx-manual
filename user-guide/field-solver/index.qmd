@@ -3,7 +3,7 @@ title: "Field Solvers"
 description: "Configure OPALX particle-in-cell space charge, boundary conditions, binning, and cathode-plane corrections."
 audience: user
 status: current
-last-reviewed: "2026-10-23"
+last-reviewed: "2026-10-30"
 body-classes: "opalx-sidebar-page-toc"
 aliases:
   - ../structures/index.html
@@ -311,22 +311,18 @@ Either cathode-plane correction can be included in this path.
 Set `BINS` to a named [`BINNING`](#binning) definition.
 At every field evaluation OPALX rebins particles, then for each populated bin:
 
-1. computes its mean normalized momentum $\mathbf p_b$ and mean particle energy factor $G_b$;
-2. selects a representative boost factor $\gamma_b$;
-3. stretches the longitudinal mesh spacing by $\gamma_b$;
-4. deposits that bin's charge and solves in its approximate rest frame;
-5. transforms the result to the laboratory frame; and
-6. accumulates electric and magnetic contributions from all bins.
+1. computes its mean normalized momentum $\mathbf p_b$ and the mean Lorentz factor $\gamma_b$ of its particles;
+2. stretches the longitudinal mesh spacing by $\gamma_b$;
+3. deposits that bin's charge and solves in its approximate rest frame;
+4. transforms the result to the laboratory frame; and
+5. accumulates electric and magnetic contributions from all bins.
 
-For `TYPE=OPEN`, `MAXBINS=1`, and no active image plane, OPALX uses the
-centre-of-momentum factor
-$\gamma_b=G_b/\sqrt{G_b^2-|\mathbf p_b|^2}$, consistently in charge-density
-normalization, mesh stretching and field reconstruction. Other binned paths
-retain the earlier approximation $\gamma_b=G_b$. See the
-[physics derivation and assumptions](../../physics/field-solver/index.qmd#physics-binned-space-charge).
-The bin table's `gammaBin` is the applied boost factor, not mean particle energy.
+The bin table's `gammaBin` reports $\gamma_b$. This is an average over the
+particles, not the Lorentz factor of the bin's centre-of-momentum frame, and the
+two agree closely when the momentum spread inside the bin is small. See the
+[physics derivation and assumptions](../../physics/field-solver/index.qmd#physics-warm-bins).
 
-For $\mathbf v_b=c\mathbf p_b/G_b$ and
+For $\mathbf v_b=c\mathbf p_b/\gamma_b$ and
 $\hat{\mathbf w}_b=\mathbf v_b/|\mathbf v_b|$, the transformation is
 
 $$
