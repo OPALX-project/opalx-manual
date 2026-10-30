@@ -3,6 +3,8 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "tests/browser",
   fullyParallel: false,
+  // Preserve full history for the generated homepage change-list check.
+  captureGitInfo: { diff: false },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "line",
   use: {
