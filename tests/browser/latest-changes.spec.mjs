@@ -1,8 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const manualRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 test("front page displays current commit subjects below the contents overview", async ({ page }) => {
-  const subjects = execFileSync("git", ["log", "--no-merges", "--date-order", "-10", "--format=%s", "HEAD"], { encoding: "utf8" }).trim().split("\n");
+  const subjects = JSON.parse(execFileSync("ruby", [
+    "-r", "json", "-r", "./scripts/generate_latest_changes",
+    "-e", "puts JSON.generate(LatestChanges.commits(Dir.pwd).map { |entry| entry.fetch(:subject) })"
+  ], { cwd: manualRoot, encoding: "utf8" }));
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/index.html");
