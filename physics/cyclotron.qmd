@@ -1,6 +1,6 @@
 ---
-title: "Physics"
-description: "Median-plane interpolation, off-plane extension, and legacy mirrored trim coils."
+title: "Cyclotron Physics"
+description: "Cyclotron sector fields, legacy trim coils, discrete RF events, and spectral tune estimation."
 audience: physics
 status: experimental
 last-reviewed: "2026-10-23"
@@ -68,8 +68,7 @@ old ASCII orbit dump and rounded launch momentum. The RK4 comparison decreases
 from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice.
 
 Compare trajectories at common physical times; a completed directed turn can take
-more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of
-at least $10^{-9}$ m from the launch plane arms the next positive crossing,
+more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of more than $10^{-9}$ m from the launch plane, initiates the next crossing,
 excluding the launch point and opposite-direction crossing. Earlier turns are
 counted at timestep endpoints. The final requested return is localized for static
 magnetic single-container tracking without collective fields or ongoing emission.
@@ -126,11 +125,14 @@ implementation. See [TURNS restrictions](../user-guide/tracking.qmd#turns).
 ## Experimental discrete RF tracking
 
 The experimental `CyclotronRFProfile` / `CyclotronRFKick` components implement
-the radial-voltage model for forward unpolarized protons in one container and
-in a beamline containing only cyclotron sectors and discrete gaps. Particle
-transport uses Kokkos kernels and supports distributed bunches. Restart is not
-supported. Vertical momentum is preserved by the thin RF impulse; the voltage
-profile has no vertical dependence and vertical RF focusing is not modeled. `TRACK,EKINSTOP` adds a reference kinetic-energy target as described below.
+the radial-voltage model for one forward, unpolarized median-plane proton
+in one container on one MPI rank. The beamline may contain only cyclotron
+sectors and discrete gaps, and the field solver must be `TYPE=NONE`. Restart
+is not supported. The gap-event tracker copies the particle state to the host,
+performs magnetic transport and gap localization there, then copies the
+updated state back. The standalone kick formula is callable on host and device;
+that does not make the complete RF event tracker a distributed Kokkos kernel.
+`TRACK,EKINSTOP` adds a reference kinetic-energy target as described below.
 
 Profiles contain normalized coordinate $u$, voltage multiplier $f(u)$, and
 $df/du$ at each support point. Cubic Hermite interpolation uses the supplied
@@ -158,19 +160,22 @@ $$
 $$
 
 where $\ell$ is the profile's physical length and momentum is in units of
-$m_pc$. For three-dimensional momenta, the incoming speed uses all components;
-the outgoing longitudinal component satisfies
-$p_{z,f}^2=\gamma_f^2-1-p_x^2-p_y^2$ before the radial/longitudinal rotation. The extra $2\pi$ and the absence of a transit factor in the focusing
+$m_pc$. The implemented kick requires $p_y=0$. It uses
+$$
+|\mathbf p|=\sqrt{p_x^2+p_z^2},\qquad
+p_{z,f}=+\sqrt{\gamma_f^2-1-p_x^2}
+$$
+before the radial/longitudinal rotation. Nonzero vertical momentum is rejected;
+a general three-dimensional extension is not implemented. The extra $2\pi$ and the absence of a transit factor in the focusing
 term reproduce OPAL 2022.1's convention deliberately. This is a compatibility
 model, not a newly derived general RF focusing law. Unsupported backward states, and kicks without a physical outgoing momentum, are rejected
 without modifying momentum. Zero voltage leaves momentum exactly unchanged.
 
-Host and Kokkos evaluation share the same formulas; the kick kernel performs no
-MPI communication or particle host/device copies. Particle stepping transforms
-between the moving frame and laboratory axes inside the Kokkos kernel; map
-storage is shared read-only. The reference uses host field evaluation and the
-same directed-plane localization convention. Each particle's RF phase is
-computed at its own arrival time.
+The standalone kick evaluator shares its formulas between host and device
+and performs no MPI communication. The current event tracker uses host
+magnetic field evaluation and local/laboratory coordinate transforms.
+Particle and reference trajectories are advanced independently, using their
+own localized arrival times for the RF phase.
 
 With space charge, `SCFIELDUPDATE="MIDPOINT"` first predicts positions with a
 ballistic half drift, gathers the existing PIC self fields there, then restores
@@ -220,52 +225,27 @@ $$
 K=(\sqrt{1+|\mathbf p|^2}-1)M\ \geq\ 10^9\,\mathrm{EKINSTOP}.
 $$
 
-It is checked immediately after each complete RF kick, including after a
-decelerating harmonic kick. A target does not impose an artificial fractional
-impulse. Before advancing the bunch clock, the tracker computes the reference's
-terminal substep and retains its pending state. Every rank receives the accepted
-reference duration and state. All physical particles independently finish that
-same duration, even if an individual particle reaches the target earlier, then
-the pending reference is published through the usual moving-frame update. Only
-the terminal timestep is shortened. The common final time is the reference's
-terminal-gap time, and its endpoint has the complete post-kick energy with no
-reference remainder drift. Physical particles that cross a gap earlier continue
-transport for the remaining duration up to that common time. Reference state is
-never substituted for any physical particle's state.
+The criterion is checked immediately after each complete RF kick, including a
+decelerating harmonic kick. The tracker never applies a fractional RF kick.
+It first advances a trial reference over the requested step and retains its
+state and terminal-gap duration. It then advances the single physical particle
+independently over the requested duration. That particle may stop at its own
+first gap satisfying the same energy criterion; its returned duration is not
+used to set the clock. If the reference reached the target, the tracker sets
+the bunch timestep to the reference duration and later publishes its pending
+state through the ordinary frame update.
 
-At this final step only, floating-point drift and frame transformations can
-leave a coincident particle just upstream of the reference's terminal gap plane.
-Let $d$ be signed distance to a gap plane, negative upstream, and let
-$\mathbf r$ and $\mathbf r_{\mathrm{end}}$ be the start and trial endpoint in
-laboratory metres. With double-precision machine epsilon
-$\epsilon_{\mathrm{double}}=2^{-52}$, the terminal endpoint allowance is
+The current single-rank implementation does not broadcast a common accepted
+reference state or guarantee that an offset particle finishes at the same
+physical time. Coincident-particle regression agreement does not establish
+that stronger endpoint contract.
 
-$$
-\delta=64\,N\,\epsilon_{\mathrm{double}}L,\qquad
-L=\max\!\left(1\,\mathrm m,\max_{j\in\{x,y,z\}}|r_j|,
-\max_{j\in\{x,y,z\}}|r_{\mathrm{end},j}|\right),
-$$
-
-where $N$ counts accepted global frame updates, including the current terminal
-step, with a minimum of one. Each update performs drift, rigid-frame
-transformations and plane subtraction. The factor $64N$ provides a conservative
-first-order budget for the accumulated arithmetic, assuming
-$64N\epsilon_{\mathrm{double}}\ll1$. A nonfinite factor or a factor greater
-than or equal to one is rejected. This allowance describes numerical endpoint
-resolution; it does not bound ODE discretization, nonlinear trajectory error,
-or plane-root localization error. It grows with the number of frame updates
-even when the timestep is reduced.
-
-An approaching particle with $d_{\mathrm{start}}<-\delta$ and
-$-\delta\le d_{\mathrm{end}}<0$ receives the complete kick at the common final
-time, provided its position lies within the gap's radial support. Arrivals
-inside this allowance are treated as numerically unresolved: the terminal
-convention can give a complete kick to a physically later particle within the
-allowance. Crossings beyond it receive no kick. If both endpoints remain
-upstream within the allowance, it alone does not invent a crossing. This rule
-adds no drift, projects neither position nor time, and does not scale the RF
-impulse. Ordinary steps keep the strict crossing signs and forty-bisection
-localization described above.
+A common-duration bunch advance and a terminal-plane allowance
+$\delta=64N\epsilon_{\mathrm{double}}L$ would be extensions. The current
+gap loop uses strict crossing tests and forty bisections; it contains no
+such terminal allowance. Those extensions require implementation and
+validation before their endpoint or error-budget semantics can be documented
+as supported behavior.
 
 Old OPAL's orbit dump instead records the endpoint after the remainder drift.
 Compare energies after the same kick, but compare positions and momenta using a
@@ -333,8 +313,11 @@ $$P_k=\frac{d^T A(A^T A)^{-1}A^T d}{2v}.$$
 This is the Lomb--Scargle periodogram with
 old oversampling 4/high-frequency factor 0.8, written as a two-column least-squares
 solve rather than copying the legacy peak-array implementation. The returned
-tune is $k/(4L)$ at the largest power; there is no sub-bin interpolation. A 100-turn
-record therefore has grid spacing 0.0025; physical spectral resolution remains
+tune is $k/(4L)$ at the largest power; there is no sub-bin interpolation.
+The grid spacing is $1/(4L)$, so it is 0.0025 when the recorded legacy
+normalization is $L=100$. Use the reported `legacy_turns` value rather than
+assuming it always equals the requested `TURNS`: the last sampled post-step
+count depends on the sampling stride. Physical spectral resolution remains
 set by record duration, and sampling limits the unaliased frequency range.
 
 The implementation reanchors its trigonometric recurrence every 256 samples to
@@ -344,10 +327,15 @@ zero-mean vertical oscillation is analyzed. No global canonical symplecticity
 assumption enters this method. Energy drift, timestep/amplitude sensitivity and
 agreement with independent old-code trajectories must still be checked.
 
-The supplied 230-row table spans 72 to 529.993 MeV. A fresh 100-nominal-turn,
+The archived 230-row study spans 72 to 529.993 MeV. Its 100-nominal-turn,
 720-step-per-turn RK4 comparison agrees with old OPAL within one
 0.0025 tune bin in both planes at every row. The maximum relative kinetic-energy
 drift in OPALX is 8.03e-6. This establishes legacy-port agreement at these settings,
 not an absolute tune-accuracy bound. Both codes differ from the supplied SEO tune
 table, particularly near 500 MeV; that discrepancy remains a separate question.
 No 530--590 MeV result is claimed without additional validated launch conditions.
+
+[Download the archived Python scripts]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz),
+including `sandbox/cyclotron/report_spectral_table.py` and
+`sandbox/cyclotron/run_spectral_tunes.py`. The archive contains source scripts;
+the launch table, field maps and result data are not included.

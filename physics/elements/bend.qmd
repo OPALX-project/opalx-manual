@@ -8,9 +8,12 @@ The field has dipole and quadrupole terms, an Enge fringe field when
 
 ### Coordinates
 
-The placed pose of a bend, from `ELEMEDGE` or from `X`…`PSI`, is its entrance
-frame: the origin is on the design orbit at the entrance and $z$ points along
-the design orbit there.
+The placed pose of a bend is the entrance frame used by its field model.
+For `SBEND`, the local $z$ axis follows the design-orbit tangent at the
+entrance. For `RBEND`, it is normal to the entrance pole face and follows
+the straight magnet body; it generally differs from the incoming orbit
+tangent. `ELEMEDGE` derives this element frame from the reference geometry,
+while `X`…`PSI` specify its explicit pose.
 
 - `SBEND`: positions are converted to bend coordinates $(x, y, s)$, where $s$
   is the arc length along the design orbit, from 0 at the entrance to $L$ at
@@ -19,8 +22,11 @@ the design orbit there.
   The pole faces are perpendicular to the design orbit.
 - `RBEND`: the field is evaluated in the straight frame of the magnet body,
   with $z$ from 0 at the entrance face to $L$ at the exit face. The design
-  orbit crosses the faces at the pole-face angles `E1` and `E2`, which default
-  to `ANGLE/2` each.
+  orbit crosses the faces at the pole-face angles `E1` and `E2`. If neither
+  is specified, both are `ANGLE/2`. If one is specified, the other is
+  derived so that `E1 + E2 = ANGLE`; specifying both requires that sum.
+  Explicit pole-face angles require $L>0$, $|\mathrm{ANGLE}|<\pi$, and
+  $|E_1|,|E_2|<\pi/2$.
 
 ### Field strength
 
@@ -29,7 +35,14 @@ $$
 B_0 = \frac{P_0}{c\,q}\,K_0 ,
 $$
 where $P_0$ is the global `P0` (GeV/$c$, default 1) and $q$ the reference
-charge in units of $e$. Dividing by $q$ makes the bend direction independent of
+charge in units of $e$. With these input units, the signed magnetic rigidity is
+$$
+(B\rho)_0[\mathrm{T\,m}]
+=\frac{P_0[\mathrm{GeV}/c]}{0.299792458\,q}.
+$$
+Thus $B_0=(B\rho)_0K_0$ and $g=(B\rho)_0K_1$. In expressions using $P_0/c$,
+the implementation first converts the input momentum from GeV/$c$ to eV/$c$
+and uses $c$ in m/s. Dividing by $q$ makes the bend direction independent of
 the charge sign. If `K0` is not given, it is derived from `ANGLE` $\theta$:
 $$
 K_0^{\mathrm{SBEND}} = \frac{\theta}{L},
@@ -44,7 +57,9 @@ same way. `K2`, `K3`, `K2S` and `K3S` are parsed but not applied.
 
 For `RBEND`, a positive `DESIGNENERGY` $T_d$ (MeV) scales the field by
 $p(T_d)/P_0$, with $p(T_d) = \sqrt{T_d(T_d + 2mc^2)}/c$ for the beam's rest
-mass. `SBEND` rejects `DESIGNENERGY`. `P0` should therefore be set to the
+mass. Form the ratio $p(T_d)/P_0$ with both momenta in the same units;
+`DESIGNENERGY` is entered in MeV while `P0` is entered in GeV/$c$.
+`SBEND` rejects `DESIGNENERGY`. `P0` should therefore be set to the
 reference momentum of the beam.
 
 ### Longitudinal profile
@@ -64,13 +79,18 @@ that it is zero. With `HGAP = 0` the edge is hard: $F = 1$ on $[0, L)$ and the
 field is zero elsewhere.
 
 `RBEND` can instead read a `1DProfile1` profile through `FMAPFN`; its amplitude
-is then set so that the design orbit bends by `ANGLE`. See the
+is then set so that the design orbit bends by `ANGLE`. This is a separate
+profile-dipole model: explicitly specifying `K0`, `K0S`, `K1`, `K1S`, `K2`,
+`K2S`, `K3`, `K3S` or `FINT` with that profile is rejected, even when the
+explicit value is zero. Its fringe field comes from the profile derivatives;
+the native finite-gap correction below is not added. See the
 [field-map appendix](../../user-guide/appendix/field-maps/index.qmd#opalx-rbend-profile).
 
 ### Field in and near the magnet
 
-For the normal terms, with $F'$ and $F''$ the derivatives along the design
-orbit,
+For the native analytic normal terms, let $F'$ and $F''$ be derivatives
+with respect to the longitudinal field coordinate ($s$ for `SBEND`, $z$ for
+`RBEND`):
 $$
 \begin{aligned}
 B_y &= B_0\left(F - \tfrac12 F''\,y^2\right) + g\,F\,x,\\
@@ -90,10 +110,21 @@ $$
 \qquad
 \Delta k_y = h\left[\tan E - \tan(E - \psi)\right],
 $$
-and $C = (B_0/h)\,\Delta k_y$, scaled so that its integral over the fringe
-gives $\Delta k_y$. $F_{\mathrm{int}}$ is `FINT`. For `SBEND`, $E = 0$; for
-`RBEND`, $E$ is `E1` at the entrance and `E2` at the exit. The correction is
-zero when `FINT = 0` or `HGAP = 0`.
+For a nonzero curvature, define the profile span
+$$
+D=\left|F(-5g_{\mathrm{gap}})-F(5g_{\mathrm{gap}})\right|.
+$$
+The coefficient multiplying the longitudinal derivative $F'$ is
+$$
+C=\begin{cases}
++(B_0/h)\,\Delta k_{y,\mathrm{in}}/D,&\text{entrance-limited profile},\\
+-(B_0/h)\,\Delta k_{y,\mathrm{out}}/D,&\text{exit-limited profile}.
+\end{cases}
+$$
+The opposite signs compensate for the rising entrance and falling exit
+profiles. $F_{\mathrm{int}}$ is `FINT`. For `SBEND`, $E=0$; for `RBEND`,
+use `E1` at the entrance and `E2` at the exit. The native correction is
+zero when `FINT = 0`, the full gap is zero, or the reference curvature is zero.
 
 ### Aperture
 

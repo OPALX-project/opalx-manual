@@ -1,5 +1,5 @@
 ---
-title: "DB & DBA with Fringe Fields"
+title: "Double-Bend Lattices with Fringe Fields"
 description: "Analytic native-SBEND field model, separated supports, and off-axis FINT diagnostics for the map-3 DBA study."
 audience: physics
 status: experimental
@@ -14,6 +14,9 @@ last-reviewed: "2026-09-05"
 including the ring generator and the DBA analysis scripts described below.
 The bundle preserves the original `sandbox/` directory layout and includes
 Python helpers and tests; inputs and result data are excluded.
+All `sandbox/` paths in this chapter identify historical study locations,
+not directories in the published source repository. The source bundle
+does not include the referenced run directories, logs, tables or field-map inputs.
 
 The separate `sandbox/map-3/ring/build_ring.py` fixture assembles six unchanged
 60-degree DBA cells using explicit 6D entrance poses. It retains $\rho=2$ m,
@@ -73,9 +76,11 @@ the separation of geometry from travelled length, not orbit closure.
 ## Historical separated-support cell study
 
 This first stage of `sandbox/map-3` defines the **analytic fields**, not an exact
-transfer matrix or a matched achromat. It follows `BendFieldModel.h`,
-`SBend::makeFieldInputs`, `OpalSBend::update` and `PlacementResolver` on the
-`546-add-linear-transfer-matrix-to-each-elemen` development branch.
+transfer matrix or a matched achromat. Its field model follows archived
+snapshots of `BendFieldModel.h`, `SBend::makeFieldInputs`, `OpalSBend::update`
+and `PlacementResolver`, identified by the source hashes in the study's
+provenance. The reported runs and comparisons are historical results, not
+validation of every later source revision.
 The initial field-definition stage contains no tracking. The subsequent
 [three-case OPALX reproduction](#map3-opalx-runs) is reported below.
 
@@ -157,8 +162,9 @@ derivatives with respect to $z$, in $\mathrm{m}^{-1}$ and $\mathrm{m}^{-2}$.
 The Python implementation uses the equivalent exponential expressions to retain
 small derivatives when the floating-point value of $F$ rounds to one.
 
-This is the development branch's Enge model, **not** the older linear-ramp
-description. No effective-length rescaling is applied by `OpalSBend::update`.
+This is the Enge model used by the archived study, **not** the older
+linear-ramp description. The source version used for that study applies no
+effective-length rescaling in `OpalSBend::update`.
 
 ## Magnetic components and FINT {#map3-components}
 
@@ -235,7 +241,7 @@ The nominal-line curvature integral $hL_{\mathrm{eff}}$ corresponds to
 $30.00008413^{\circ}$, **not a prediction of actual orbit deflection**. A ray
 already bends in the incoming fringe, whereas the nominal line is still straight.
 
-The source repository's `sandbox/map-3/dba/analytic_fields.py` generates the
+The archived `sandbox/map-3/dba/analytic_fields.py` generates the
 centreline and off-axis figures, sampled component table, support/body intervals
 and a summary containing the source-file hashes. Python tests check support
 separation, field-free drifts, derivatives, field signs, symmetry, FINT isolation
@@ -311,7 +317,7 @@ These are cross-method differences, not errors relative to an analytic map.
 The large nonzero dispersion reflects the unmatched lattice, not a residual
 that should be compared with the map-2 achromat's zero dispersion.
 
-The source-tree runner and validator retain each full matrix, input, stdout
+The archived runner and validator retain each full matrix, input, stdout
 with `--info 2`, timing, field/support data, and source/selection hashes in
 `sandbox/map-3/dba/opalx-best-settings`. No production numerical algorithms or
 tolerances were changed for these three runs. No OPALX convergence sweep was
@@ -336,7 +342,7 @@ $$
 
 The integral is over **one fringe**, not both ends of a finite magnet. Here
 $K=\mathrm{FINT}$. The full-gap definition and the same correction are also
-explicit in [Zhang and Loulergue, IPAC 2013, equations 1–4](https://accelconf.web.cern.ch/IPAC2013/papers/wepea003.pdf).
+explicit in [JACoW proceedings](https://proceedings.jacow.org/IPAC2013/papers/wepea003.pdf).
 The edge matrix in $(x,x',y,y',\zeta,\delta)$ is the identity except
 $R_{21}=k_x$ and $R_{43}=k_y$. This linear matrix has determinant one and
 preserves the canonical $J$; a finite-order nonlinear truncation is a different
@@ -407,17 +413,24 @@ $$
 
 Here $z=(\mathbf r,\mathbf k,\tau)$, $f=dz/d\ell$, and the $7\times6$
 matrix $T$ differentiates this state with respect to the six entrance map
-coordinates. The source provides analytic field derivatives on the planar
-reference, **including vertical derivatives** needed for FINT. No shadow-ray
-differencing or OPALX calls are used. At a hard quadrupole face with state-space
-normal $\nu=(\mathbf n_{\mathrm{face}},0,0,0,0)$, account for perturbed crossing
-times with
+coordinates. The archived field Jacobian is specialized to the median-plane
+reference $y=0$, **including vertical derivatives** needed for infinitesimal
+vertical perturbations and FINT. It is not a general off-plane field-Jacobian
+or aperture-loss model; the comparison assumes a neighbourhood that remains
+inside the applicable transverse apertures. No shadow-ray differencing or
+OPALX calls are used. At a hard quadrupole face with state-space
+normal $\nu=(\mathbf n_{\mathrm{face}},0,0,0,0)$, the state is continuous
+and the face is stationary. For a forward transverse crossing, require
+$\nu^T f^->0$ and account for perturbed crossing times with
 
 $$
 T^+=\left[I+\frac{(f^+-f^-)\nu^T}{\nu^Tf^-}\right]T^-.
 $$
 
-This is the [saltation sensitivity update](https://arxiv.org/abs/2306.06862).
+This is the identity-reset, stationary-face form of the
+[saltation sensitivity update](https://arxiv.org/abs/2306.06862). The archived
+implementation rejects a nonpositive crossing denominator; grazing or
+backward crossings are outside this event model.
 At the end, project onto the common reference-normal plane before encoding
 slopes, $\zeta=-\beta_{\mathrm{ref}}c\,\Delta t$, and relative momentum.
 The endpoint is the reference's requested path length

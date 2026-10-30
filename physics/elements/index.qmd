@@ -3,7 +3,7 @@ title: "Elements"
 description: "Detailed geometry, fields, placement, and validation for OPALX element models."
 audience: physics
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-30"
 ---
 
 This chapter documents element models whose geometry, field support, or
@@ -119,8 +119,8 @@ $$
 
 in joules, where $t_c$ is the time at the cavity centre. This finite transit-time
 formula is a useful weak-kick approximation, not a replacement for integrating
-the reference when its speed changes appreciably. A stationary synchronous
-particle requires zero integrated energy gain and an RF frequency
+the reference when its speed changes appreciably. A nonaccelerating synchronous orbit requires zero net RF energy gain per
+turn when there are no other energy gains or losses, and an RF frequency
 $f_{\mathrm{RF}}=h_{\mathrm{RF}}/T_{\mathrm{rev}}$ in Hz, where $h_{\mathrm{RF}}$
 is an integer harmonic and $T_{\mathrm{rev}}$ is its measured return time in
 seconds. Choose the restoring phase using the ring's longitudinal dynamics

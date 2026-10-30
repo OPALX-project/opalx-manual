@@ -198,8 +198,10 @@ introduces an error of the order of the mesh discretization error
 
 The model assumes a flat, infinite, perfectly conducting plane normal to the
 direction of motion. It is quasi-static: retardation is neglected, and the image
-responds instantaneously to the bunch. Once the image field is negligible,
-`ZEROFACE_MAXSTEPS` switches off the correction.
+responds instantaneously to the bunch. `ZEROFACE_MAXSTEPS` disables the correction when the configured step limit
+is reached; zero leaves it active indefinitely. The solver does not test
+whether the image field is negligible. Choose a finite limit by checking its
+effect on the observables.
 
 ## Solver formulations {#solver-formulations}
 
@@ -498,6 +500,47 @@ the separate laboratory electrostatic path. The corrected OPEN path requires
 mean momentum along solve z and rejects appreciably tilted inputs supplied
 directly to the solver. General tilted bins need a directional stretch
 $A=I+(\Gamma-1)\mathbf n\mathbf n^T$, not a change of z spacing alone.
+
+
+::: {.callout-note #ph-35-03-colleague-review}
+## PH-35-03 — proposal for colleague review
+
+::: {style="color: #c00000;"}
+This proposal is under review. The original text above remains unchanged.
+
+**Proposed replacement: representative frame and centre-of-momentum distinction**
+
+For each populated bin, OPALX computes the equal-particle averages
+$\bar{\mathbf p}=\langle\mathbf P_i/(mc)\rangle$ and
+$G=\langle\sqrt{1+|\mathbf p_i|^2}\rangle$. The mesh stretch and field
+coefficient use $G$, and field reconstruction uses
+$\mathbf v=c\bar{\mathbf p}/G$. This also applies to one configured OPEN bin
+without an active image plane. The bin diagnostic `gammaBin` reports $G$.
+
+These representative parameters constitute a consistent Lorentz boost only
+when $G^2-|\bar{\mathbf p}|^2=1$. For a warm bin, the physical
+centre-of-momentum boost would instead have
+
+$$
+\boldsymbol\beta_{\mathrm{CM}}=\frac{\bar{\mathbf p}}{G},\qquad
+\Gamma_{\mathrm{CM}}=\frac{G}{\sqrt{G^2-|\bar{\mathbf p}|^2}}.
+$$
+
+The distinction matters even for zero mean momentum: the physical bulk factor
+is then one, whereas the mean particle factor $G$ can exceed one. A separate
+centre-of-momentum correction and a `meanParticleGamma` diagnostic are not
+implemented in either source revision checked for this audit. `BINS=NONE`
+remains the laboratory electrostatic path. Narrow, approximately coherent,
+forward-moving bins limit the representative-frame approximation; binning does
+not add retardation, radiation, or rest-frame time resynchronization.
+
+**Related proposed edit in the next subsection:** replace the exception for a
+single-bin OPEN correction with:
+
+$\gamma_f=\gamma_b$. The [representative frame parameters](#physics-open-cm-frame)
+are bin means over the $n_b$ particles of the bin:
+:::
+:::
 
 ### Energy-binned decomposition {#physics-binned-decomposition}
 

@@ -367,7 +367,7 @@ coarsening $y$ need not improve the result; this historical fixed-box scan
 must not be conflated with current envelope-dependent domain sizing.
 
 ![Historical pair-4 field and first-kick refinement relative to the truncated
-manufactured source; coarse and fine subsets are fitted separately.](figures/track12-first-kick-convergence.png){#fig-beambeam-first-kick width="95%"}
+manufactured source. Coarse and fine subsets are fitted separately.](figures/track12-first-kick-convergence.png){#fig-beambeam-first-kick width="95%"}
 
 ## Results and their interpretation {#sec-beam-beam-results}
 
@@ -493,7 +493,8 @@ approximately $\pm20$ ps around primary overlap at 245 MeV. This is **not**
 the implemented activation rule and is not an available element parameter.
 The current fixed 20 mm window is governed by the primary tail as described
 above. A Gaussian density is small at ten rms widths, but its electromagnetic
-field remains long-ranged; a physical cutoff needs an impulse-convergence study.
+field remains long-ranged; a physical cutoff needs a convergence study of the
+accumulated momentum kick.
 
 Before interpreting 1,297-pair production losses, vary the timestep, actual
 field-domain bounds, mesh spacing, source macroparticle count, source truncation,
