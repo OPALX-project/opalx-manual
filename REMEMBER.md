@@ -56,12 +56,13 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-CREDITS` | Synchronize developer credits with the current paper authors | When the paper author list changes or before a release | Active opalx-paper/main.tex authors compared with front-page credits after the paper pull on 2026-10-30; five missing authors added | Recheck after author-list changes; preserve existing developer credits |
+| `DOC-OUTPUT` | Maintain the output inventory and file-format references | Before a release and after writer/control changes | Master-based output inventory added on 2026-10-30; RHODUMP marked unavailable | Complete the indicated statistics/HDF5/auxiliary schemas and recheck availability against master |
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
 | `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Chapters 28–35 reviewed on 2026-10-30; accepted/custom decisions applied | Rejected wording retained. Restore the single-bin centre-of-momentum text if OPALX issue 636 merges. Preserve prior CAIN/source-frame follow-ups. |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
-| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions |
+| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions; use “Available soon” for the three BEAMBEAM availability notices |
 | `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Audit refresh on 2026-10-29: full manual and six reports; source, 64-page links, marker/status and source-preservation checks pass | Keep audit action tables and the release overview synchronized with user decisions; verify published changes after an authorized push; PDF remains paused |
 
 The dates above record incremental work, not a claim that the corresponding
@@ -1756,3 +1757,62 @@ Use this template for subsequent entries:
 
 - The single-bin centre-of-momentum correction exists only on the unmerged branch `codex/636-astra-discrepancies` (OPALX issue 636), so remove it from Physics Section 35.7 and the Field Solvers User Guide. Both pages now document the mean-Lorentz-factor bin frame used on master, and Section 35.7.3 explains how it differs from the centre-of-momentum frame. The removed text is in manual commit `fe7c978`; restore it if the issue merges.
 - Update `last-reviewed` on both pages; keep the Physics page at `planned` because its other headings are still writing prompts.
+
+### 2026-10-30 — apply six approved impulse-to-kick replacements
+
+- Apply the user-approved terminology replacements in the two Boris electric half-steps, cyclotron energy-target description, probe placement/interpolation descriptions and beam–beam cutoff discussion. Use “accumulated momentum kick” for the full-encounter convergence quantity; equations, units, identifiers, links and review dates are unchanged.
+- Preserve ongoing chapter 30–32 Physics audit edits, including the existing cyclotron changes and maintenance entries. Backups, exact replacement records and verification evidence are in /Users/adelmann/git/opalx/output/manual-impulse-review-2026-10-30/apply/. Render affected pages locally in the primary _site; no commit or push requested for this terminology application.
+
+### 2026-10-30 — verify six terminology replacements locally
+
+- All six approved impulse-to-kick replacements are present in the four local rendered pages. Exact source reconstruction and independent review preserve equations, units, identifiers, links, dates and prior audit edits. Source validation (56 chapters), strict rendered links (63 pages) and whitespace checks pass. The four affected pages render in the primary _site. No commit or push for this terminology application.
+
+### 2026-10-30 — apply approved semicolon-review revisions
+
+- Apply SC-01 and SC-02 at the user’s request. Complete the decay-flagging opening with “OPALX performs”, use a full stop and repair the following comma splice with “and”. Split the beam–beam refinement caption at the semicolon. Preserve all scientific claims, equations, notation, units, links, image identifiers and review dates.
+- Preserve all existing Physics audit edits and the six approved kick replacements. Exact source backups and checks are in /Users/adelmann/git/opalx/output/manual-semicolon-review-2026-10-30/apply/. Render the two affected pages locally in the primary _site; no commit or push requested for this application.
+
+### 2026-10-30 — verify approved punctuation improvements
+
+- SC-01 and SC-02 are rendered and verified locally. Exact-source and independent checks preserve equations, citations, links, image IDs, dates, the six kick substitutions and all other audit files. Source validation (56 chapters), strict rendered links (63 pages) and whitespace checks pass. No staging, commit or push.
+
+### 2026-10-30 — synchronize local manual with upstream
+
+- Incorporate merged audit PR26, colleague spin/decay revisions from PR28, master-aligned field-solver text, and homepage/logo revisions. Retain unpublished terminology/punctuation maintenance records locally; do not commit REMEMBER.md. Superseded review annotations remain removed as upstream intended.
+
+### 2026-10-30 — add output inventory and correct RHODUMP availability
+
+- At the user’s request, add the Chapter 43 output inventory with filenames, contents/units, controls, defaults/cadence, availability and documentation links. Review source against origin/master 9a14973b0030355e1291159281c5ed8e66c3ea56 using Git objects; preserve the active OPALX feature checkout. Distinguish runtime outputs, helper exports, internal diagnostics and unavailable/WIP interfaces. Keep detailed schemas marked pending where incomplete.
+- Mark RHODUMP unavailable in both the inventory and OPTION reference; enabling it does not add a rho dataset. Preserve existing detailed format sections, technical review dates and all pre-existing maintenance changes. Source snapshots/evidence are in /Users/adelmann/git/opalx/output/manual-output-coverage-2026-10-30/apply/. Render locally in the primary _site and validate before completion. No commit or push requested.
+
+### 2026-10-30 — verify the output inventory locally
+
+- The 21-row inventory is rendered as section 43.1 with filename/availability/control/cadence/content/unit/documentation information. RHODUMP is unavailable in both the inventory and current OPALX option row; the legacy OPAL defaults remain intact. Qualify retained .lbal restart support and distinguish automatically written geometry files from helper-generated exports.
+- Core and special-output source reviews pass. Exact reconstruction preserves existing format descriptions apart from the scoped .lbal availability qualification. Full manual and six report renders, 56-chapter source validation, eight-document validation, strict links across 63 pages, whitespace, and desktop/mobile Chrome checks pass. Verify all 21 rows and both availability notices; no page-wide horizontal overflow. Table styling is scoped locally. Pre-existing maintenance edits preserved; no commit or push.
+
+### 2026-10-30 — apply ten interactive User Guide decisions
+
+- Accept UG-12-34, UG-14-06, UG-15-03/04, UG-16-06, UG-17-03, UG-18-06/17 and UG-20-02, retaining their current proposals as normal text with stable anchors. Apply custom UG-17-04 exactly: “Defines the number of emission steps.”
+- Retire UG-22-02, UG-23-01 and UG-24-02 from active review as legacy OPAL; retain their provenance text and chapter content. Preserve all seven remaining chapter12 findings, earlier decisions, source issues, unrelated Physics path cleanup, shared branch and existing maintenance edits. Audit totals:120accepted,7pending,3retired,20removed,1rejected,3moved-to-issue across154IDs. No code, numerical runs, commit or push.
+- Validation passes:56chapter source check, full manual and six report renders,64page strict rendered links, exact replacement reconstruction, stable154ID/status accounting, untouched seven pending markers, retained legacy content/anchors, generator persistence and whitespace. No commit or push.
+
+### 2026-10-30 — apply three cached Elements decisions
+
+- Apply UG-12-15/16 SOLENOID scaling/units and UG-12-24 current upstream RBEND/SBEND restrictions as normal text with stable anchors. Preserve the separate E1/E2 and GAP/GREATERTHANPI rows and all intervening attributes; do not restore obsolete blanket rejections or deleted attachment attributes. Four Enge findings UG-12-28–31 remain pending.
+- Update audit records:123accepted,4pending,3retired,20removed,1rejected,3moved-to-issue;154IDs preserved. Preserve earlier custom UG-17-04 and all unrelated work. No code, numerical runs, commit or push.
+- Validation passes:56chapter source validator, Elements HTML render,64page strict links, four exact replacements/intervening-table preservation, pending-marker and prior-decision/custom-wording checks, whitespace. No commit or push.
+
+### 2026-10-30 — remove the fixed BEAMBEAM release promise
+
+- At the user’s request, replace all three live fixed-version BEAMBEAM statements with “Available soon.” Preserve UG-08-03, UG-12-02 and UG-12-07 anchors, links and accepted statuses. Synchronize the current audit proposals, summary and latest decision notes without changing any other audit count, pending finding or technical claim.
+- This supersedes the earlier fixed-version availability wording recorded in the historical maintenance entries. Preserve those entries and all unrelated ongoing audit work. Update only the three corresponding generator decision/projection entries and narrow header/assertions so regeneration retains the new wording; do not regenerate unrelated source pages. Backups and evidence are in /Users/adelmann/git/opalx/output/manual-release-promises-2026-10-30/. Render the two affected manual pages locally. No commit or push requested.
+
+### 2026-10-30 — verify release-neutral availability wording
+
+- All three BEAMBEAM notices now read “Available soon.” in source and local HTML, with stable anchors and no fixed version. Source validation (56 chapters), strict links (64 rendered pages), whitespace, exact replacements, all 154 audit headings/statuses and unrelated-file preservation checks pass. The audit register and three active generator decisions/projections/header/assertions agree; read-only regeneration checks preserve the wording without rebuilding other chapters. No commit or push.
+
+### 2026-10-30 — apply accepted consistency corrections
+
+- Apply CONS-01: remove both obsolete Cyclotron no-space-charge restrictions; refer to documented TURNS restrictions and the external-field reference stopping plane. Retain the fixed-step example and its stopping explanation.
+- Apply CONS-02: use BCHARGE = 1e-9 in the assignment example and bunch charge in the BEAM catalog. Mark both follow-ups resolved. Preserve unrelated edits; no commit or push requested.
+- Validation passes: 56-chapter source check, both affected HTML renders, 64-page rendered-link check, focused replacement/anchor checks and whitespace. No code or numerical changes.

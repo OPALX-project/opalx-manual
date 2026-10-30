@@ -660,7 +660,7 @@ implemented like `RBEND` with `E1 = 0` and without fringe fields.
 
 ## Bending Magnets {#opal-bending-magnets}
 
-[**UG-12-34:** The legacy bend families described here are:]{.ug-audit-other #ug-12-34}
+[The legacy bend families described here are:]{#ug-12-34}
 
 - `RBEND` for rectangular bends in OPAL-T
 - `RBEND3D` for rectangular bends with field-map support in OPAL-T

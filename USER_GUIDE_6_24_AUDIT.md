@@ -4,9 +4,9 @@ Review date: 2026-10-28. Every finding is numbered in the local HTML manual. Ori
 
 Manual baseline: `be613707d9768c8f1af606bc2cc068f561871a64`. Audited OPALX master: `9a14973b0030355e1291159281c5ed8e66c3ea56`; inspected from a separate source snapshot, preserving the active feature checkout.
 
-Current manual: `cbefafd`. Status refreshed on 2026-10-30. The original baseline and all recorded User Guide decisions are retained.
+Current manual: `72a3965`. Status refreshed on 2026-10-30. The original baseline and all recorded User Guide decisions are retained.
 
-110 findings, including all 16 English edits, were accepted on 2026-10-29 and appear as normal text. 20 findings remain pending; 3 moved to an OPALX issue; 20 removed from the manual; 1 rejected with original wording restored. IDs remain stable. UG-08-03, UG-12-02 and UG-12-07 record the user's confirmed V1.1.0 availability; other future plans remain unconfirmed unless supported by evidence.
+123 findings, including all 16 English edits, have been accepted and appear as normal text. 4 findings remain pending; 3 moved to an OPALX issue; 20 removed from the manual; 1 rejected with original wording restored; 3 retired from review with their legacy documentation retained. IDs remain stable. UG-08-03, UG-12-02 and UG-12-07 use the user's requested “Available soon” wording without a fixed release commitment; other future plans remain unconfirmed unless supported by evidence.
 
 **Scope:** current OPALX and shared User Guide content in chapters 6–24. Retained OPAL comparisons are checked for provenance, clear availability boundaries and obvious presentation errors; this is not a fresh validation of historical OPAL physics. Getting Started and the appendices are outside this audit. The later origin/main synchronization updates Field Maps separately.
 
@@ -14,31 +14,22 @@ Current manual: `cbefafd`. Status refreshed on 2026-10-30. The original baseline
 
 ## Remaining work
 
-Decision summary updated: 2026-10-29. All recorded user decisions are included.
+Decision summary updated: 2026-10-30. All recorded user decisions are included.
 
-**20 manual review decisions remain.** Within the original audit these comprise 19 proposed corrections and 1 existing availability notice to confirm. Additional cross-chapter follow-ups are listed separately below.
+**4 manual review decisions remain.** Within the original audit these comprise 4 proposed corrections and 0 existing availability notices to confirm. Additional cross-chapter follow-ups are listed separately below.
 
 The proposed wording is already marked in the local manual. The remaining manual work is to accept, reject or revise those proposals. Source verification and implementation issues are tracked separately below.
 
-All English edits are accepted. Chapters 6, 7, 8, 9, 10, 11, 13, 19, 21 have no pending findings in the original numbered User Guide audit. Counts describe documentation review, not a list of implementation tasks.
+All English edits are accepted. Chapters 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 have no pending findings in the original numbered User Guide audit. Counts describe documentation review, not a list of implementation tasks.
 
 | Chapter | Manual decisions | Implementation hold | Remaining IDs |
 |---|---:|---:|---|
-| 12 — Elements | 8 | 0 | [UG-12-15](_site/user-guide/elements.html#ug-12-15), [UG-12-16](_site/user-guide/elements.html#ug-12-16), [UG-12-24](_site/user-guide/elements.html#ug-12-24), [UG-12-28](_site/user-guide/elements.html#ug-12-28), [UG-12-29](_site/user-guide/elements.html#ug-12-29), [UG-12-30](_site/user-guide/elements.html#ug-12-30), [UG-12-31](_site/user-guide/elements.html#ug-12-31), [UG-12-34](_site/user-guide/elements.html#ug-12-34). SOLENOID scaling/units; current bend-specific attribute availability; Enge formulas and labels; legacy bend introduction. |
-| 14 — Field Output Commands | 1 | 0 | [UG-14-06](_site/user-guide/diagnostics-output.html#ug-14-06). Cylindrical sampling angle units and coordinate formulas. |
-| 15 — Beam Lines | 2 | 0 | [UG-15-03](_site/user-guide/beam-lines/index.html#ug-15-03), [UG-15-04](_site/user-guide/beam-lines/index.html#ug-15-04). LINE definition order and its example. |
-| 16 — Beam Definitions | 1 | 0 | [UG-16-06](_site/user-guide/beam.html#ug-16-06). Source-list requirements for source beams and decay daughter beams. |
-| 17 — Beam and Distributions | 2 | 0 | [UG-17-03](_site/user-guide/beam-distributions.html#ug-17-03), [UG-17-04](_site/user-guide/beam-distributions.html#ug-17-04). Particle-file lookup precedence and emission-step fallback. |
-| 18 — Field Solvers | 2 | 0 | [UG-18-06](_site/user-guide/field-solver/index.html#ug-18-06), [UG-18-17](_site/user-guide/field-solver/index.html#ug-18-17). FFT2D5 longitudinal geometry factor and distinction from 3D space-charge modes. |
-| 20 — Wakefields | 1 | 0 | [UG-20-02](_site/user-guide/wakefields/index.html#ug-20-02). Retained legacy derivative-stencil formula. |
-| 22 — Particle-Matter Interactions | 1 | 0 | [UG-22-02](_site/user-guide/particle-matter/index.html#ug-22-02). Explicit legacy provenance for the particle-matter model description. |
-| 23 — Multi-Objective Optimization | 1 | 0 | [UG-23-01](_site/user-guide/optimization/index.html#ug-23-01). Explicit legacy provenance for the optimization example. |
-| 24 — Sampler | 1 | 0 | [UG-24-02](_site/user-guide/sampler/index.html#ug-24-02). Explicit legacy provenance for the SAMPLE example. |
-| **Total** | **20** | **0** | **20 unresolved** |
+| 12 — Elements | 4 | 0 | [UG-12-28](_site/user-guide/elements.html#ug-12-28), [UG-12-29](_site/user-guide/elements.html#ug-12-29), [UG-12-30](_site/user-guide/elements.html#ug-12-30), [UG-12-31](_site/user-guide/elements.html#ug-12-31). Symmetric/asymmetric Enge formulas and entrance/exit offsets. |
+| **Total** | **4** | **0** | **4 unresolved** |
 
-Remaining marker colors: 1 orange and 19 blue.
+Remaining marker colors: 0 orange and 4 blue.
 
-Suggested next discussion: UG-12-15.
+Suggested next discussion: UG-12-28.
 
 ## Pending decisions by finding
 
@@ -46,35 +37,19 @@ These proposals are already marked in the manual. Review the current wording; im
 
 | Finding | Topic | Decision remaining |
 |---|---|---|
-| [UG-12-15](_site/user-guide/elements.html#ug-12-15) | SOLENOID field-map scaling | Accept or refine the direct KS scaling description, tracked-particle KS+DKS distinction and map-defined field support; decide whether to retain the input-help caveat. |
-| [UG-12-16](_site/user-guide/elements.html#ug-12-16) | SOLENOID.KS units and normalization | Confirm the parameter description should use a direct map multiplier and explain map normalization instead of the old rigidity-converted m^-1 description. |
-| [UG-12-24](_site/user-guide/elements.html#ug-12-24) | RBEND/SBEND attribute availability after the pull | Review the current upstream wording: RBEND supports constrained E1/E2 and full-gap GAP; SBEND rejects them; GREATERTHANPI differs by bend class. Accept, revise or reject this current wording, not the superseded blanket rejection. |
 | [UG-12-28](_site/user-guide/elements.html#ug-12-28) | Symmetric Enge exit offset | Accept or revise the exit term using p(x-L/2), replacing the old p(x+L/2) shift. |
 | [UG-12-29](_site/user-guide/elements.html#ug-12-29) | Asymmetric Enge entrance half-length | Confirm START_HALF_LENGTH describes the entrance offset L_s. |
 | [UG-12-30](_site/user-guide/elements.html#ug-12-30) | Asymmetric Enge exit half-length | Confirm END_HALF_LENGTH describes the exit offset L_e. |
 | [UG-12-31](_site/user-guide/elements.html#ug-12-31) | Asymmetric Enge exit formula | Accept or revise use of the separate exit polynomial p_e and the exit shift x-L_e. |
-| [UG-12-34](_site/user-guide/elements.html#ug-12-34) | Legacy bend-family introduction | Accept the count-free introduction so it no longer claims four families before a list of three. |
-| [UG-14-06](_site/user-guide/diagnostics-output.html#ug-14-06) | Cylindrical sampling angle units and coordinates | Confirm PHI_START/DPHI input in radians, phi output in degrees and the vertical-y/origin coordinate formulas. RF time-unit work is tracked separately in issue #654. |
-| [UG-15-03](_site/user-guide/beam-lines/index.html#ug-15-03) | LINE member definition order | Confirm that elements and named sub-lines must be defined before the LINE that refers to them. |
-| [UG-15-04](_site/user-guide/beam-lines/index.html#ug-15-04) | LINE definition-order example | Accept or revise the reordered example that defines sub-line S before line L. |
-| [UG-16-06](_site/user-guide/beam.html#ug-16-06) | Source-beam and decay-daughter SOURCES rules | Accept or refine the allocation-prose explanation: source beams require a non-empty EMISSIONSOURCELIST; daughter beams omit SOURCES. Upstream now agrees with this distinction. |
-| [UG-17-03](_site/user-guide/beam-distributions.html#ug-17-03) | Particle-file lookup precedence | Confirm a relative file is sought in the working directory first, then beside the OPALX input file. |
-| [UG-17-04](_site/user-guide/beam-distributions.html#ug-17-04) | EMISSIONSTEPS fallback | Confirm positive values are rounded up and zero/negative values use 100. |
-| [UG-18-06](_site/user-guide/field-solver/index.html#ug-18-06) | FFT2D5 PIPEMODE effect | Confirm PIPEMODE selects the longitudinal geometry factor, leaves transverse boundaries open and disables the longitudinal field when NONE. |
-| [UG-18-17](_site/user-guide/field-solver/index.html#ug-18-17) | Three-dimensional versus FFT2D5 space-charge modes | Confirm the monolithic/binned and cathode-plane description is limited to 3D backends; FFT2D5 uses its separate slice algorithm. |
-| [UG-20-02](_site/user-guide/wakefields/index.html#ug-20-02) | Retained OPAL derivative stencil | Accept or revise fourth-order centred differentiation with denominator 12h, followed by smoothing. This does not make FILTER available in OPALX. |
-| [UG-22-02](_site/user-guide/particle-matter/index.html#ug-22-02) | Legacy particle-matter model provenance | Confirm the model statement is explicitly attributed to retained OPAL documentation. |
-| [UG-23-01](_site/user-guide/optimization/index.html#ug-23-01) | Legacy optimization example provenance | Confirm the example is explicitly identified as retained OPAL documentation. |
-| [UG-24-02](_site/user-guide/sampler/index.html#ug-24-02) | Legacy SAMPLE example provenance | Confirm the linked example is explicitly identified as retained OPAL documentation. |
 
 ## Cross-chapter consistency
 
-2 documentation follow-ups are separate from the original numbered audit decisions. Existing accepted text and all 154 historical IDs/statuses are preserved; these follow-ups are not implementation defects.
+Both cross-chapter follow-ups were accepted and resolved on 2026-10-30. All 154 historical IDs/statuses are preserved.
 
-| Follow-up | Discrepancy | Next manual decision | References |
+| Follow-up | Discrepancy | Resolution | References |
 |---|---|---|---|
-| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Agree one description of support and distinguish any validation policy from an enforced limitation. Keep both existing approvals until that wording decision. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
-| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Align the catalog and attribute-assignment example with supported BEAM attributes such as BCHARGE, allocation and source lists, consistent with the approved BEAM table. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
+| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Resolved 2026-10-30: user accepted space-charge support under the documented TURNS restrictions; corrected both Cyclotron restrictions while retaining the fixed-step example. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
+| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Resolved 2026-10-30: user accepted BCHARGE = 1e-9 in the attribute-assignment example and bunch charge in the BEAM catalog. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
 
 ## Other audit scope
 
@@ -100,31 +75,31 @@ The manual findings linked below are resolved. Source verification or implementa
 
 ## Publication and verification
 
-The current cleanup, audit-record updates and CI test repairs are authorized for commit/push on 2026-10-30. Local checks pass; verify the resulting Actions run and published pages after pushing.
+The accepted User Guide decisions are authorized for commit/push on2026-10-30. Verify the review branch and its checks after publication.
 
 ## All findings — status accounting
 
-| Chapter | Page | Accepted | Orange pending | Blue pending | Moved to issue | Removed | Rejected |
-|---|---|---:|---:|---:|---:|---:|---:|
-| 6 | [user-guide/introduction/index.qmd](user-guide/introduction/index.qmd) | 0 | 0 | 0 | 0 | 0 | 0 |
-| 7 | [user-guide/conventions/index.qmd](user-guide/conventions/index.qmd) | 3 | 0 | 0 | 0 | 0 | 0 |
-| 8 | [user-guide/input-language.qmd](user-guide/input-language.qmd) | 7 | 0 | 0 | 0 | 1 | 0 |
-| 9 | [user-guide/command-format/index.qmd](user-guide/command-format/index.qmd) | 9 | 0 | 0 | 2 | 1 | 1 |
-| 10 | [user-guide/control-statements/index.qmd](user-guide/control-statements/index.qmd) | 4 | 0 | 0 | 0 | 0 | 0 |
-| 11 | [user-guide/options.qmd](user-guide/options.qmd) | 7 | 0 | 0 | 0 | 1 | 0 |
-| 12 | [user-guide/elements.qmd](user-guide/elements.qmd) | 21 | 1 | 7 | 0 | 6 | 0 |
-| 13 | [user-guide/cyclotron.qmd](user-guide/cyclotron.qmd) | 5 | 0 | 0 | 0 | 0 | 0 |
-| 14 | [user-guide/diagnostics-output.qmd](user-guide/diagnostics-output.qmd) | 3 | 0 | 1 | 1 | 1 | 0 |
-| 15 | [user-guide/beam-lines/index.qmd](user-guide/beam-lines/index.qmd) | 4 | 0 | 2 | 0 | 0 | 0 |
-| 16 | [user-guide/beam.qmd](user-guide/beam.qmd) | 8 | 0 | 1 | 0 | 0 | 0 |
-| 17 | [user-guide/beam-distributions.qmd](user-guide/beam-distributions.qmd) | 10 | 0 | 2 | 0 | 1 | 0 |
-| 18 | [user-guide/field-solver/index.qmd](user-guide/field-solver/index.qmd) | 16 | 0 | 2 | 0 | 4 | 0 |
-| 19 | [user-guide/tracking.qmd](user-guide/tracking.qmd) | 6 | 0 | 0 | 0 | 5 | 0 |
-| 20 | [user-guide/wakefields/index.qmd](user-guide/wakefields/index.qmd) | 1 | 0 | 1 | 0 | 0 | 0 |
-| 21 | [user-guide/geometry/index.qmd](user-guide/geometry/index.qmd) | 1 | 0 | 0 | 0 | 0 | 0 |
-| 22 | [user-guide/particle-matter/index.qmd](user-guide/particle-matter/index.qmd) | 3 | 0 | 1 | 0 | 0 | 0 |
-| 23 | [user-guide/optimization/index.qmd](user-guide/optimization/index.qmd) | 1 | 0 | 1 | 0 | 0 | 0 |
-| 24 | [user-guide/sampler/index.qmd](user-guide/sampler/index.qmd) | 1 | 0 | 1 | 0 | 0 | 0 |
+| Chapter | Page | Accepted | Orange pending | Blue pending | Moved to issue | Removed | Rejected | Retired |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 6 | [user-guide/introduction/index.qmd](user-guide/introduction/index.qmd) | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 7 | [user-guide/conventions/index.qmd](user-guide/conventions/index.qmd) | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 8 | [user-guide/input-language.qmd](user-guide/input-language.qmd) | 7 | 0 | 0 | 0 | 1 | 0 | 0 |
+| 9 | [user-guide/command-format/index.qmd](user-guide/command-format/index.qmd) | 9 | 0 | 0 | 2 | 1 | 1 | 0 |
+| 10 | [user-guide/control-statements/index.qmd](user-guide/control-statements/index.qmd) | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 11 | [user-guide/options.qmd](user-guide/options.qmd) | 7 | 0 | 0 | 0 | 1 | 0 | 0 |
+| 12 | [user-guide/elements.qmd](user-guide/elements.qmd) | 25 | 0 | 4 | 0 | 6 | 0 | 0 |
+| 13 | [user-guide/cyclotron.qmd](user-guide/cyclotron.qmd) | 5 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 14 | [user-guide/diagnostics-output.qmd](user-guide/diagnostics-output.qmd) | 4 | 0 | 0 | 1 | 1 | 0 | 0 |
+| 15 | [user-guide/beam-lines/index.qmd](user-guide/beam-lines/index.qmd) | 6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 16 | [user-guide/beam.qmd](user-guide/beam.qmd) | 9 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 17 | [user-guide/beam-distributions.qmd](user-guide/beam-distributions.qmd) | 12 | 0 | 0 | 0 | 1 | 0 | 0 |
+| 18 | [user-guide/field-solver/index.qmd](user-guide/field-solver/index.qmd) | 18 | 0 | 0 | 0 | 4 | 0 | 0 |
+| 19 | [user-guide/tracking.qmd](user-guide/tracking.qmd) | 6 | 0 | 0 | 0 | 5 | 0 | 0 |
+| 20 | [user-guide/wakefields/index.qmd](user-guide/wakefields/index.qmd) | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 21 | [user-guide/geometry/index.qmd](user-guide/geometry/index.qmd) | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 22 | [user-guide/particle-matter/index.qmd](user-guide/particle-matter/index.qmd) | 3 | 0 | 0 | 0 | 0 | 0 | 1 |
+| 23 | [user-guide/optimization/index.qmd](user-guide/optimization/index.qmd) | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
+| 24 | [user-guide/sampler/index.qmd](user-guide/sampler/index.qmd) | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 
 ## Audit history and evidence
 
@@ -148,7 +123,7 @@ mass, and normalized momentum follow the conventions below.
 
 Evidence: `src/Structure/Beam.cpp:73`; `src/AbstractObjects/OpalData.cpp:494`; `user-guide/conventions/index.qmd:77`.
 
-**User decision (2026-10-29):** User accepted this units statement with the parameter-table exception sentence removed.
+**User decision:** User accepted this units statement with the parameter-table exception sentence removed.
 
 ### UG-07-02 — Technical / units / links — Accepted 2026-10-29
 
@@ -305,12 +280,12 @@ Experimental single-pass mirrored-primary interaction with optional passive witn
 
 **Proposed wording / discussion addition**
 ```text
-Available in OPALX V1.1.0.
+Available soon.
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:146`; `git grep BEAMBEAM 9a14973b -- src: no implementation/registration matches`.
 
-**User decision (2026-10-29):** User confirmed availability in V1.1.0; retain orange availability annotation.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-08-04 — Technical / units / links — Accepted 2026-10-29
 
@@ -348,7 +323,7 @@ Add the supported IDEAL RF model to the catalog.
 
 Evidence: `src/Elements/OpalCavity.cpp:37-40`; `user-guide/elements.qmd#rfcavity-ideal`.
 
-**User decision (2026-10-29):** Apply the user-supplied model description verbatim; retain review annotation.
+**User decision:** Apply the user-supplied model description verbatim; retain review annotation.
 
 ### UG-08-06 — Feature coverage / availability — Removed from manual
 
@@ -368,7 +343,7 @@ Link the newly supplied interface and flag that registration does not establish 
 
 Evidence: `src/Elements/OpalVerticalFFAMagnet.cpp:29-57`; `src/AbsBeamline/VerticalFFAMagnet.h:277-319`.
 
-**User decision (2026-10-29):** Remove VERTICALFFAMAGNET from the manual at the user's request; retain the original audit evidence only in the review record.
+**User decision:** Remove VERTICALFFAMAGNET from the manual at the user's request; retain the original audit evidence only in the review record.
 
 ### UG-08-07 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -391,7 +366,7 @@ The page promises every registered element class, but omits the horizontal scali
 
 Evidence: `src/OpalConfigure/Configure.cpp:165`; `src/OpalConfigure/Configure.cpp:177`; `user-guide/elements.qmd:844`; `user-guide/elements.qmd:904`.
 
-**User decision (2026-10-29):** User accepted the missing catalog entries; add the four concrete linked rows in place of the audit instruction.
+**User decision:** User accepted the missing catalog entries; add the four concrete linked rows in place of the audit instruction.
 
 ### UG-08-08 — Technical / units / links — Accepted 2026-10-29
 
@@ -412,7 +387,7 @@ These functions used by time-dependent RF and scaling attributes. Their paramete
 
 Evidence: `user-guide/elements.qmd:1015`.
 
-**User decision (2026-10-29):** User supplied replacement wording; retain the existing definitions hyperlink.
+**User decision:** User supplied replacement wording; retain the existing definitions hyperlink.
 
 ### UG-09-01 — Feature coverage / availability — Removed from manual
 
@@ -449,7 +424,7 @@ LOGOPT, ECHO=TRUE;
 
 Evidence: `src/OpalConfigure/Configure.cpp:109`; `src/OpalParser/OpalParser.cpp:158`; `src/OpalParser/OpalParser.cpp:352`.
 
-**User decision (2026-10-29):** User requested this complete named-command example block removed.
+**User decision:** User requested this complete named-command example block removed.
 
 ### UG-09-02 — English — Accepted 2026-10-29
 
@@ -656,7 +631,7 @@ longitudinal-position context and raise an error outside it.
 
 Evidence: `src/Expressions/Expressions.cpp:139`; `src/Expressions/Expressions.cpp:161`; `src/Expressions/SFunction.cpp:42`.
 
-**User decision (2026-10-29):** User requested this entire paragraph removed from the manual and transferred to an OPALX source issue.
+**User decision:** User requested this entire paragraph removed from the manual and transferred to an OPALX source issue.
 
 ### UG-09-08 — English — Accepted 2026-10-29
 
@@ -716,7 +691,7 @@ of the general language.
 
 Evidence: `src/OpalConfigure/Configure.cpp:116`; `src/BasicActions/Select.cpp:85`.
 
-**User decision (2026-10-29):** User rejected this proposal. Restore the original general-language statement and retain its plain anchor; remove SELECT command documentation separately at the same request.
+**User decision:** User rejected this proposal. Restore the original general-language statement and retain its plain anchor; remove SELECT command documentation separately at the same request.
 
 **Rejected proposal (record only)**
 ```text
@@ -779,7 +754,7 @@ SELECT, LINE=L1, PATTERN="K.*QD.*\\.R1";
 
 Evidence: `src/BasicActions/Select.cpp:52`; `src/OpalParser/SimpleStatement.cpp`.
 
-**User decision (2026-10-29):** User requested investigation of whether SELECT really works; the removed examples are tracked in this verification issue, with source evidence and no claim of a reproduced defect.
+**User decision:** User requested investigation of whether SELECT really works; the removed examples are tracked in this verification issue, with source evidence and no claim of a reproduced defect.
 
 ### UG-09-13 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1058,7 +1033,7 @@ adaptive histogram itself is documented under
 
 Evidence: `src/Algorithms/ParallelTracker.cpp:1297`; `src/BasicActions/Option.cpp:643`.
 
-**User decision (2026-10-29):** User requested this entire paragraph removed, including its trailing Binning link; preserve the separate accepted option-table documentation.
+**User decision:** User requested this entire paragraph removed, including its trailing Binning link; preserve the separate accepted option-table documentation.
 
 ### UG-11-08 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1116,7 +1091,7 @@ the OPALX `ParallelTracker` source. Do not rely on them to change a simulation.
 
 Evidence: `src/BasicActions/Option.cpp:172`; `src/BasicActions/Option.cpp:178`; `src/BasicActions/Option.cpp:280`; `src/BasicActions/Option.cpp:359`; `src/BasicActions/Option.cpp:374`; `src/Algorithms/ParallelTracker.cpp`.
 
-**User decision (2026-10-29):** Obsolete option rows were removed at the user's request; the remaining wording is accepted.
+**User decision:** Obsolete option rows were removed at the user's request; the remaining wording is accepted.
 
 ### UG-12-01 — Removed from manual
 
@@ -1135,12 +1110,12 @@ BEAMBEAM is not registered or implemented in the current master snapshot. Preser
 
 **Proposed wording / discussion addition**
 ```text
-| `BEAMBEAM` | [Available in OPALX V1.1.0.](#beambeam) | optional particle input files |
+| `BEAMBEAM` | [Available soon.](#beambeam) | optional particle input files |
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:145-179`; `git grep -i beambeam master -- src: one incidental comment, no element implementation`.
 
-**User decision (2026-10-29):** User confirmed availability in V1.1.0; retain orange availability annotation.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-12-03 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1160,7 +1135,7 @@ Add the omitted registered horizontal FFA magnet and qualify the vertical FFA im
 
 Evidence: `src/OpalConfigure/Configure.cpp:165-170`; `src/AbsBeamline/VerticalFFAMagnet.h:277-319`.
 
-**User decision (2026-10-29):** User approved the SCALINGFFAMAGNET addition and requested VERTICALFFAMAGNET removed from the manual.
+**User decision:** User approved the SCALINGFFAMAGNET addition and requested VERTICALFFAMAGNET removed from the manual.
 
 ### UG-12-04 — Removed from manual
 
@@ -1206,7 +1181,7 @@ Existing availability restriction highlighted in orange as requested. DRIFT comp
 
 Evidence: `src/Elements/OpalDrift.cpp:17-62`.
 
-**User decision (2026-10-29):** User requested removal of the unsupported GEOMETRY and NSLICES rows from the current OPALX DRIFT interface.
+**User decision:** User requested removal of the unsupported GEOMETRY and NSLICES rows from the current OPALX DRIFT interface.
 
 ### UG-12-07 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1221,12 +1196,12 @@ Keep the previously documented feature visible without claiming it is currently 
 
 **Proposed wording / discussion addition**
 ```text
-**Availability:** `BEAMBEAM` is available in OPALX V1.1.0.
+**Availability:** Available soon.
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:145-179`; `git ls-remote origin refs/heads/master: 9a14973b0030355e1291159281c5ed8e66c3ea56`.
 
-**User decision (2026-10-29):** User confirmed BEAMBEAM availability in V1.1.0; replace the obsolete master-registration discussion with the release statement.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-12-08 — English — Accepted 2026-10-29
 
@@ -1295,7 +1270,7 @@ strengths, the current particle kernel has no nonzero field interval when
 
 Evidence: `src/AbsBeamline/Multipole.h`.
 
-**User decision (2026-10-29):** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
+**User decision:** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
 
 ### UG-12-11 — English — Accepted 2026-10-29
 
@@ -1402,7 +1377,7 @@ Existing availability restriction highlighted in orange as requested. Variable-r
 
 Evidence: `src/Elements/OpalMultipoleT.cpp`.
 
-### UG-12-15 — Technical / units / links — Pending
+### UG-12-15 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/elements.qmd:418` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-15).
 
@@ -1422,7 +1397,9 @@ which may differ from nominal `L`.
 
 Evidence: `src/Elements/OpalSolenoid.cpp:55-64`; `src/AbsBeamline/Solenoid.cpp:73,96,120,131-134`; `src/BeamlineCore/SolenoidRep.cpp:66-68`.
 
-### UG-12-16 — Technical / units / links — Pending
+**User decision:** Accepted current SOLENOID wording on2026-10-30; remove review labels/colors only.
+
+### UG-12-16 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/elements.qmd:430` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-16).
 
@@ -1439,6 +1416,8 @@ Direct multiplier on the loaded magnetic field in the current mapped-field calcu
 ```
 
 Evidence: `src/AbsBeamline/Solenoid.cpp:73,96,120,131`; `src/Elements/OpalSolenoid.cpp:55-64`.
+
+**User decision:** Accepted current SOLENOID wording on2026-10-30; remove review labels/colors only.
 
 ### UG-12-17 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1569,9 +1548,9 @@ yet supported.
 
 Evidence: `src/Elements/OpalProbe.cpp`; `src/AbsBeamline/Probe.cpp`.
 
-**User decision (2026-10-29):** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
+**User decision:** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
 
-### UG-12-24 — Feature coverage / availability — Pending
+### UG-12-24 — Feature coverage / availability — Accepted 2026-10-30
 
 Location: `user-guide/elements.qmd:836` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-24).
 
@@ -1583,15 +1562,15 @@ Existing availability restriction highlighted in orange as requested. Unsupporte
 | `GAP`, `GREATERTHANPI` | - | Rejected compatibility attributes. Use `HGAP`; bends beyond the old compatibility path are unsupported. |
 ```
 
-**Existing wording (unchanged; highlighted for discussion)**
+**Proposed wording / discussion addition**
 ```text
-| `E1`, `E2` | rad | Parsed but explicitly rejected by the current native bend port. |
-| `GAP`, `GREATERTHANPI` | - | Rejected compatibility attributes. Use `HGAP`; bends beyond the old compatibility path are unsupported. |
+| `E1`, `E2` | rad | `RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them. |
+| `GAP`, `GREATERTHANPI` | m / — | `GAP` is the full gap for `RBEND`, instead of `HGAP`; giving both is rejected. `SBEND` rejects `GAP`. `GREATERTHANPI` is rejected by `SBEND` and ignored by `RBEND`. |
 ```
 
 Evidence: `src/Elements/OpalRBend.cpp:163-209`; `src/Elements/OpalSBend.cpp`.
 
-**User decision (2026-10-29):** Remove the attachment row at the user's request; retain the two other restriction rows and their pending finding ID.
+**User decision:** Accepted current marked wording on2026-10-30. Preserve upstream bend restrictions; remove review labels/colors only.
 
 **Upstream synchronization (2026-10-29):** The origin/main update pulled on 2026-10-29 supersedes the earlier wording shown below. The existing review status and finding ID are retained.
 
@@ -1763,7 +1742,7 @@ Future availability has not been confirmed.
 
 Evidence: `src/Elements/OpalVerticalFFAMagnet.cpp:29-57,81-100`; `src/AbsBeamline/VerticalFFAMagnet.h:277-319`; `src/AbsBeamline/VerticalFFAMagnet.cpp:99-108`.
 
-**User decision (2026-10-29):** Remove VERTICALFFAMAGNET from the manual at the user's request; retain the original audit evidence only in the review record.
+**User decision:** Remove VERTICALFFAMAGNET from the manual at the user's request; retain the original audit evidence only in the review record.
 
 ### UG-12-33 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1787,7 +1766,7 @@ The current sinusoidal integral has an inconsistent
 
 Evidence: `src/Algorithms/SinusoidalTimeDependence.cpp`.
 
-### UG-12-34 — Technical / units / links — Pending
+### UG-12-34 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/_legacy-elements.qmd:666` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-34).
 
@@ -1804,6 +1783,8 @@ The legacy bend families described here are:
 ```
 
 Evidence: `user-guide/_legacy-elements.qmd:666`.
+
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
 
 ### UG-12-35 — English — Accepted 2026-10-29
 
@@ -1825,7 +1806,7 @@ the usual `L` and `ELEMEDGE` parameters.
 
 Evidence: `user-guide/_legacy-elements.qmd:1247`.
 
-### UG-13-01 — Technical / units / links — Accepted 2026-10-29
+### UG-13-01 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/cyclotron.qmd:81` in the baseline. [Rendered change](_site/user-guide/cyclotron.html#ug-13-01).
 
@@ -1836,14 +1817,16 @@ Review question: it is uncertain whether the stated space-charge restriction is 
 Explicit `TURNS` stopping is not supported with space charge.
 ```
 
-**Existing wording (unchanged; highlighted for discussion)**
+**Accepted replacement**
 ```text
-Explicit `TURNS` stopping is not supported with space charge.
+Explicit `TURNS` stopping is supported with space charge under the [documented restrictions](tracking.qmd#turns). The stopping plane is determined by the external-field reference particle.
 ```
 
 Evidence: `src/Track/TrackRun.cpp:677–724`; `src/Algorithms/ParallelTracker.cpp:419–445`; `src/Algorithms/ParallelTracker.cpp:669–689`; `src/Track/TrackRun.cpp:640–655`.
 
-**User decision (2026-10-29):** User explicitly accepted the existing restriction wording. This is a documentation approval, not a new runtime validation.
+**User decision:** User explicitly accepted the existing restriction wording. This is a documentation approval, not a new runtime validation.
+
+**Resolution (CONS-01, 2026-10-30):** CONS-01 accepted: supersedes the earlier no-space-charge restriction; the stop follows the external-field reference particle.
 
 ### UG-13-02 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1944,7 +1927,7 @@ Declare `DUMPEMFIELDS` before the `RUN` that should write the samples. The comma
 
 Evidence: `src/BasicActions/DumpEMFields.cpp:117–124`; `src/BasicActions/DumpEMFields.cpp:243–255`; `src/BasicActions/DumpEMFields.cpp:287–298`; `src/Algorithms/ParallelTracker.cpp:609–610`.
 
-**User decision (2026-10-29):** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
+**User decision:** User requested removal of this marked passage; retain adjacent manual text and original audit evidence.
 
 ### UG-14-02 — Technical / units / links — Accepted 2026-10-29
 
@@ -1982,7 +1965,7 @@ Expose the unresolved ns-versus-seconds discrepancy for discussion without silen
 
 Evidence: `src/BasicActions/DumpEMFields.cpp:65-69,249`; `src/AbsBeamline/RFCavity.cpp:140`.
 
-**User decision (2026-10-29):** User requested the review note removed from the manual and transferred to an OPALX source issue; runtime unit behavior remains to be decided and verified.
+**User decision:** User requested the review note removed from the manual and transferred to an OPALX source issue; runtime unit behavior remains to be decided and verified.
 
 ### UG-14-04 — Technical / units / links — Accepted 2026-10-29
 
@@ -2020,7 +2003,7 @@ Each `*_STEPS` value is the number of grid samples, including the start point. A
 
 Evidence: `src/BasicActions/DumpEMFields.cpp:126–175`; `src/BasicActions/DumpEMFields.cpp:305–311`; `src/Fields/Interpolation/NDGrid.cpp`.
 
-### UG-14-06 — Technical / units / links — Pending
+### UG-14-06 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/diagnostics-output.qmd:215` in the baseline. [Rendered change](_site/user-guide/diagnostics-output.html#ug-14-06).
 
@@ -2037,6 +2020,8 @@ For OPALX, give `PHI_START` and `DPHI` in radians. The output converts `phi` to 
 ```
 
 Evidence: `src/BasicActions/DumpEMFields.cpp:78–81`; `src/BasicActions/DumpEMFields.cpp:237–241`; `src/BasicActions/DumpEMFields.cpp:267`.
+
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
 
 ### UG-15-01 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2079,7 +2064,7 @@ OPALX also accepts the scalar source-frame attributes `X`, `Y`, `Z` in metres an
 
 Evidence: `src/Lines/Line.cpp:76–97`; `src/Lines/Line.cpp:197–251`.
 
-### UG-15-03 — Technical / units / links — Pending
+### UG-15-03 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/beam-lines/index.qmd:52` in the baseline. [Rendered change](_site/user-guide/beam-lines/index.html#ug-15-03).
 
@@ -2098,7 +2083,9 @@ Define each element and named sub-line before the `LINE` that uses it; members a
 
 Evidence: `src/Lines/Line.cpp:320–349`.
 
-### UG-15-04 — Technical / units / links — Pending
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
+
+### UG-15-04 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/beam-lines/index.qmd:57` in the baseline. [Rendered change](_site/user-guide/beam-lines/index.html#ug-15-04).
 
@@ -2121,6 +2108,8 @@ L: LINE = (A, B, S, B, A, S, A, B);
 ```
 
 Evidence: `src/Lines/Line.cpp:323–327`.
+
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
 
 ### UG-15-05 — English — Accepted 2026-10-29
 
@@ -2260,7 +2249,7 @@ sum unless the weighting is intentional.
 
 Evidence: `src/Structure/Beam.cpp:347–352`; `src/Track/TrackRun.cpp:959–981`.
 
-### UG-16-06 — Technical / units / links — Pending
+### UG-16-06 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/beam.qmd:61` in the baseline. [Rendered change](_site/user-guide/beam.html#ug-16-06).
 
@@ -2278,6 +2267,8 @@ Each tracked source beam requires a non-empty `SOURCES` name. The target list mu
 ```
 
 Evidence: `src/Track/TrackRun.cpp:383–400`; `src/Track/TrackRun.cpp:442–454`.
+
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
 
 ### UG-16-07 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2315,7 +2306,7 @@ Not yet implemented
 
 Evidence: `src/Track/TrackRun.cpp:351–357`.
 
-**User decision (2026-10-29):** Replace this availability note with the exact wording supplied by the user.
+**User decision:** Replace this availability note with the exact wording supplied by the user.
 
 ### UG-16-09 — English — Accepted 2026-10-29
 
@@ -2389,9 +2380,9 @@ The legacy OPAL types `BINOMIAL`, `GAUSSMATCHED`, `MULTIGAUSS`, `GUNGAUSSFLATTOP
 
 Evidence: `src/Distribution/Distribution.cpp:112–115`; `src/Distribution/Distribution.cpp:117–192`; `src/Structure/EmissionSource.cpp:55–60`; `src/Track/TrackRun.cpp:1040–1063`.
 
-**User decision (2026-10-29):** Exact replacement supplied by user.
+**User decision:** Exact replacement supplied by user.
 
-### UG-17-03 — Technical / units / links — Pending
+### UG-17-03 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/beam-distributions.qmd:91` in the baseline. [Rendered change](_site/user-guide/beam-distributions.html#ug-17-03).
 
@@ -2409,7 +2400,9 @@ Input particle file. A relative name is first checked in the working directory; 
 
 Evidence: `src/Distribution/FromFile.cpp:26–38`; `src/Distribution/EmittedFromFile.cpp:131–143`.
 
-### UG-17-04 — Technical / units / links — Pending
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
+
+### UG-17-04 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/beam-distributions.qmd:102` in the baseline. [Rendered change](_site/user-guide/beam-distributions.html#ug-17-04).
 
@@ -2422,10 +2415,12 @@ Preferred emission resolution; positive values are rounded up.
 
 **Proposed wording / discussion addition**
 ```text
-Preferred emission resolution; positive values are rounded up, while zero or negative values select `100`.
+Defines the number of emission steps.
 ```
 
 Evidence: `src/Distribution/Distribution.cpp:298–303`.
+
+**User decision:** User wording: Defines the number of emission steps.
 
 ### UG-17-05 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2464,7 +2459,7 @@ Use `EMISSIONMODEL=NONE` and `T0=0`. Other emission models are not yet supported
 
 Evidence: `src/Distribution/Uniform.cpp:30–37`.
 
-**User decision (2026-10-29):** Exact replacement supplied by user.
+**User decision:** Exact replacement supplied by user.
 
 ### UG-17-07 — Feature coverage / availability — Removed from manual
 
@@ -2485,7 +2480,7 @@ All six `SIGMA*` widths must be strictly positive so that the covariance matrix 
 
 Evidence: `src/Distribution/MultiVariateGaussian.cpp:18–25`; `src/Distribution/MultiVariateGaussian.cpp:119–180`.
 
-**User decision (2026-10-29):** User requested this marked note deleted.
+**User decision:** User requested this marked note deleted.
 
 ### UG-17-08 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2583,7 +2578,7 @@ Accurate existing availability notice highlighted in orange per the audit reques
 
 Evidence: `src/Distribution/Uniform.cpp:30–33`; `src/Distribution/Gaussian.cpp:68–72`; `src/Distribution/MultiVariateGaussian.cpp:194–198`; `src/Distribution/FromFile.cpp:231–235`; `src/Distribution/EmittedFromFile.cpp:247–251`.
 
-**User decision (2026-10-29):** Exact replacement supplied by user.
+**User decision:** Exact replacement supplied by user.
 
 ### UG-17-13 — English — Accepted 2026-10-29
 
@@ -2647,7 +2642,7 @@ binned. Explicit image charges are rejected.
 
 Evidence: `src/SpaceCharge/SpaceChargeConfig.cpp:104-117`.
 
-**User decision (2026-10-29):** Remove the full P3M shifted-Green paragraph quoted by user, including unmarked surrounding sentences.
+**User decision:** Remove the full P3M shifted-Green paragraph quoted by user, including unmarked surrounding sentences.
 
 ### UG-18-04 — Removed from manual
 
@@ -2676,7 +2671,7 @@ line-charge density:
 
 Evidence: `user-guide/field-solver/index.qmd:170-173`.
 
-### UG-18-06 — Technical / units / links — Pending
+### UG-18-06 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/field-solver/index.qmd:180` in the baseline. [Rendered change](_site/user-guide/field-solver/index.html#ug-18-06).
 
@@ -2695,6 +2690,8 @@ longitudinal field; the transverse Poisson solves retain open boundaries.
 ```
 
 Evidence: `src/Structure/FieldSolverCmd.cpp:94-97`; `src/SpaceCharge/FFT2D5/FFT2D5Algorithm.hpp:433-479`; `src/SpaceCharge/FFT2D5/FFT2D5Algorithm.hpp:560-570`.
+
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
 
 ### UG-18-07 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2736,7 +2733,7 @@ The implemented FFT2D5 backend is missing from the accepted TYPE list.
 
 Evidence: `src/Structure/FieldSolverCmd.cpp:43-45`; `src/SpaceCharge/SpaceChargeConfigBuilder.cpp:301-339`.
 
-**User decision (2026-10-29):** An unsupported solver choice was removed at the user's request; the remaining list is accepted.
+**User decision:** An unsupported solver choice was removed at the user's request; the remaining list is accepted.
 
 ### UG-18-09 — Technical / units / links — Accepted 2026-10-29
 
@@ -2893,7 +2890,7 @@ three-dimensional space-charge evaluation performs the following cycle.
 
 Evidence: `src/SpaceCharge/SpaceChargeConfig.h:107-118`; `src/SpaceCharge/FFT2D5/FFT2D5FieldStorage.cpp:71-111`.
 
-### UG-18-17 — Technical / units / links — Pending
+### UG-18-17 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/field-solver/index.qmd:284` in the baseline. [Rendered change](_site/user-guide/field-solver/index.html#ug-18-17).
 
@@ -2917,6 +2914,8 @@ cathode-plane modes.
 
 Evidence: `src/SpaceCharge/SpaceChargeConfigBuilder.cpp:301-339`; `src/SpaceCharge/FFT2D5/FFT2D5Algorithm.hpp:389-392`; `src/SpaceCharge/FFT2D5/FFT2D5Algorithm.hpp:605-618`.
 
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
+
 ### UG-18-18 — Feature coverage / availability — Accepted 2026-10-29
 
 Location: `user-guide/field-solver/index.qmd:381` in the baseline. [Rendered change](_site/user-guide/field-solver/index.html#ug-18-18).
@@ -2936,7 +2935,7 @@ diagnostic frequency. Its output is available only for the explicit-image mode w
 
 Evidence: `src/SpaceCharge/SpaceChargeConfig.cpp:119-122`.
 
-**User decision (2026-10-29):** Exact replacement supplied by user.
+**User decision:** Exact replacement supplied by user.
 
 ### UG-18-19 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -2976,7 +2975,7 @@ The parser accepts `VELOCITYZ`, `GAMMAZ`.
 
 Evidence: `src/SpaceCharge/SpaceChargeConfig.cpp:73-76`.
 
-**User decision (2026-10-29):** User supplied final supported-selector wording. Resolve this documentation finding while preserving the separate open implementation issue.
+**User decision:** User supplied final supported-selector wording. Resolve this documentation finding while preserving the separate open implementation issue.
 
 **Implementation issue:** [OPALX #652](https://github.com/OPALX-project/OPALX/issues/652).
 
@@ -3025,7 +3024,7 @@ The option is registered, copied and assigned but has no runtime consumer on aud
 
 Evidence: `src/BasicActions/Option.cpp:228-233`; `src/BasicActions/Option.cpp:644`; `src/Utilities/Options.h:97`; `src/Utilities/Options.cpp:59`; `src/Algorithms/ParallelTracker.cpp:1297`.
 
-**User decision (2026-10-29):** User requested this marked passage deleted.
+**User decision:** User requested this marked passage deleted.
 
 ### UG-19-01 — Feature coverage / availability — Removed from manual
 
@@ -3045,7 +3044,7 @@ Accepted for compatibility but ignored; sources come from each selected `BEAM`.
 
 Evidence: `src/Track/TrackCmd.cpp:189-190`.
 
-**User decision (2026-10-29):** User requested removal of the ignored TRACK.SOURCES compatibility row; active BEAM.SOURCES remains documented.
+**User decision:** User requested removal of the ignored TRACK.SOURCES compatibility row; active BEAM.SOURCES remains documented.
 
 ### UG-19-02 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3091,7 +3090,7 @@ Earlier interface details omitted at the user's request.
 
 Evidence: `src/Track/TrackCmd.cpp:112-114`; `src/Track/TrackRun.cpp:724-747`.
 
-**User decision (2026-10-29):** User resolved this finding by documenting the canonical choices and tracking the missing production-integrator configuration in a separate issue.
+**User decision:** User resolved this finding by documenting the canonical choices and tracking the missing production-integrator configuration in a separate issue.
 
 **Implementation issue:** [OPALX #653](https://github.com/OPALX-project/OPALX/issues/653).
 
@@ -3113,7 +3112,7 @@ Compatibility setting. Keep `NONE`: a user-defined `GEOMETRY` object is [unavail
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`; `src/Track/TrackRun.cpp:863-874`.
 
-**User decision (2026-10-29):** User requested removal of this complete current RUN parameter row; retained legacy OPAL examples and tables are unchanged.
+**User decision:** User requested removal of this complete current RUN parameter row; retained legacy OPAL examples and tables are unchanged.
 
 ### UG-19-07 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3133,7 +3132,7 @@ Not yet available.
 
 Evidence: `src/Track/TrackRun.cpp:240-241`; `src/Track/TrackRun.cpp:724-747`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
 ### UG-19-08 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3259,7 +3258,7 @@ plane assignment is provided. Unsupported attributes such as `ZSTOP`, `BEAMS`,
 
 Evidence: `src/Track/CofCmd.cpp:23-53`; `src/Track/CofCmd.cpp:390-447`.
 
-**User decision (2026-10-29):** User requested this complete paragraph removed; preserve the preceding COF field/aperture discussion and following results section.
+**User decision:** User requested this complete paragraph removed; preserve the preceding COF field/aperture discussion and following results section.
 
 ### UG-19-11 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3309,9 +3308,9 @@ and a visible reminder of functionality that may be ported later.
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
-### UG-20-02 — Technical / units / links — Pending
+### UG-20-02 — Technical / units / links — Accepted 2026-10-30
 
 Location: `user-guide/wakefields/index.qmd:181` in the baseline. [Rendered change](_site/user-guide/wakefields/index.html#ug-20-02).
 
@@ -3340,6 +3339,8 @@ The smoothing filter is then applied to the derivative.
 
 Evidence: `src/Filters/Stencil.cpp:34-51`; `src/OpalConfigure/Configure.cpp:108-144`.
 
+**User decision:** Accepted during interactive review on2026-10-30; retain current proposal and remove review styling.
+
 ### UG-21-01 — Feature coverage / availability — Accepted 2026-10-29
 
 Location: `user-guide/geometry/index.qmd:11` in the baseline. [Rendered change](_site/user-guide/geometry/index.html#ug-21-01).
@@ -3361,7 +3362,7 @@ interface.
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
 ### UG-22-01 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3383,9 +3384,9 @@ The OPAL view preserves the complete legacy interface and model description.
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
-### UG-22-02 — Technical / units / links — Pending
+### UG-22-02 — Technical / units / links — Retired from review; legacy documentation retained
 
 Location: `user-guide/particle-matter/index.qmd:55` in the baseline. [Rendered change](_site/user-guide/particle-matter/index.html#ug-22-02).
 
@@ -3402,6 +3403,8 @@ The retained OPAL documentation states that this form is used for incident `PROT
 ```
 
 Evidence: `user-guide/particle-matter/index.qmd:10-14`; `src/OpalConfigure/Configure.cpp:108-144`.
+
+**User decision:** Discarded from active review as legacy OPAL; retain documentation.
 
 ### UG-22-03 — English — Accepted 2026-10-29
 
@@ -3441,7 +3444,7 @@ large for accurate material-interaction physics. In the legacy implementation,
 
 Evidence: `user-guide/particle-matter/index.qmd:174-176`.
 
-### UG-23-01 — Technical / units / links — Pending
+### UG-23-01 — Technical / units / links — Retired from review; legacy documentation retained
 
 Location: `user-guide/optimization/index.qmd:202` in the baseline. [Rendered change](_site/user-guide/optimization/index.html#ug-23-01).
 
@@ -3458,6 +3461,8 @@ The retained OPAL documentation includes a full example based on the files
 ```
 
 Evidence: `user-guide/optimization/index.qmd:202-204`.
+
+**User decision:** Discarded from active review as legacy OPAL; retain documentation.
 
 ### UG-23-02 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3479,7 +3484,7 @@ functionality.
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
 ### UG-24-01 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -3501,9 +3506,9 @@ reference and a reminder of intended future functionality.
 
 Evidence: `src/OpalConfigure/Configure.cpp:108-144`.
 
-**User decision (2026-10-29):** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
+**User decision:** Apply the user-supplied availability statement as final wording; spelling and sentence capitalization normalized.
 
-### UG-24-02 — Technical / units / links — Pending
+### UG-24-02 — Technical / units / links — Retired from review; legacy documentation retained
 
 Location: `user-guide/sampler/index.qmd:113` in the baseline. [Rendered change](_site/user-guide/sampler/index.html#ug-24-02).
 
@@ -3520,6 +3525,8 @@ The retained OPAL documentation gives a complete example in
 ```
 
 Evidence: `user-guide/sampler/index.qmd:113-114`.
+
+**User decision:** Discarded from active review as legacy OPAL; retain documentation.
 
 
 ## Chapter coverage

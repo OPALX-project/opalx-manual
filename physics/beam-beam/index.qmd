@@ -538,7 +538,6 @@ Default local launchers use coarse workflow profiles, not the fine benchmark
 settings above. Experiment 4 defaults to a primary-only lifecycle smoke;
 it does not track witnesses unless a full case is selected.
 The common `--merlin6` launcher option is not yet implemented.
-The independent `sandbox/OPALX-IMPACT` study is unchanged.
 
 Extract the archive at the root of an OPALX Git checkout, retaining its
 `sandbox/` directory structure. Check for existing experiment files first to
@@ -561,17 +560,13 @@ regression suite. Results and analysis are generated under each experiment's
 `results/` directory. Historical analyses that require omitted output files
 must first regenerate or separately obtain those files.
 
-The fine historical table comes from
-`experiment-2/results/legacy/opalx/timed/a100_4rank_400k_4096x256x128_twofield_816d11ff8/results/track12_comparison.json`,
-relative to `sandbox/`. Its settings and source truncation are recorded in
-the matching preparation manifest and analyzer output. The October standard
-table and CPU/A100 residuals come from
-`tmp/beambeam-cross-architecture-20261002/gpu-standard/results/track12_comparison.json`
-and `tmp/beambeam-cross-architecture-20261002/architecture-comparison/comparison.json`
-in the validation checkout. That campaign validated a source snapshot including
-the device field-clear fix; its executable/content fingerprints, not a bare
-branch name, identify the tested state. These local evidence products are not
-promised as installed release files.
+The fine historical table, October standard table and CPU/A100 residuals
+come from archived comparison results. The matching preparation manifests
+and analyzer outputs recorded their settings and source truncation. The
+October campaign validated a source snapshot including the device field-clear
+fix; its executable/content fingerprints, not a bare branch name, identify
+the tested state. These historical result products are not included in the
+downloadable source bundle.
 
 For reproducibility retain the exact particle-input hashes, source and executable
 fingerprints, field domain, mesh, timestep, truncation, MPI decomposition when

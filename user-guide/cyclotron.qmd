@@ -47,8 +47,9 @@ Normal coasting tracking uses [`RUN,TURNS=n`](tracking.qmd#turns). The turn coun
 is the number of directed reference-particle crossings of the launch plane, not
 a promise that the nominal geometry is exactly closed. The final step is
 shortened to the reference crossing, and the bunch advances to the same time.
-This requires completed emission, one beam and `FIELDSOLVER, TYPE=NONE`;
-repeat with smaller `DT` to establish transverse-orbit convergence.
+This requires completed emission, one beam/container, and the restrictions
+listed under [`TURNS`](tracking.qmd#turns). Space charge is supported. Repeat
+with smaller `DT` to establish transverse-orbit convergence.
 
 ## Coasting Beam with Space Charge {#cyclotron-space-charge}
 
@@ -81,7 +82,9 @@ TRACK, LINE=MYCYCL, BEAM=Beam0,
 ENDTRACK;
 ```
 
-[Explicit `TURNS` stopping is not supported with space charge.]{#ug-13-01} This example
+[Explicit `TURNS` stopping is supported with space charge under the
+[documented restrictions](tracking.qmd#turns). The stopping plane is determined
+by the external-field reference particle.]{#ug-13-01} This example
 stops after the configured 1600 steps unless it reaches `ZSTOP` earlier; that
 schedule does not promise an exact return-plane crossing.
 

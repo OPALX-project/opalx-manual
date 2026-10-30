@@ -60,7 +60,7 @@ either type must omit all three reference-energy attributes. See
 
 [`NALLOC` is required and must be positive. It remains the denominator used to derive macroparticle charge even when the sum of `NPARTDIST` over all sources sets a different runtime allocation. For a source beam with `N` generated particles, the total charge magnitude is `N * BCHARGE / NALLOC`; set `NALLOC=N` when the generated bunch should carry `BCHARGE`. Keep allocation and particle counts consistent unless a different weighting is intentional.]{#ug-16-05}
 
-[**UG-16-06:** Each tracked source beam requires a non-empty `SOURCES` name. The target list must contain at least one `EMISSIONSOURCE`; it is resolved during `RUN`. A decay daughter beam receives particles only from its parent decay and must omit `SOURCES`.]{.ug-audit-other #ug-16-06}
+[Each tracked source beam requires a non-empty `SOURCES` name. The target list must contain at least one `EMISSIONSOURCE`; it is resolved during `RUN`. A decay daughter beam receives particles only from its parent decay and must omit `SOURCES`.]{#ug-16-06}
 
 ## Multiple species, decay, and spin {#multiple-species-decay-and-spin}
 

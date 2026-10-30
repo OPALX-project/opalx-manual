@@ -69,8 +69,7 @@ neither printed residual alone identifies the numerical integration error.
 No retuning, fringe renormalization or tolerance relaxation was applied.
 The executable SHA-256 was independently checked before and after the run:
 `f1a53f9b26b42566c0ad367bf4125d22ba819c06c8e8be24c486dec2202e300e`.
-The input, stdout and result provenance are in
-`sandbox/map-3/ring/dop853-validation/`. This smoke run validates completion and
+This smoke run validates completion and
 the separation of geometry from travelled length, not orbit closure.
 
 ## Historical separated-support cell study
@@ -261,7 +260,7 @@ with `--info 2`.
 
 ## OPALX reproduction with archived best settings {#map3-opalx-runs}
 
-`sandbox/map-3/dba/map-3-dba.in` implements the fields and layout above, retaining
+The archived input deck implements the fields and layout above, retaining
 the unmatched quadrupole seed and unscaled dipole strengths. Exactly one case
 per map integrator was run sequentially.
 `MAXSTEPS=1` limits production tracking; the design OrbitThreader still computes
@@ -317,9 +316,9 @@ These are cross-method differences, not errors relative to an analytic map.
 The large nonzero dispersion reflects the unmatched lattice, not a residual
 that should be compared with the map-2 achromat's zero dispersion.
 
-The archived runner and validator retain each full matrix, input, stdout
-with `--info 2`, timing, field/support data, and source/selection hashes in
-`sandbox/map-3/dba/opalx-best-settings`. No production numerical algorithms or
+The archived runner and validator recorded each full matrix, input, stdout
+with `--info 2`, timing, field/support data, and source/selection hashes.
+No production numerical algorithms or
 tolerances were changed for these three runs. No OPALX convergence sweep was
 started; the subsequent independent reference calculation is described below.
 
@@ -483,11 +482,10 @@ before matrix text rounding; those more precise magnitudes remain in the
 earlier run table. Determinant one is necessary but not sufficient for
 symplecticity.
 
-Reproduction scripts and tests are under `sandbox/map-3/dba`. The validated
-reference, refinements and source hashes are in `variational-reference-validated/`;
-`map-comparison/` contains each full signed difference matrix, the separate
-CAS matrix, summary CSV, heatmap and provenance. The original three OPALX
-runs are unchanged. No new OPALX simulations or production-code changes were
+Reproduction scripts and tests are under `sandbox/map-3/dba`. The archived
+comparison recorded the validated reference, refinements, source hashes,
+full signed difference matrices, separate CAS matrix, summary CSV, heatmap
+and provenance. The original three OPALX runs are unchanged. No new OPALX simulations or production-code changes were
 made for this comparison.
 
 :::

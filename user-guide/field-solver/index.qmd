@@ -176,9 +176,9 @@ $$
 E_z(z)=-\frac{g}{4\pi\varepsilon_0 \gamma^2}\frac{d}{dz}\lambda(z)
 $$
 
-[**UG-18-06:** where $g$ is selected by `PIPEMODE`. This geometry model changes only the
+[where $g$ is selected by `PIPEMODE`. This geometry model changes only the
 longitudinal field; the transverse Poisson solves retain open boundaries.
-`PIPEMODE=NONE` disables the longitudinal field.]{.ug-audit-other #ug-18-06}
+`PIPEMODE=NONE` disables the longitudinal field.]{#ug-18-06}
 
 ::: {.callout-warning title="Validation status"}
 FFT2D5 passes the current unit tests, which check solver operation and individual
@@ -298,11 +298,11 @@ Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
 
 ## Space-charge modes {#space-charge-modes}
 
-[**UG-18-17:** For the three-dimensional backends, `TYPE` chooses a backend and `BINS`
+[For the three-dimensional backends, `TYPE` chooses a backend and `BINS`
 chooses between a lab-frame electrostatic solve and binned rest-frame solves.
 An emission source can additionally request one cathode-plane correction.
 `FFT2D5` uses its own slice algorithm and does not support these binning or
-cathode-plane modes.]{.ug-audit-other #ug-18-17}
+cathode-plane modes.]{#ug-18-17}
 
 ### Monolithic electrostatic mode {#monolithic-mode}
 
