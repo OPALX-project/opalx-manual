@@ -8,51 +8,9 @@ last-reviewed: "2026-10-29"
 
 This section describes how *OPALX* evolves the per-particle spin
 polarization vector along the trajectory. The model is the Thomas-BMT
-equation [@bmt1959; @jackson1999], integrated as a closed-form Rodrigues
-rotation so that the magnitude $|\vec P|$ is preserved exactly per step.
-
-
-:::: {.callout-note #ph-38-04-colleague-review title="PH-38-04 — Distinguish rotational norm preservation from floating-point drift"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording (1/2):**
-
-rotation so that the magnitude $|\vec P|$ is preserved exactly per step.
-
-::: {style="color: #c00000;"}
-**Accepted correction (1/2):**
-
-rotation that preserves the magnitude $|\vec P|$ in exact arithmetic,
-with floating-point roundoff in the implementation.
-:::
-
-**Original wording (2/2):**
-
-By construction this preserves $|\vec P|$ to machine precision per step,
-independent of $\phi$, so the magnitude drift typical of explicit
-non-symplectic schemes is eliminated.
-
-::: {style="color: #c00000;"}
-**Accepted correction (2/2):**
-
-In exact arithmetic this rotation preserves $|\vec P|$ for any $\phi$.
-The implementation avoids the norm error from truncating a generic ODE
-update, but floating-point roundoff can still accumulate over repeated
-rotations; it does not explicitly renormalize $\vec P$.
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** “Exactly” and “drift eliminated” conflate an exact-arithmetic invariant with finite-precision behavior. Retain the benefit of the rotation without promising zero accumulated error.
-
-**Code behavior:** The Rodrigues update uses floating-point trigonometric and vector arithmetic and writes Pol directly. No post-rotation norm correction is performed. A many-step unit test checks bounded numerical norm error.
-
-**Evidence:**
-
-- [origin/master:src/Steppers/SpinTBMTPusher.h — Rodrigues update and Pol assignment]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Steppers/SpinTBMTPusher.h)
-- [origin/master:unit_tests/Steppers/TestSpinTBMTPusher.cpp — PreservesMagnitudeOverManySteps]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/unit_tests/Steppers/TestSpinTBMTPusher.cpp)
-:::
-::::
+equation [@bmt1959; @jackson1999]. Each step turns $\vec P$ with
+Rodrigues' rotation formula, so the length $|\vec P|$ changes only due
+to floating-point roundoff.
 
 ## Polarization vector {#sec-spin-pol-vector}
 
@@ -143,9 +101,19 @@ contributions:
 
 - **Longitudinal-$B$ correction**,
   $+\tfrac{q}{m}\,\tfrac{G\gamma}{\gamma+1}\,(\vec\beta\cdot\vec B)\vec\beta$.
-  This subtracts the component of $\vec B$ along the motion that is
-  ineffective at rotating $\vec P$. It vanishes when $\vec\beta \perp \vec B$
-  (the canonical storage-ring geometry).
+  Split $\vec B$ into $\vec B_\perp$ and
+  $\vec B_\parallel = (\hat\beta\cdot\vec B)\,\hat\beta$. With
+  $\gamma^2\beta^2 = \gamma^2 - 1$, the first two terms combine to
+  $$
+    \vec\Omega_B = -\frac{q}{m}\Bigg[\Big(G + \frac{1}{\gamma}\Big)\,\vec B_\perp
+      + \frac{1 + G}{\gamma}\,\vec B_\parallel\Bigg].
+  $$
+  The correction changes the coefficient of $\vec B_\parallel$ from
+  $G + 1/\gamma$ to $(1 + G)/\gamma$; it does not remove
+  $\vec B_\parallel$. In a solenoid, $\vec B_\parallel$ does not deflect
+  the momentum but rotates the spin about $\hat\beta$ at
+  $(1 + G)\,|q|B_\parallel/(\gamma m)$. The correction is zero when
+  $\vec\beta \perp \vec B$, as in the canonical storage ring geometry.
 
 - **Motional-electric term**,
   $+\tfrac{q}{m}\,(G + \tfrac{1}{\gamma+1})\,(\vec\beta\times\vec E)/c$.
@@ -154,12 +122,16 @@ contributions:
   Thomas-precession piece, which is a kinematic effect of the successive
   Lorentz boosts and survives in the absence of anomalous moments.
 
-Setting $G = 0$ in [@eq-tbmt-omega] reduces the rotation to pure Larmor
-precession of a Dirac particle: $\vec\Omega = -(q/m)\,(\vec B/\gamma)$,
-i.e. at $\omega_c$ when $\vec\beta \perp \vec B$. Any deviation of $g$
-from $2$ — which is generic for composite particles and even for QED
-loop-corrected leptons — adds the $G\vec B$ contribution that physically
-defines the BMT regime.
+Setting $G = 0$ in [@eq-tbmt-omega] gives
+$$
+  \vec\Omega = -\frac{q}{m}\Bigg[\frac{\vec B}{\gamma}
+    - \frac{\vec\beta \times \vec E}{c\,(\gamma + 1)}\Bigg].
+$$
+With $\vec E = 0$ and $\vec\beta \perp \vec B$, $\vec\Omega$ equals the
+cyclotron angular velocity of the momentum, so the spin keeps a fixed
+angle to the momentum. For $G \neq 0$ the spin turns relative to the
+momentum at $G\gamma\,\omega_c$, which gives the spin tune $G\gamma$.
+A nonzero $G$ also enters the longitudinal and electric terms.
 
 OPALX currently tabulates $G$ for the species that have a well-defined
 classical anomaly:
@@ -175,82 +147,6 @@ Species not listed default to $G = 0$. Only beams with
 other species. The electron, positron, proton and antiproton values are
 therefore tabulated but not used yet. The sign of the muon charge
 comes from the beam's `CHARGE`.
-
-
-:::: {.callout-note #ph-38-01-colleague-review title="PH-38-01 — Retain the electric term in the Dirac limit"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-Setting $G = 0$ in [@eq-tbmt-omega] reduces the rotation to pure Larmor
-precession of a Dirac particle: $\vec\Omega = -(q/m)\,(\vec B/\gamma)$,
-i.e. at $\omega_c$ when $\vec\beta \perp \vec B$. Any deviation of $g$
-from $2$ — which is generic for composite particles and even for QED
-loop-corrected leptons — adds the $G\vec B$ contribution that physically
-defines the BMT regime.
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-Setting $G = 0$ in [@eq-tbmt-omega] gives
-$$
-\vec\Omega=-\frac{q}{m}\left[
-\frac{\vec B}{\gamma}
--\frac{\vec\beta\times\vec E}{c(\gamma+1)}\right].
-$$
-For $\vec E=0$ and $\vec\beta\perp\vec B$, the spin precesses at the
-cyclotron-frequency magnitude $|q|B/(\gamma m)$. A nonzero anomaly adds
-both $G\vec B$ and the anomaly-dependent longitudinal-magnetic and
-electric terms. The BMT equation also applies when $G=0$.
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** The unqualified reduction drops a nonzero electric term and suggests that the BMT equation applies only beyond the Dirac limit. Correct it by direct substitution into the chapter equation.
-
-**Code behavior:** SpinTBMTPusher sets k1=G+1/gamma, k2=G gamma/(gamma+1), and k3=G+1/(gamma+1). The electric contribution remains at G=0, as the immediately preceding paragraph also states.
-
-**Evidence:**
-
-- [origin/master:src/Steppers/SpinTBMTPusher.h — k1/k2/k3 and Omega]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Steppers/SpinTBMTPusher.h)
-- Chapter38 eq-tbmt-omega and preceding motional-electric paragraph
-- [Reference](https://doi.org/10.1103/PhysRevLett.2.435) — cited original; full text unavailable during audit
-:::
-::::
-
-
-:::: {.callout-note #ph-38-02-colleague-review title="PH-38-02 — Clarify the longitudinal magnetic contribution"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-  This subtracts the component of $\vec B$ along the motion that is
-  ineffective at rotating $\vec P$. It vanishes when $\vec\beta \perp \vec B$
-  (the canonical storage-ring geometry).
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-  This modifies the coefficient of the field parallel to the velocity.
-  Combined with the first magnetic term, the parallel-field contribution is
-  $\vec\Omega_{\parallel}=-(q/m)(G+1)\vec B_{\parallel}/\gamma$;
-  a longitudinal magnetic field can therefore rotate a transverse spin.
-  The correction vanishes when $\vec\beta\perp\vec B$
-  (the canonical storage-ring geometry).
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** The current explanation can be read as saying longitudinal B is ineffective at rotating spin, which is false for transverse polarization.
-
-**Code behavior:** Projecting the full magnetic Omega onto beta gives (G+1)/gamma times B_parallel. The torque vanishes when spin is parallel to Omega, not simply because the field is longitudinal relative to the momentum.
-
-**Evidence:**
-
-- [origin/master:src/Steppers/SpinTBMTPusher.h — magnetic dot-product term]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Steppers/SpinTBMTPusher.h)
-- Chapter38 eq-tbmt-omega; independent coefficient simplification
-:::
-::::
 
 ## OPALX unit conventions {#sec-spin-units}
 
@@ -286,9 +182,13 @@ $$
           + \sin\phi\,(\hat n \times \vec P)
           + (1 - \cos\phi)\,(\hat n \cdot \vec P)\,\hat n .
 $$ {#eq-rodrigues}
-By construction this preserves $|\vec P|$ to machine precision per step,
-independent of $\phi$, so the magnitude drift typical of explicit
-non-symplectic schemes is eliminated.
+[@eq-rodrigues] is an orthogonal transformation, so it conserves
+$|\vec P|$ exactly for any $\phi$. In floating-point arithmetic,
+rounding in the evaluation of [@eq-rodrigues] changes $|\vec P|$ at the
+level of machine precision in each step, and these errors can add up.
+OPALX does not renormalize $\vec P$. The unit test
+`PreservesMagnitudeOverManySteps` checks that $|\vec P|$ stays within
+$10^{-12}$ of $1$ after $1000$ steps.
 
 The rotation is exact for a fixed $\vec\Omega$ at any angle, so no
 sub-steps are taken. The error comes from how much $\vec\Omega$ changes
@@ -301,68 +201,30 @@ reduce `DT`. $\vec P$ is stored in double precision, like the momentum.
 Each time step rotates $\vec P$ twice, each time by half the
 particle's own time step, $\Delta t/2$:
 
-1. After the external and space-charge fields have been computed at
-   the half-step position, $\vec P$ is turned by $\Delta t/2$ with the
-   momentum before the Boris kick.
+1. The first half drift moves the particle for $\Delta t/2$. The
+   external fields are evaluated at the new position; with the default
+   `SCFIELDUPDATE=MIDPOINT`, the space-charge fields are solved there
+   too. $\vec P$ is turned by $\Delta t/2$ with the momentum before the
+   Boris kick.
 2. The Boris kick updates the momentum with the same fields.
 3. $\vec P$ is turned by another $\Delta t/2$ with the same $\vec E$
    and $\vec B$ and the momentum after the kick.
 4. The second half drift moves the particle.
 
+With `SCFIELDUPDATE=PRESTEP`, the space-charge fields are solved before
+the first half drift, at the start-of-step positions.
+
 Both halves use the fields the kick uses, so momentum and spin see the
-same fields. Because the two halves are placed symmetrically around the
-kick, the spin update is second order in $\Delta t$. $\vec\beta$ and
-$\gamma$ in [@eq-tbmt-omega] are computed from the momentum that each
-half uses.
+same fields. $\vec\beta$ and $\gamma$ in [@eq-tbmt-omega] are computed
+from the momentum that each half uses. The two half rotations are
+placed symmetrically around the kick. If the fields are smooth along
+the trajectory and evaluated at the midpoint, the local error is
+$O(\Delta t^3)$ per step, and the spin error after a fixed length of
+tracking falls as $\Delta t^2$. This order is not guaranteed with
+`SCFIELDUPDATE=PRESTEP`, where the space-charge part of $\vec\Omega$
+comes from the start-of-step positions, or when a hard-edge field
+boundary falls inside the step.
 
-:::: {.callout-note #ph-38-03-colleague-review title="PH-38-03 — Qualify field timing and the second-order spin statement"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording (1/2):**
-
-1. After the external and space-charge fields have been computed at
-   the half-step position, $\vec P$ is turned by $\Delta t/2$ with the
-   momentum before the Boris kick.
-
-::: {style="color: #c00000;"}
-**Accepted correction (1/2):**
-
-1. After field assembly, $\vec P$ is turned by $\Delta t/2$ with the
-   momentum before the Boris kick. In ordinary tracking, external fields
-   are evaluated after the first half drift. The default
-   `SCFIELDUPDATE="MIDPOINT"` also evaluates self-fields there;
-   `SCFIELDUPDATE="PRESTEP"` evaluates self-fields before that drift.
-:::
-
-**Original wording (2/2):**
-
-same fields. Because the two halves are placed symmetrically around the
-kick, the spin update is second order in $\Delta t$. $\vec\beta$ and
-$\gamma$ in [@eq-tbmt-omega] are computed from the momentum that each
-half uses.
-
-::: {style="color: #c00000;"}
-**Accepted correction (2/2):**
-
-same fields. For smooth fields with consistent midpoint sampling, the
-symmetric placement around the kick gives a second-order spin update.
-It does not establish second-order accuracy for discontinuous fields or
-for the pre-step self-field sampling convention. $\vec\beta$ and
-$\gamma$ in [@eq-tbmt-omega] are computed from the momentum that each
-half uses. This describes forward tracking: the current spin kernel returns
-without a rotation for a negative timestep.
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** Separate the default sampling from selectable behavior and avoid an unconditional order claim. State the actual backward-time limitation rather than implying reversible spin integration.
-
-**Code behavior:** Refreshed master calls evolveSpinHalfStep with 0.5*dt before and after kickParticles. PRESTEP self-fields are evaluated before the first drift. SpinTBMTPusher computes phi=|Omega|dt and returns for phi<1e-14, which includes negative timesteps. The older active feature branch uses a different one-call order.
-
-**Evidence:**
-
-- [origin/master:src/Algorithms/ParallelTracker.cpp — execute, timeIntegration2, evolveSpinHalfStep]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Algorithms/ParallelTracker.cpp)
-- [origin/master:src/Steppers/SpinTBMTPusher.h — phi return guard]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Steppers/SpinTBMTPusher.h)
-- Comparison: active3c44f5b is older; current behavior checked against refreshed master9a14973b
-:::
-::::
+The rotation is skipped when $\phi < 10^{-14}$. Since
+$\phi = |\vec\Omega|\,\Delta t$, this also skips every step with
+$\Delta t < 0$, so the spin update works for forward tracking only.
