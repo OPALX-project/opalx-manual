@@ -58,7 +58,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | `DOC-CREDITS` | Synchronize developer credits with the current paper authors | When the paper author list changes or before a release | Active opalx-paper/main.tex authors compared with front-page credits after the paper pull on 2026-10-30; five missing authors added | Recheck after author-list changes; preserve existing developer credits |
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Chapters 28–35 reviewed on 2026-10-30; accepted/custom decisions applied | PH-35-03 remains a red proposal for colleague review; rejected wording retained. Preserve prior CAIN/source-frame follow-ups. |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Chapters 28–35 reviewed on 2026-10-30; accepted/custom decisions applied | Rejected wording retained. Restore the single-bin centre-of-momentum text if OPALX issue 636 merges. Preserve prior CAIN/source-frame follow-ups. |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions |
@@ -1744,14 +1744,15 @@ Use this template for subsequent entries:
 
 ### 2026-10-30 — apply resolved chapter 35 Physics decision
 
-- Apply PH-35-01: describe ZEROFACE_MAXSTEPS as a fixed configured step cutoff, zero indefinite, without an automatic image-field negligibility test. Keep original material for PH-35-02, 04 and 05. PH-35-03 remains unresolved and unchanged; preserve planned status and review date. Audit scope ends at chapter35.
+- Apply PH-35-01: describe ZEROFACE_MAXSTEPS as a fixed configured step cutoff, zero indefinite, without an automatic image-field negligibility test. Keep original material for PH-35-02, 04 and 05. Preserve planned status and review date. Audit scope ends at chapter35.
 - Preserve earlier and concurrent edits. No code changes, solver runs, recovered-script execution, commit or push.
-- Validation passes: 56-chapter source validator, chapter35 HTML render, exact replacement reconstruction, retained-original assertions and whitespace check. Focused diff reviewed. PH-35-03 is the sole unresolved chapter35 decision.
-
-### 2026-10-30 — annotate PH-35-03 for colleague review
-
-- At user request, add the PH-35-03 proposal in a red review callout in chapter35, preserving the original CM subsection and downstream exception. Treat PH-05-03 as the contextual PH-35-03 identifier. This is a review annotation, not acceptance of the replacement. Preserve metadata, other audit decisions and concurrent edits. No commit or push.
+- Validation passes: 56-chapter source validator, chapter35 HTML render, exact replacement reconstruction, retained-original assertions and whitespace check. Focused diff reviewed.
 
 ### 2026-10-30 — publish chapters 30–35 Physics audit
 
-- Publish accepted/custom chapter30–34 corrections and PH-35-01. Preserve rejected wording; PH-35-03 remains a red proposal for colleague review beside the original. Chapter28/29 already merged. Exclude separate terminology/punctuation edits. No code or numerical tolerances changed; archived scripts were not executed.
+- Publish accepted/custom chapter30–34 corrections and PH-35-01. Preserve rejected wording. Chapter28/29 already merged. Exclude separate terminology/punctuation edits. No code or numerical tolerances changed; archived scripts were not executed.
+
+### 2026-10-30 - adapt Section 35.7 and the User Guide binning text to master
+
+- The single-bin centre-of-momentum correction exists only on the unmerged branch `codex/636-astra-discrepancies` (OPALX issue 636), so remove it from Physics Section 35.7 and the Field Solvers User Guide. Both pages now document the mean-Lorentz-factor bin frame used on master, and Section 35.7.3 explains how it differs from the centre-of-momentum frame. The removed text is in manual commit `fe7c978`; restore it if the issue merges.
+- Update `last-reviewed` on both pages; keep the Physics page at `planned` because its other headings are still writing prompts.

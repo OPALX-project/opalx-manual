@@ -3,7 +3,7 @@ title: "Field Solver Physics"
 description: "Derivation and validation guide for OPALX space-charge solvers, including P3M, cathode image fields, and binned rest-frame space charge."
 audience: physics
 status: planned
-last-reviewed: "2026-10-23"
+last-reviewed: "2026-10-30"
 toc-depth: 3
 ---
 
@@ -441,107 +441,6 @@ frame, $\gamma_f=1$, and omits $\mathbf B$. For a relativistic bunch it
 overestimates the transverse self-force by up to $\gamma^2$, because the
 magnetic force that nearly cancels the electric one is missing.
 
-### Centre-of-momentum correction for one OPEN bin {#physics-open-cm-frame}
-
-For each populated bin, let $\mathbf p_i=\mathbf P_i/(mc)$ and define the
-equal-particle averages $\bar{\mathbf p}=\langle\mathbf p_i\rangle$ and
-$G=\langle\sqrt{1+|\mathbf p_i|^2}\rangle$. For **one configured bin,
-`TYPE=OPEN`, and no active image plane**, OPALX uses the instantaneous
-centre-of-momentum frame:
-
-$$
-\boldsymbol\beta=\frac{\bar{\mathbf p}}{G},\qquad
-D=G^2-|\bar{\mathbf p}|^2,\qquad
-\Gamma=\frac{G}{\sqrt D}.
-$$
-
-Here $G$ is mean particle energy in units $mc^2$, whereas $\Gamma$ is the bulk
-Lorentz factor. They coincide for coherent momenta; a warm sample with zero mean
-momentum has $\Gamma=1$ even when $G>1$. The weighted total spatial momentum of
-the sampled particles vanishes after this boost. The present single-bunch
-implementation assumes equal physical macroparticle weights.
-
-The solve axes are aligned with the bunch mean momentum. In those axes,
-$x'=x$, $y'=y$, and $z'=\Gamma z$ relative to the moving origin. The backend
-mesh uses $h'_z=\Gamma h_z$ and $\Delta V'=\Gamma\Delta V$. Charge normalization
-is therefore $\rho'=\rho/\Gamma$: the deposited `dt*Q` is divided by the solve
-timestep and the stretched cell volume, exactly once. For particles taking the
-full common timestep, $\sum_j\rho'_j\Delta V'_j=Q$; existing partial-step
-emission weights are retained. Lengths are in metres and charge density in
-C/m$^3$. The OPEN Poisson problem is
-$\nabla'^2\phi'=-\rho'/\epsilon_0$, with $\mathbf E'=-\nabla'\phi'$.
-
-The same $\Gamma$ and $\mathbf v=c\boldsymbol\beta$ enter field reconstruction:
-
-$$
-\mathbf E=\Gamma\mathbf E'
- -(\Gamma-1)(\mathbf E'\cdot\widehat{\mathbf v})\widehat{\mathbf v},
-\qquad
-\mathbf B=\frac{\Gamma}{c^2}\mathbf v\times\mathbf E',
-$$
-
-with a zero direction vector when $\mathbf v=0$. Electric fields are in V/m and
-magnetic fields in tesla. The actual particle velocity, not the bulk velocity,
-is used by the pusher. For a comoving test particle the transverse force is
-$q\mathbf E'_\perp/\Gamma$. The bin table's `gammaBin` reports this bulk boost
-factor; verbose diagnostics retain `meanParticleGamma` separately.
-
-This remains a frozen electrostatic approximation: $\mathbf B'=0$ is assumed,
-and simultaneous laboratory samples are treated as one stationary rest-frame
-charge shape. Global zero CM momentum does not imply zero local current.
-Internal warm motion, retarded fields, and rest-frame time resynchronization
-are not added by this correction.
-
-Multi-bin solves, other backends, and solves with active image planes retain
-the earlier representative-frame approximation, using $G$ for both the mesh
-stretch and field coefficient and $c\bar{\mathbf p}/G$ for velocity. For warm
-bins that pair is not a single consistent Lorentz boost. `BINS=NONE` remains
-the separate laboratory electrostatic path. The corrected OPEN path requires
-mean momentum along solve z and rejects appreciably tilted inputs supplied
-directly to the solver. General tilted bins need a directional stretch
-$A=I+(\Gamma-1)\mathbf n\mathbf n^T$, not a change of z spacing alone.
-
-
-::: {.callout-note #ph-35-03-colleague-review}
-## PH-35-03 — proposal for colleague review
-
-::: {style="color: #c00000;"}
-This proposal is under review. The original text above remains unchanged.
-
-**Proposed replacement: representative frame and centre-of-momentum distinction**
-
-For each populated bin, OPALX computes the equal-particle averages
-$\bar{\mathbf p}=\langle\mathbf P_i/(mc)\rangle$ and
-$G=\langle\sqrt{1+|\mathbf p_i|^2}\rangle$. The mesh stretch and field
-coefficient use $G$, and field reconstruction uses
-$\mathbf v=c\bar{\mathbf p}/G$. This also applies to one configured OPEN bin
-without an active image plane. The bin diagnostic `gammaBin` reports $G$.
-
-These representative parameters constitute a consistent Lorentz boost only
-when $G^2-|\bar{\mathbf p}|^2=1$. For a warm bin, the physical
-centre-of-momentum boost would instead have
-
-$$
-\boldsymbol\beta_{\mathrm{CM}}=\frac{\bar{\mathbf p}}{G},\qquad
-\Gamma_{\mathrm{CM}}=\frac{G}{\sqrt{G^2-|\bar{\mathbf p}|^2}}.
-$$
-
-The distinction matters even for zero mean momentum: the physical bulk factor
-is then one, whereas the mean particle factor $G$ can exceed one. A separate
-centre-of-momentum correction and a `meanParticleGamma` diagnostic are not
-implemented in either source revision checked for this audit. `BINS=NONE`
-remains the laboratory electrostatic path. Narrow, approximately coherent,
-forward-moving bins limit the representative-frame approximation; binning does
-not add retardation, radiation, or rest-frame time resynchronization.
-
-**Related proposed edit in the next subsection:** replace the exception for a
-single-bin OPEN correction with:
-
-$\gamma_f=\gamma_b$. The [representative frame parameters](#physics-open-cm-frame)
-are bin means over the $n_b$ particles of the bin:
-:::
-:::
-
 ### Energy-binned decomposition {#physics-binned-decomposition}
 
 Binning restores the validity condition bin by bin
@@ -558,8 +457,8 @@ $$
 $$
 
 where $\mathbf E'_b$ solves the rest-frame problem for $\rho_b$ with
-$\gamma_f=\gamma_b$. Except for the [single-bin OPEN correction](#physics-open-cm-frame), the
-representative frame parameters are bin means over the $n_b$ particles of the bin:
+$\gamma_f=\gamma_b$. The frame parameters are unweighted averages over the $n_b$
+particles of the bin:
 
 $$
 \gamma_b=\frac{1}{n_b}\sum_{i\in b}\gamma_i,
@@ -572,19 +471,53 @@ $$
 On the mesh, the solve uses the [beam-aligned frame](#frames-transformations).
 For each non-empty bin, OPALX deposits only the particles of that bin, divides
 the density by $\gamma_b$, stretches the longitudinal spacing to $\gamma_b h_z$,
-solves, and converts the mesh field to $\mathbf E_b$ and $\mathbf B_b$. The
-contributions are accumulated on the mesh and interpolated to the particles in
-one gather. With a [cathode plane](#physics-dirichlet-boundaries), each bin
-also has an image solve.
+solves, and converts the mesh field to $\mathbf E_b$ and $\mathbf B_b$. The cell
+volume grows by the same factor $\gamma_b$, so the stretched mesh still holds
+the full charge of the bin. The contributions are accumulated on the mesh and
+interpolated to the particles in one gather, and the pusher then applies these
+fields with each particle's own velocity. With a
+[cathode plane](#physics-dirichlet-boundaries), each bin also has an image solve.
 
 As the bin widths go to zero, the binned field converges to the quasi-static
 model for the full velocity distribution, not to a solution of Maxwell's
 equations. Retardation, radiation, and the transverse velocity spread inside a
 bin remain unresolved. One explicit bin (`MAXBINS=1`) applies the single-frame
-model to the whole bunch; `TYPE=OPEN` without an active image plane uses the
-centre-of-momentum correction above. With `TYPE=P3M`, only the long-range mesh part is
+model to the whole bunch. With `TYPE=P3M`, only the long-range mesh part is
 binned; the [short-range pair part](#physics-p3m-pp) uses the velocity of each
 particle.
+
+### Frame of a warm bin {#physics-warm-bins}
+
+The bin parameters above form an exact Lorentz boost only if every particle in
+the bin has the same momentum. Otherwise, $\mathbf v_b$ is still the velocity of
+the bin's centre-of-momentum frame, but the Lorentz factor of that frame is not
+$\gamma_b$. It is
+
+$$
+\Gamma_{\mathrm{CM}}
+=\frac{\gamma_b}{\sqrt{\gamma_b^2-|\langle\mathbf p\rangle_b|^2}}
+=\frac{\gamma_b}{\langle\gamma'\rangle_b},
+$$
+
+where $\langle\gamma'\rangle_b\ge1$ is the mean Lorentz factor of the bin's
+particles in that frame. OPALX applies no separate centre-of-momentum correction:
+it uses $\gamma_b$ for the density, the mesh stretch, and the field
+transformation, and the `gammaBin` column of the bin table reports the same value.
+
+For a small momentum spread,
+$\gamma_b/\Gamma_{\mathrm{CM}}\approx1+\tfrac12\langle|\mathbf p'|^2\rangle_b$. The
+difference is second order in the spread, so it stays small under the condition
+the [quasi-static model](#physics-quasi-static-frame) already needs. It becomes
+large for a hot bin with little net motion: at zero mean momentum,
+$\Gamma_{\mathrm{CM}}=1$, while $\gamma_b$ can be well above one.
+
+The frame has two further limits. The mesh is stretched along the solve z axis
+only, while $\mathbf v_b$ keeps its transverse components. The solve axes follow
+the mean momentum of the whole bunch, so a bin whose own mean momentum points
+elsewhere is not stretched along its direction of motion; that would take the
+directional stretch $A=I+(\gamma_b-1)\hat{\mathbf w}_b\hat{\mathbf w}_b^T$. Particles
+sampled at one laboratory time are also treated as simultaneous in the bin frame,
+and OPALX does not correct for the resulting time offsets.
 
 ### Binning variable {#physics-binning-variable}
 
