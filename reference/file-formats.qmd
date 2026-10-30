@@ -204,9 +204,9 @@ Current restrictions:
 - Stochastic global processes such as `DECAY` cannot yet be restarted because
   their random-pool state is not stored.
 - Iterative field-solver history is rebuilt after restart. Results remain a
-  valid continuation, but the last bits can differ from an uninterrupted run
-  or when the MPI rank count changes because reduction order and solver initial
-  guesses can change.
+  valid continuation, but the last bits can differ from those of an
+  uninterrupted run or a run with a different MPI rank count because reduction
+  order and solver initial guesses can change.
 - Checkpoint schema compatibility is explicit: an unsupported format version
   is rejected instead of being interpreted as a normal diagnostic HDF5 file.
 

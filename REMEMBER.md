@@ -56,11 +56,11 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; commit/push/publication outstanding |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Spin tracking, decay processes, bend and multipole sections on 2026-10-29; focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Align original CAIN deck/source emittance before attributing residuals; retain COF/source-frame convergence work |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Spin tracking, decay processes, bend and multipole sections on 2026-10-29; focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Continue chapters 28–35 audit: PH-28-01/03–32 applied (06 deleted), 02 rejected; no presented decisions pending. Chapter 28 completeness checks and chapters 29–35 remain. Preserve prior CAIN/source-frame follow-ups. |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
-| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only review of Chapters 46–56 completed on 2026-10-30; three accepted revisions applied and rendered locally | Continue other English reviews only when requested; keep User Guide and physics review decisions separate |
+| `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions |
 | `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Audit refresh on 2026-10-29: full manual and six reports; source, 64-page links, marker/status and source-preservation checks pass | Keep audit action tables and the release overview synchronized with user decisions; verify published changes after an authorized push; PDF remains paused |
 
 The dates above record incremental work, not a claim that the corresponding
@@ -1587,8 +1587,94 @@ Use this template for subsequent entries:
 - Reproduce the two stale Binning failures locally; the selector passed locally, with its platform-sensitive hit-test failure documented in CI. After the repair all 13 browser tests pass. The latest-changes suite passes 26 tests and 339 assertions; source validation passes 56 chapters, strict rendered links pass 64 pages, and whitespace checks pass. Its first sandboxed fixture render could not access Quarto's Sass cache; rerunning with normal access passed.
 - User explicitly authorizes commit and push of the pending cleanup, audit records and CI repair to opalx-manual/main. Preserve the original audit statuses and the generated PDF outside this repository. Verify the resulting Actions build and publication after pushing.
 
+### 2026-10-30 — Physics audit PH-28-01 accepted
+
+- Apply the explicitly accepted chapter 28 opening correction: time-based three-dimensional tracking, self-consistent electrostatic space charge, and current unavailability of short-range wake-field models. Preserve all seven pending first-batch passages exactly.
+- Detailed chapters 28–35 audit remains in progress; the chapter review date is unchanged. Decision data and active task state are in `/Users/adelmann/git/opalx/output/physics-audit-28-35/`.
+- Manual validator passes 56 chapters; chapter 28 HTML renders successfully; whitespace and the focused diff were checked. No code change, simulation, commit or push.
+
+### 2026-10-30 — Physics audit PH-28-02 rejected
+
+- Record explicit rejection of PH-28-02; verify the original comparative/parallelism paragraph remains unchanged. PH-28-01 remains applied; PH-28-03–08 remain pending. No chapter text changed for this decision.
+
+### 2026-10-30 — interactive English review: REF-42-01
+
+- Review Reference Chapters 41–45 for English only. The user requested one proposal at a time, with acceptance, rejection or custom wording before editing. Chapters 41 and 45 need no material English correction. Three conservative candidates were recorded privately; only REF-42-01 has been presented and accepted.
+- In the Chapter 42 closing cross-reference, replace "for detailed bends and multipoles" with "for detailed descriptions of bends and multipoles" and separate the parallel API reference with a comma. Preserve both link destinations and all technical claims. No other Reference chapter is changed; REF-43-01 and REF-44-01 remain for later decisions.
+- Leave the unrelated physics-overview work untouched; concurrent user edits to that page were observed during verification. The changed Reference page renders in the primary _site; source checks across 56 chapters, strict links across 64 pages, exact-replacement/link preservation and whitespace checks pass. No commit or push is authorized for this English review.
+
+### 2026-10-30 — Physics audit PH-28-04 accepted
+
+- Apply the accepted OPEN standard/integrated and shifted-Green cathode-image wording; remove the exclusivity claim and retain the cited references. Preserve all other pending/rejected passages. Full chapter audit remains incomplete.
+
+- PH-28-04 validation: 56-chapter manual validator and whitespace checks pass; diff reviewed. Chapter 28 HTML render succeeds with normal filesystem access after sandboxed Quarto Sass-cache database access failed. No commit or push.
+
+### 2026-10-30 — Physics audit PH-28-05 accepted
+
+- Apply the accepted particle-source wording: energy binning is optional and scoped to three-dimensional electrostatic space-charge calculations. Preserve the scientific citation and all rejected/pending passages. Full chapter audit remains incomplete.
+
+- PH-28-05 checks: 56-chapter validator, whitespace check and chapter HTML render pass; focused diff reviewed. No code change, simulation, commit or push.
+
+### 2026-10-30 — interactive English review: REF-43-01
+
+- Apply the user's accepted Chapter 43 comparison: the last bits can differ from those of an uninterrupted run or a run with a different MPI rank count. Preserve the valid-continuation qualification, possible causes, technical terms and all other text.
+- Keep REF-42-01 accepted/applied. REF-44-01 remains for the next one-at-a-time decision. Leave the independent physics-overview review and its maintenance entries untouched. No commit or push.
+
+- REF-43-01 validation: exact accepted replacement, unchanged links and other Reference source hashes, focused Chapter 43 render, 56-chapter source checks, 64-page rendered links and whitespace checks pass. No commit or push.
+
+### 2026-10-30 — Reference English review complete: REF-44-01
+
+- Apply the final accepted article correction in Chapter 44: "a NVIDIA ARCH" becomes "an NVIDIA ARCH". All three Reference English proposals are accepted and implemented; Chapters 41 and 45 remain unchanged. Preserve all technical claims, notation, identifiers, code, numbers and links.
+- Chapters 42–44 render locally in the primary _site. Source validation across 56 chapters, strict links across 64 rendered pages, whitespace and independent exact-replacement/English checks pass. The unrelated physics-overview review and its maintenance entries remain untouched. No commit or push.
+- The user next requests an English-only pass of Chapters 46–56, with a list first and one selectable decision prompt at a time. No source revisions in that new scope are applied before a decision.
+
+### 2026-10-30 — link recovered sandbox Python archive
+
+- Documents PR #3 is merged; verify the archive exists on main. Add six download links across Physics chapters 31–33, using documents-base-url metadata and preserving physics text and review dates. Identify the bundle as Python source only, excluding inputs and result data. No recovered scripts executed.
+
+- Download-link verification: all three chapter HTML renders succeed; six rendered archive URLs match merged documents main. Manual validator and diff whitespace checks pass; focused diff reviewed. Changes remain local and uncommitted.
+
+### 2026-10-30 — custom English wording: REF-48-01
+
+- Apply the user's full replacement sentence in Chapter 48: "Fast regression cases are executed, and their results are compared to maintained / trusted results." Preserve the supplied slash wording. The user explicitly replaces the earlier serial-artifact and maintained-metrics phrasing.
+- No other Chapter 46–56 proposal is applied yet. Preserve the completed Reference 41–45 edits and all concurrent physics/source-download work; do not replace existing maintenance entries. No commit or push.
+
+- REF-48-01 validation: exact custom sentence and rendered text verified; other ten reviewed chapters, links and code blocks unchanged. Chapter 48 render, 56-chapter source checks, 64-page rendered links and whitespace checks pass. No commit or push.
+
+### 2026-10-30 — Physics audit PH-28-06 deletion
+
+- User clarifies blank custom wording means deletion. Remove the original undated multigrid promise without replacement; retain other review decisions.
+
+### 2026-10-30 — accepted English revision: REF-51-01
+
+- Apply the agreed Chapter 51 comparison between an active element's length and the distance covered in one integration step. Preserve the rest of the paragraph, kick-count condition and convergence advice. REF-48-01 keeps the user's custom maintained / trusted results wording. Only REF-53-01 remains for a decision in this English pass.
+- Exact-replacement, other ten reviewed chapter hashes, links/code, rendered wording, 56-chapter source validation, 64-page rendered-link validation and whitespace checks pass. Chapter 51 renders in the primary _site. Preserve concurrent physics/source-download work and earlier Reference changes. No commit or push.
+
+### 2026-10-30 — Chapters 46–56 English review complete: REF-53-01
+
+- Apply the final accepted Chapter 53 paragraph describing documentation status and unexpected behavior in implemented features. All three proposals in this batch are accepted/applied, including the user's exact custom REF-48-01 sentence. The other eight chapters remain unchanged.
+- Changed Chapters 48, 51 and 53 render in the primary _site. All eleven reviewed sources equal their baseline plus exactly the agreed replacements; links and code blocks are preserved. Source validation across 56 chapters, strict links across 64 pages, whitespace and independent English/source QA pass.
+- The English reviews of Chapters 41–45 and 46–56 are complete locally, with six accepted revisions in total. Leave concurrent physics/source-download work and its maintenance entries untouched. No commit or push.
+
+### 2026-10-30 — apply accepted Physics chapter 28 corrections and continue
+
+- At the user’s explicit request, apply eleven cached acceptances (PH-28-03/07–16), retaining rejected PH-28-02 and prior accepted changes. Preserve complete symmetry prose after the T(x) correction and typeset normalized momentum in LaTeX. No code or numerical tolerance changes.
+- Source reconstruction confirms only accepted replacements and their necessary presentation repair; 56-chapter validation, whitespace checks and chapter HTML render pass. PH-28-17–24 are the next interactive batch and remain unapplied. No commit or push.
+
 ### 2026-10-30 — publish accepted English revisions in Chapters 46–56
 
 - Publish only REF-48-01, REF-51-01 and REF-53-01: the author's maintained / trusted regression-results sentence, the active-element length comparison and the documentation-status/implemented-behavior wording. The other eight reviewed chapter sources are unchanged.
 - Source reconstruction confirms exactly the agreed replacements, with links and code preserved. Changed Chapters 48, 51 and 53 render locally; 56-chapter source checks, 64-page rendered-link checks, whitespace and independent source/English QA pass.
 - User explicitly authorizes this scoped commit and push to opalx-manual/main. Earlier Reference 41–45 edits, concurrent physics work and their uncommitted maintenance history are excluded. Check the resulting GitHub Actions run after pushing.
+
+### 2026-10-30 — apply Physics findings PH-28-17–32
+
+- Apply all sixteen cached decisions at the user’s explicit request. Preserve custom PH-28-28 words exactly, with source whitespace reflow only. Retain all earlier decisions. Chapter-wide review date remains unchanged while the audit is incomplete.
+- Source reconstruction verifies the exact accepted replacements against the saved pre-application chapter; rejected PH-28-02 remains unchanged. Manual validator (56 chapters), diff whitespace and chapter HTML render pass; focused diff reviewed. No code, simulations, commit or push.
+
+### 2026-10-30 — publish remaining accepted Reference and physics revisions
+
+- At the user’s explicit request, pull origin/main before committing and pushing the remaining manual work. The fast-forward-only pull reports already up to date; every pre-pull source hash is preserved and no conflicts occur.
+- Include accepted Reference 41–45 English changes, the accepted Chapter 28 corrections (preserving rejected PH-28-02), six source-only Python archive links, and their maintenance history. The Chapter 28 completeness check and Chapters 29–35 audit remain unfinished; no pending proposal is published. Preserve existing stashes and all unrelated/generated artifacts.
+- Review the complete source diff, validate the manual and documents links, and render the full manual plus reports in the primary _site before publication. Record validation and publication results in /Users/adelmann/git/opalx/output/manual-pull-commit-2026-10-30/.
+- Pre-publication checks pass: 56-chapter source validation, eight cataloged documents, full manual and six report HTML renders, strict links across 63 rendered pages, all 13 browser tests, exact accepted Reference replacements, six rendered archive links, source-preservation hashes and whitespace. No code or simulation changes. Verify the new Actions build and published content after pushing.

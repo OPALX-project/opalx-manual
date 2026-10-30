@@ -41,7 +41,7 @@ Supported `ARCH` values are grouped by target family:
   `INTEL_DG1`, `INTEL_XEHP`, and `INTEL_PVC`.
 
 `ARCH` values outside this set are rejected at configure time. For CUDA, OPALX
-derives `CMAKE_CUDA_ARCHITECTURES` from the numeric suffix of a NVIDIA `ARCH`;
+derives `CMAKE_CUDA_ARCHITECTURES` from the numeric suffix of an NVIDIA `ARCH`;
 combining the CUDA backend with an AMD, CPU, or Intel architecture fails the
 configure step. For HIP, OPALX derives `CMAKE_HIP_ARCHITECTURES` from the
 `AMD_GFX` value of `ARCH`, including suffixed names such as `AMD_GFX942_APU`.

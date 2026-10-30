@@ -302,6 +302,10 @@ position difference, and requires the no-TC refinement to reduce the difference.
 These bounds accommodate the measured event-timing discrepancy; they are not
 physical error estimates. Active-TC timestep refinement remains future work.
 
+[Download the archived Python scripts]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz),
+including `sandbox/cyclotron/report_acceleration590.py`. The bundle preserves
+the original directory layout; inputs and result data are excluded.
+
 ## Spectral Tune Calculation
 
 SpectralTunes evolves two independent external-field rays using the same

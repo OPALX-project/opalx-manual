@@ -7,28 +7,23 @@ last-reviewed: "2026-10-23"
 ---
 ## Introduction {#sec.opalt.introduction}
 
-OPALX is a fully three-dimensional program to track in time,
-relativistic particles taking into account space charge forces,
-self-consistently in the electrostatic approximation, and short-range
-longitudinal and transverse wake fields. OPALX is one of the few
+OPALX tracks relativistic particles in three dimensions using time as the
+independent variable. It computes self-consistent space-charge forces in the
+electrostatic approximation. Short-range longitudinal and transverse wake-field
+models are not available in the current OPALX version. OPALX is one of the few
 codes that is implemented using a parallel programming paradigm from the
 ground up. This makes OPALX indispensable for high statistics
-simulations of various kinds of existing and new accelerators. It has a
-comprehensive set of beamline elements, and furthermore allows arbitrary
-overlap of their fields, which gives OPALX a capability to model both
-the standing wave structure and traveling wave structure. Beside
-IMPACT-T it is the only code making use of space charge solvers based on
-an integrated Green [@qiang2005_opalt],
-[@qiang2006_1_opalt], [@qiang2006_2_opalt]
-function to efficiently and accurately treat beams with large aspect
-ratio, and a shifted Green function to efficiently treat image charge
-effects of a cathode [@qiang2005_opalt],
-[@qiang2006_1_opalt],[@qiang2006_2_opalt]. For
-simulations of particles sources i.e. electron guns OPALX uses the
-technique of energy binning in the electrostatic space charge
-calculation to model beams with large energy spread [@fubiani2006]. In the very near
-future a parallel Multigrid solver taking into account the exact
-geometry will be implemented.
+simulations of various kinds of existing and new accelerators. OPALX provides beamline elements whose supported external fields can overlap.
+Each active element is evaluated in its local frame, and its field contribution
+is added to the particle fields. Supported RF models include standing-wave
+cavities and traveling-wave structures.
+The OPEN space-charge solver offers standard and integrated Green functions; the
+integrated form supports accurate treatment of elongated beams. A shifted
+Green-function formulation is available for cathode image-charge calculations
+under its documented restrictions [@qiang2005_opalt; @qiang2006_1_opalt;
+@qiang2006_2_opalt]. For particle-source simulations, such as electron guns, OPALX can use energy
+binning in three-dimensional electrostatic space-charge calculations to model
+beams with a large energy spread [@fubiani2006].
 
 ## Variables in OPALX {#sec.opalt.variablesopalt}
 
@@ -37,31 +32,12 @@ describe particle motion. Normalized momentum is dimensionless,
 $\widetilde{\mathbf p}=\mathbf p/(mc)=\gamma\boldsymbol\beta$, as defined in
 [Conventions](../../user-guide/conventions/index.qmd#coordinates-and-normalized-momentum).
 
-X
-
-:   Horizontal position $x$ of a particle relative to the axis of the
-    element [m].
-
-PX
-
-:   Horizontal normalized momentum $\widetilde p_x=\gamma\beta_x$ [dimensionless].
-
-Y
-
-:   Vertical position $y$ of a particle relative to the axis of the
-    element [m].
-
-PY
-
-:   Vertical normalized momentum $\widetilde p_y=\gamma\beta_y$ [dimensionless].
-
-Z
-
-:   Longitudinal position $z$ of a particle in floor co-ordinates [m].
-
-PZ
-
-:   Longitudinal normalized momentum $\widetilde p_z=\gamma\beta_z$ [dimensionless].
+The position components X, Y and Z describe particle coordinates in the current
+reference frame [m]. The corresponding momentum components PX, PY and PZ are
+dimensionless, with normalized momentum $\widetilde{\mathbf p}=\mathbf
+p/(mc)=\gamma\boldsymbol\beta$. For external-field evaluation, OPALX temporarily
+transforms positions and momenta into each active element’s local frame.
+Laboratory coordinates require the reference-to-laboratory transformation.
 
 The independent variable is **t** [s].
 
@@ -118,15 +94,16 @@ $$
 \frac{\mathbf{P}^{n+1}}{\sqrt{1 + |\mathbf{P}^{n+1}|^2}}.
 $$
 
-In the actual code this appears as:
+For the ordinary tracking loop with SCFIELDUPDATE="MIDPOINT", the main sequence is:
 
-1. `timeIntegration1()`: first half position push
-2. `resetFields()`
-3. `computeSpaceChargeFields()`
-4. `emitFromEmissionSources()`
-5. `computeExternalFields()`
-6. `timeIntegration2()`: Boris kick plus second half position push
-7. advance the bunch clock and call `updateReference()`
+1. timeIntegration1(): first half position push.
+2. resetFields(), followed by computeSpaceChargeFields().
+3. emitFromEmissionSources().
+4. computeExternalFields().
+5. timeIntegration2(): Boris kick and second half position push.
+6. Advance the bunch clock and update the reference particle.
+
+With SCFIELDUPDATE="PRESTEP", resetFields() and computeSpaceChargeFields() occur before the first half drift. Boundary-refined analytic-ring tracking uses the specialized preparation described below. Emission follows the space-charge solve, so newly emitted particles enter the external-field evaluation in their creation step and contribute to space charge at the next solve.
 
 So the implemented method is not just “a Boris pusher in isolation”; it is a
 split PIC/tracking loop in which the field solve and external-element queries
@@ -431,11 +408,14 @@ reference particle, having the central energy and traveling on the
 so-called reference trajectory. Motion of a particle close to this
 fictitious reference particle can be described by linearized equations
 for the displacement of the particle under study, relative to the
-reference particle. In OPALX, the time $t$ is used as independent
-variable instead of the path length $s$. The relation between them can
-be expressed as
+reference particle. OPALX uses time $t$ as the independent variable. For a quantity evaluated
+along a trajectory parameterized by scalar path length $s$,
 
-$$\frac{\mathrm{d}}{\mathrm{d} t} = \frac{\mathrm{d}}{\mathrm{d}\mathbf{s}}\frac{\mathrm{d}\mathbf{s}}{\mathrm{d} t} = \mathbf{\beta}c\frac{\mathrm{d}}{\mathrm{d}\mathbf{s}}.$$
+$$\frac{\mathrm d}{\mathrm dt}=\frac{\mathrm ds}{\mathrm dt}\frac{\mathrm d}{\mathrm ds},\qquad \frac{\mathrm ds}{\mathrm dt}=|\mathbf v|=c|\boldsymbol\beta|.$$
+
+In the tracker, the reference path length is accumulated along the reference
+trajectory; it is distinct from a particle’s longitudinal coordinate in the
+reference frame.
 
 ### Global Cartesian Coordinate System {#sec.opalt.global-cartesian-coordinate-system}
 
@@ -461,11 +441,12 @@ The local coordinates $(x_i, y_i, z_i)$ at element $e_i$ with respect to
 the global coordinates $(X, Y, Z)$ are defined by three displacements
 $(X_i, Y_i, Z_i)$ and three angles $(\Theta_i, \Phi_i, \Psi_i)$.
 
-$\Psi$ is the roll angle about the global $Z$-axis. $\Phi$ is the yaw
-angle about the global $Y$-axis. Lastly, $\Theta$ is the pitch angle
-about the global $X$-axis. All three angles form right-handed screws
-with their corresponding axes. The angles ($\Theta,\Phi,\Psi$) are the
-Tait-Bryan angles [@tait_bryan_opalt].
+For the explicit element pose, $\Theta$ (`THETA`) rotates about the
+$Y$-axis, $\Phi$ (`PHI`) about the $X$-axis, and $\Psi$ (`PSI`) about
+the $Z$-axis. These are Tait–Bryan angles [@tait_bryan_opalt]. The
+element’s active local-to-laboratory rotation is composed as
+$\mathcal W=R_y(\Theta)R_x(\Phi)R_z(\Psi)$; the corresponding
+laboratory-to-local transformation uses its inverse.
 
 The displacement is described by a vector $\mathbf{v}$ and the
 orientation by a unitary matrix $\mathcal{W}$. The column vectors of
@@ -490,8 +471,8 @@ $$\mathcal{S}=\left(\begin{array}{ccc}
 \quad
 \mathcal{T}=\left(\begin{array}{ccc}
     1 &  0        &  0 \\
-    0 &  \cos\Phi &  \sin\Phi \\
-    0 & -\sin\Phi &  \cos\Phi
+    0 &  \cos\Phi & -\sin\Phi \\
+    0 &  \sin\Phi &  \cos\Phi
   \end{array}\right),
 \quad
 \mathcal{U}=\left(\begin{array}{ccc}
@@ -517,10 +498,12 @@ using either `X`, `Y`, `Z`, `THETA`, `PHI` and `PSI` or `ORIGIN` and
 
 ### Space Charge Coordinate System {#sec.opalt.space-charge-coordinate-system}
 
-In order to calculate space charge in the electrostatic approximation,
-we introduce a co-moving coordinate system $K_{\text{sc}}$, in which the
-origin coincides with the mean position of the particles and the mean
-momentum is parallel to the z-axis.
+For ordinary space-charge calculations, OPALX constructs a solve frame K_sc
+whose z-axis aligns with the primary particle container’s mean momentum. Its
+longitudinal origin is set by the accumulated reference path length; it is not
+generally the bunch centroid. If the mean momentum is too small, the alignment
+uses the reference momentum, then the positive z direction as a final fallback.
+Collective elements can use a separate fixed-domain frame.
 
 ### Curvilinear Coordinate System {#sec.opalt.curvilinear-coordinate-system}
 
@@ -539,38 +522,28 @@ Both coordinate systems are described in @fig-ks2.
 
 ### Design or Reference Orbit {#sec.opalt.design-or-reference-orbit}
 
-The reference orbit consists of a series of straight sections and
-circular arcs and is **computed** by the Orbit Threader i.e. deduced
-from the element placement in the floor coordinate system.
+The geometric placement model can contain straight sections and circular
+arcs. The `OrbitThreader` reference orbit is obtained by integrating the
+design particle through the active external fields. Fringe fields and
+overlapping fields can therefore make the tracked reference orbit differ
+from the geometric placement curve.
 
 ### Compatibility Mode {#sec.opalt.compatibility-mode}
 
-To facilitate the change for users we will provide a compatibility mode.
-The idea is that the user does not have to change the input file.
-Instead OPALX will compute the positions of the elements. For this it
-uses the bend angle and chord length of the dipoles and the position of
-the elements along the trajectory. The user can choose whether effects
-due to fringe fields are considered when computing the path length of
-dipoles or not. The option to toggle OPALX's behavior is called
-`IDEALIZED`. OPALX assumes per default that provided `ELEMEDGE` for
-elements downstream of a dipole are computed without any effects due to
-fringe fields.
+Current `LINE` placement supports either `ELEMEDGE` placement for every
+element or explicit six-dimensional poses for every element. Mixing these
+placement conventions within a beamline is rejected. `ELEMEDGE` placement
+uses the geometric bend layout; explicit poses specify the spatial layout
+directly.
 
-Elements that overlap with the fields of a dipole have to be handled
-separately by the user to position them in 3D.
-
-We split the positioning of the elements into two steps. In a first step
-we compute the positions of the dipoles. Here we assume that their
-fields don't overlap. In a second step we can then compute the positions
-and orientations of all other elements.
-
-The accuracy of this method is good for all elements except for those
-that overlap with the field of a dipole.
+`OPTION, IDEALIZED=...` is parsed, but the current placement and tracking
+implementation does not read this setting. It therefore does not select
+a fringe-field correction to the placement path length.
 
 ### Orbit Threader and Autophasing {#sec.opalt.sec.orbitthreader}
 
 The `OrbitThreader` integrates a design particle through the lattice and
-setups up a multi map structure (`IndexMap`). Furthermore when the
+builds an interval-based occupancy map (`IndexMap`). Furthermore when the
 reference particle hits an rf-structure for the first time then it
 auto-phases the rf-structure, see Appendix Auto-phasing Algorithm. The multi map structure speeds up the
 search for elements that influence the particles at a given position in
@@ -603,10 +576,9 @@ resulting quaternions are then converted to the appropriate matrix
 representation before applying the rotation operation onto the particle
 positions and momenta.
 
-As can be seen from @fig-opaltscheme-simple the integration
-of the trajectories of the particles are integrated and the computation
-of the statistics of the six-dimensional phase space are performed in
-the reference coordinate system.
+As shown in @fig-opaltscheme-simple, particle trajectories are integrated and
+six-dimensional phase-space statistics are computed in the reference coordinate
+system.
 
 ## Multipoles in different Coordinate systems {#sec.opalt.multipoles-in-different-coordinate-systems}
 
@@ -652,7 +624,7 @@ $$\begin{aligned}
         z^n & = r^n ( \cos n \varphi + i \sin n \varphi )
     \end{aligned}$$
 
-From the real and imaginary parts of equation () we obtain
+From the real and imaginary parts of the complex-potential expansion, we obtain
 
 $$\begin{aligned}
         V(r, \varphi) & = \sum_{n=0}^{\infty} r^n ( \mu_n \cos n \varphi + \lambda_n \sin n \varphi ) \\
@@ -689,7 +661,7 @@ $$\begin{aligned}
 
 It is straightforward to derive a relation between coefficients
 
-$$\nabla ^2 V = 0 \Rightarrow \frac{1}{r} \frac{\partial}{\partial r} \left( r \frac{\partial V_n}{\partial r} \right) + \frac{\partial^2 V_n}{\partial z^2} = \frac{n^2 V_n}{r^2} = 0$$
+$$\frac{1}{r}\frac{\partial}{\partial r}\left(r\frac{\partial V_n}{\partial r}\right) + \frac{\partial^2 V_n}{\partial z^2} - \frac{n^2 V_n}{r^2} = 0.$$
 
 $$V_n  = \sum_{k=0}^{\infty} C_{n,k}(z) r^{n+2k}$$
 
@@ -723,11 +695,11 @@ $$\begin{aligned}
         g_{ \varphi n} (r,z) & = \sum_{k=0}^{\infty} (-1)^{k+1} \frac{n!n}{2^{2k} k! (n+k)!} C_{n,0}^{(2k)}(z)r^{2k}
     \end{aligned}$$
 
-The z-directed component of the filed can be expressed in a similar form
+The z-directed component of the field can be expressed in a similar form
 
 $$\begin{aligned}
         B_z & = - \frac{\partial V}{\partial z} =  \sum_{n=1}^{\infty} g_{zn} r^n \sin n \varphi \\
-        g_{zn} & = \sum_{k=0}^{\infty} (-1)^{k+1} \frac{n!}{2^{2k} k! (n+k)!} C_{n,0}^{2k+1} r^{2k}
+        g_{zn} & = \sum_{k=0}^{\infty} (-1)^{k+1} \frac{n!}{2^{2k} k! (n+k)!} C_{n,0}^{(2k+1)}(z) r^{2k}
     \end{aligned}$$
 
 The gradient functions $g_{rn}, g_{\varphi n}, g_{zn}$ are obtained from
@@ -766,7 +738,7 @@ $$\begin{aligned}
 To simplify the problem, consider multipoles with mid-plane symmetry,
 i.e.
 
-$$b_z (z) = B_z (-z) \qquad B_x (z) = - B_x (-z) \qquad B_s (z) = - B_s (-z)$$
+$$B_z (z) = B_z (-z) \qquad B_x (z) = - B_x (-z) \qquad B_s (z) = - B_s (-z)$$
 
 The most general form of the expansion is
 
@@ -783,7 +755,7 @@ $$\frac{\partial}{\partial x} \left( (1+x/ \rho) B_x \right) + \frac{\partial B_
 
 $$\begin{aligned}
             \frac{\partial B_z}{\partial s} & = (1+x/ \rho) \frac{\partial B_s}{\partial z}  \\ \\
-            \frac{\partial B_x}{\partial z} & = \frac{\partial B_z}{\partial s}   \\ \\
+            \frac{\partial B_x}{\partial z} & = \frac{\partial B_z}{\partial x}   \\ \\
             \frac{\partial B_x}{\partial s} & = \frac{\partial}{\partial x} \left( (1+x/ \rho) B_s \right)
 \end{aligned}$$
 
@@ -808,7 +780,7 @@ The last equation from $\nabla \times \mathbf{B} = 0$ should be
 consistent with the two recursion relations obtained.
 Maxwell's equations implies
 
-$$\sum_{i,k=0}^{\infty} \left[ \frac{i+1}{\rho} c_{i,k} x^i + c_{i,k} i x^{i-1} \right] z^{k+1} = \sum_{i,k=0}^{\infty} \partial_s a_{i,k} x^i z^{2k}$$
+$$\sum_{i,k=0}^{\infty} \left[ \frac{i+1}{\rho} c_{i,k} x^i + c_{i,k} i x^{i-1} \right] z^{2k+1} = \sum_{i,k=0}^{\infty} \partial_s a_{i,k} x^i z^{2k+1}$$
 
 $$\Rightarrow \frac{\partial_s a_{i,k}}{i+1} = \frac{1}{\rho} c_{i,k} + c_{i+1,k}$$
 
@@ -819,7 +791,7 @@ of **B**
 
 $$\sum_{i,k=0}^{\infty} \left[ \frac{a_{i,k} x^i z^{2k+1}}{\rho}  + i a_{i,k} x^{i-1} z^{2k+1} + \frac{i a_{i,k} x^i z^{2k+1}}{\rho}  + \partial_s c_{i,k} x^i z^{2k+1} + 2kb_{i,k}x^i z^{2k-1} \right] = 0$$
 
-$$\Rightarrow \partial_s c_{i,k} + \frac{2(k+1)}{\rho} b_{i-1,k+1} + 2(k+1) b_{i,k+1} + \frac{1}{\rho} a_{i,k} + (i+1) a_{i+1,k} + \frac{1}{\rho} a_{i,k} = 0$$
+$$\Rightarrow \partial_s c_{i,k} + \frac{2(k+1)}{\rho} b_{i-1,k+1} + 2(k+1) b_{i,k+1} + \frac{1}{\rho} a_{i,k} + (i+1) a_{i+1,k} + \frac{i}{\rho} a_{i,k} = 0$$
 
 Using the relation (the a-factor relation) to replace the $a$
 coefficients with $b$'s we arrive at
@@ -831,25 +803,32 @@ field $B_z$ can be measured at the mid-plane in the form
 
 $$B_z(z=0) = B_{0,0} + B_{1,0}x + B_{2,0} x^2 + B_{3,0} x^3 + \ldots$$
 
-where $B_{i,0}$ are functions of $s$ and they can model the fringe field
-for each multipole term $x^n$. As an example, for a dipole magnet, the
-$B_{1,0}$ function can be model as an Enge function or $tanh$.
+Here $B_{i,0}$ are functions of $s$ that describe the longitudinal variation
+of each multipole term $x^i$. For a dipole magnet, the coefficient
+$B_{0,0}(s)$ can be modeled with an Enge or $\tanh$ profile.
 
 ### Fringe field of a curved multipole {#sec.opalt.fringe-field-of-a-curved-multipole-1}
 
 *(variable radius of curvature)*
+
+This subsection presents formal background. The current `MULTIPOLET`
+implementation selects straight or constant-radius geometry; a variable-radius
+implementation is not available. Although the parser accepts `VARRADIUS`,
+that flag does not select a variable-radius field model.
 
 The difference between this case and the above is that $\rho$ is now a
 function of $s$, $\rho(s)$. We can obtain the same result starting with
 the same functional forms for the field
 (the general-form equation). The result of the previous section
 also holds in this case since no derivative
-$\frac{\partial}{\partial s}$ is applied to the scale factor $h_s$. If
-the radius of curvature is set to be proportional to the dipole filed
-observed by some reference particle that stays in the centre of the
-dipole
+$\frac{\partial}{\partial s}$ is applied to the scale factor $h_s$. For a reference particle with fixed mechanical momentum magnitude $p_0$
+in a planar transverse magnetic field, the magnitude of the local orbit
+radius is
 
-$$\rho (s) \propto B(z=0, x=0, s) = B_x (z=0,x=0) = b_{0,0}(s)$$
+$$|\rho(s)|=\frac{p_0}{|q|\,|B_z(0,0,s)|}=\frac{p_0}{|q|\,|b_{0,0}(s)|}.$$
+
+Here $p_0$ is in SI momentum units. This relates orbit curvature to field
+strength; it does not define the implemented constant-radius magnet geometry.
 
 ### Fringe field of a multipole {#sec.opalt.fringe-field-of-a-multipole}
 
@@ -860,23 +839,24 @@ mid-plane has the form
 
 $$B_z (x, z=0, s) = T(x) S(s)$$
 
-where $T(s)$ is the transverse field profile and $S(s)$ is the fringe
-field. One of the requirements of the symmetry is that
-$B_z(z) = B_z(-z)$ which using a scalar potential $\psi$ requires
-$\frac{\partial \psi}{\partial z}$ to be an even function in z.
+where $T(x)$ is the transverse field profile and $S(s)$ is the fringe
+field. The symmetry condition $B_z(z) = B_z(-z)$ requires
+$\frac{\partial \psi}{\partial z}$ to be an even function in $z$
+when the field is represented using a scalar potential $\psi$.
 Therefore, $\psi$ is an odd function in z and can be written as
 
-$$\psi = z f_0(x,s) + \frac{z^3}{3!} f_1(x,s) + \frac{z^5}{5!} f_3(x,s) + \ldots$$
+$$\psi = z f_0(x,s) + \frac{z^3}{3!} f_1(x,s) + \frac{z^5}{5!} f_2(x,s) + \ldots$$
 
-The given transverse profile requires that $f_0(x,s) = T(x)S(s)$, while
-$\nabla^2 \psi = 0$ follows from Maxwell's equations as usual, more
-explicitly
+In this subsection, use $\mathbf B=+\nabla\psi$, the opposite sign
+convention to the earlier definition $\mathbf B=-\nabla V$. The
+mid-plane field then gives $f_0(x,s)=T(x)S(s)$. In a current-free region,
+Maxwell’s equations require $\nabla^2\psi=0$, or explicitly
 
 $$\frac{\partial}{\partial x} \left( h_s \frac{\partial \psi}{\partial x} \right) + \frac{\partial}{\partial s} \left( \frac{1}{h_s} \frac{\partial \psi}{\partial s} \right) + \frac{\partial}{\partial z} \left( h_s \frac{\partial \psi}{\partial z} \right) = 0$$
 
 For a straight multipole $h_s = 1$. Laplace's equation becomes
 
-$$\sum_{n=0} \frac{z^{2n+1}}{(2n+1)!} \left[ \partial_x^2 f_n(x,s) + \partial_s^2 f_n(x,s) \right] + \sum_{n=1} f_n(x,s) \frac{z^{n-1}}{(n-1)!} = 0$$
+$$\sum_{n=0}^{\infty} \frac{z^{2n+1}}{(2n+1)!} \left[\partial_x^2 f_n(x,s)+\partial_s^2 f_n(x,s)\right] + \sum_{n=1}^{\infty} f_n(x,s)\frac{z^{2n-1}}{(2n-1)!}=0.$$
 
 By equating powers of $z$ we obtain the recursion relation
 
@@ -901,7 +881,7 @@ recursion
 
 $$\begin{aligned}
         f_{n+1}(x,s) & = - \left[ \frac{1}{\rho + x} \partial_x + \partial_x^2 + \frac{\partial_s^2}{(1+x/ \rho)^2} \right] f_n(x,s) \\ \\
-        f_{n+1}(x,s) & = (-1)^n \left[ \frac{1}{\rho + x} \partial_x + \partial_x^2 + \frac{\partial_s^2}{(1+x/ \rho)^2} \right]^n f_0(x,s)
+        f_n(x,s) & = (-1)^n \left[ \frac{1}{\rho + x} \partial_x + \partial_x^2 + \frac{\partial_s^2}{(1+x/ \rho)^2} \right]^n f_0(x,s)
     \end{aligned}$$
 
 Finally consider what changes for $\rho = \rho (s)$. Laplace's equation
@@ -916,14 +896,13 @@ $$\begin{aligned}
         f_{n}(x,s) & = (-1)^n \left[ \frac{\partial_x}{\rho h_s} + \partial_x^2 + \partial_z^2 + \frac{\partial_s^2}{h_s^2} + \frac{x}{\rho^2 h_s^3} (\partial_s \rho) \partial_s \right]^n f_0(x,s)
     \end{aligned}$$
 
-If the radius of curvature is proportional to the dipole field in the
-centre of the multipole (the dipole component of the transverse field is
-a constant $T_{dipole}(x) = B_0$ and
+For the theoretical field profile $T_{\mathrm{dipole}}(x)=B_0$,
+the same fixed-momentum planar-orbit relation gives
 
-$$\rho(s) = B_0 \times S(s)$$
+$$|\rho(s)|=\frac{p_0}{|q|\,|B_0 S(s)|}.$$
 
-This expression can be substituted into the preceding recursion to obtain a more explicit
-equation.
+The relation applies where $B_0S(s)\ne0$; the radius becomes unbounded
+as the field vanishes. It is not an implemented variable-radius `MULTIPOLET` model.
 
 
 ### Cyclotron segment diagnostics {#cyclotron-probe-diagnostics}

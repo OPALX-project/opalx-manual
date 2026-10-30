@@ -432,6 +432,10 @@ canonical-$J$ residuals, and the difference from the finest numerical map.
 That last comparison helps distinguish time discretization from the fixed
 finite-difference floor.
 
+[Download the archived Python scripts]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz)
+for the `sandbox/map-2` study. The bundle preserves the original directory
+layout and includes Python helpers and tests; inputs and result data are excluded.
+
 ## Fixed-section return-map service (experimental)
 
 The `OneTurnMap` C++ service is the first building block for the general RING
@@ -544,6 +548,10 @@ both planes converges to the design orbit. Smaller finite-difference steps
 can amplify tracking noise enough to fail the strict unit-circle test;
 the saved scan retains those outcomes. Integer tune branches, spectral tunes,
 off-momentum optics and distributed fringe fields are not validated here.
+
+The benchmark's Python scripts and reference-model helpers are included in the
+[Python source bundle]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz)
+under `sandbox/Regression-Tests/dba-ring-cof/`.
 
 For conventional elements, COF assigns aperture checks to the nearest finite
 design centreline, independently of aperture dimensions. This prevents a remote
@@ -753,5 +761,9 @@ conservative linear stability. No unit-circle tolerance has been relaxed.
 `sandbox/cyclotron/compare_cof_energies.py` reproduces the matched old-OPAL run
 and comparison from a successful benchmark log; inputs are stored under
 `sandbox/cyclotron/opal/cof-tunes/` and results under `sandbox/cyclotron/cof-results/`.
+
+The comparison script is included in the
+[Python source bundle]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz).
+The cited input and result directories are not included.
 
 :::

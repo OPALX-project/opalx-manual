@@ -10,6 +10,11 @@ last-reviewed: "2026-09-05"
 
 ## Additional unpadded six-cell RING {#map3-six-cell-ring}
 
+[Download the archived Python scripts]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz),
+including the ring generator and the DBA analysis scripts described below.
+The bundle preserves the original `sandbox/` directory layout and includes
+Python helpers and tests; inputs and result data are excluded.
+
 The separate `sandbox/map-3/ring/build_ring.py` fixture assembles six unchanged
 60-degree DBA cells using explicit 6D entrance poses. It retains $\rho=2$ m,
 two 30-degree bends, two 1 m drifts and the 0.2 m quadrupole per cell, with
@@ -235,6 +240,12 @@ centreline and off-axis figures, sampled component table, support/body intervals
 and a summary containing the source-file hashes. Python tests check support
 separation, field-free drifts, derivatives, field signs, symmetry, FINT isolation
 and the hard-edge limit; `TestBendFieldModel` checks the C++ profile helpers.
+
+The DBA Python scripts, including `analytic_fields.py`, `compare_reference.py`
+and `variational_reference.py`, are included in the
+[Python source bundle]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz)
+under `sandbox/map-3/dba/`. Archived run directories and comparison results
+are not included.
 
 Matching the actual reference orbit and dispersion remains future work. The
 unmatched lattice can already be compared with the independent reference below.

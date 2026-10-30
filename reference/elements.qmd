@@ -24,5 +24,5 @@ Capitalization above follows the user-facing convention. The
 attributes for the documented element types and distinguishes maintained regression
 coverage from source-only support. Its OPAL view also retains non-CYCL legacy
 interfaces; that does not imply OPALX registration. See
-[Element Physics](../physics/elements/index.qmd) for detailed bends and
-multipoles and the [API Reference](api.qmd) for source-level definitions.
+[Element Physics](../physics/elements/index.qmd) for detailed descriptions of bends and
+multipoles, and the [API Reference](api.qmd) for source-level definitions.
