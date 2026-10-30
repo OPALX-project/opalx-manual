@@ -784,11 +784,10 @@ the finest radial moduli are approximately 0.999660 and 0.998556. They remain
 sensitive to differentiation and timestep: the tune agreement does not certify
 conservative linear stability. No unit-circle tolerance has been relaxed.
 `sandbox/cyclotron/compare_cof_energies.py` reproduces the matched old-OPAL run
-and comparison from a successful benchmark log; inputs are stored under
-`sandbox/cyclotron/opal/cof-tunes/` and results under `sandbox/cyclotron/cof-results/`.
+and comparison from a successful benchmark log.
 
 The comparison script is included in the
 [Python source bundle]({{< meta documents-base-url >}}/examples/2026/physics-audit/2026-10-30-physics-manual-sandbox-python.tar.gz).
-The cited input and result directories are not included.
+The original inputs and result data are not included.
 
 :::
