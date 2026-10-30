@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-09-05"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 The accelerator to be studied is represented as a sequence of physical
 elements called a beam line. A beam line is built from simpler beam lines whose
@@ -21,6 +24,8 @@ Each `member` may be:
 - an element label,
 - a beamline label,
 - a sub-line enclosed in parentheses.
+
+[For `LINE`, an integer prefix repeats a member or group, for example `3*Q1` or `2*(D1,Q1)`. A minus sign on a named member sets its reflection flag, for example `-Q1`. On an anonymous group, `-(D1,Q1)` reverses the member order; it does not reflect the individual members. These modifiers are rejected by `RING`.]{#ug-15-01}
 
 ## Simple Beam Lines
 
@@ -45,21 +50,30 @@ Line attributes:
 `ORIENTATION`
 : orientation vector of Tait-Bryan angles at the line origin.
 
+[OPALX also accepts the scalar source-frame attributes `X`, `Y`, `Z` in metres and `THETA`, `PHI`, `PSI` in radians, all defaulting to zero. Alternatively use three-entry arrays `ORIGIN={x,y,z}` and `ORIENTATION={theta,phi,psi}`. If either array is supplied, the array form takes precedence over the scalar form; an omitted companion array uses the zero origin or identity orientation. The angle components correspond to rotations about the y, x, and z axes, respectively.]{#ug-15-02}
+
 ## Sub-lines
 
 Instead of referring directly to an element, a beamline member can refer to
 another named beam line. This provides shorthand notation for repeated lattice
-segments. Lines and sub-lines can be entered in any order, but when a line is
-used, all of its sub-lines must already be known to the parser.
+segments. [**UG-15-03:** Define each element and named sub-line before the `LINE` that uses it; members are resolved when the line definition is parsed.]{.ug-audit-other #ug-15-03}
 
 Example:
 
-```text
-L: LINE = (A, B, S, B, A, S, A, B);
-S: LINE = (C, D, E);
-```
 
-The source manual expands this in two steps.
+
+:::::: {.ug-audit-other #ug-15-04}
+**UG-15-04 — Technical / units / links**
+
+```text
+S: LINE = (C, D, E);
+L: LINE = (A, B, S, B, A, S, A, B);
+```
+::::::
+
+
+
+[This expands in two steps.]{#ug-15-05}
 
 1. Replace `S` by its definition:
 
@@ -85,8 +99,8 @@ R: RING = (B1, D1, Q1, D2, B2, ...);
 
 Specify each physical occurrence with its own explicit 6D entrance pose
 (`X`, `Y`, `Z`, `THETA`, `PHI`, `PSI`); use no `ELEMEDGE` in new inputs.
-Repetition and reflection modifiers are not supported by `RING`, and a `RING`
-cannot be nested inside a `LINE` or another `RING`. A `RING` may contain named
+Repetition and reflection modifiers are not supported by `RING`, and [a `RING`
+cannot be nested inside a `LINE` or another `RING`.]{#ug-15-06} A `RING` may contain named
 `LINE` segments; the expanded physical occurrences are tagged with the enclosing
 ring name. The sequence does not automatically place or geometrically close the
 elements.

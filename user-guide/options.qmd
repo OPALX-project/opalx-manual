@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-10-15"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 `OPTION` changes process-wide parser, tracking, output, and diagnostic settings.
 
 ::: {.feature-opalx}
@@ -55,8 +58,8 @@ Frequencies are measured in global tracking steps unless stated otherwise.
 
 | Option | Default | Effect |
 |---|---:|---|
-| `PSDUMPFREQ` | `10` | Phase-space dump frequency. `0` is converted internally to an effectively disabled frequency. |
-| `STATDUMPFREQ` | `10` | Statistics dump frequency. `0` is converted internally to an effectively disabled frequency. |
+| `PSDUMPFREQ` | `10` | [Phase-space dump frequency. `0` disables periodic dumps; negative values are rejected.]{#ug-11-01} |
+| `STATDUMPFREQ` | `10` | [Statistics dump frequency. `0` disables periodic dumps; negative values are rejected.]{#ug-11-02} |
 | `CHECKPOINTFREQ` | `0` | Write a restart checkpoint after every N completed global tracking steps. `0` disables checkpointing; negative values are rejected. |
 | `STEPINFOFQ` | `1` | Per-step status frequency; values below zero become `0`, which disables the lines. |
 | `PRINTRANKDISTRFQ` | `0` | Per-rank particle-count table frequency; `0` disables it and negative values become `0`. |
@@ -95,9 +98,9 @@ costing $12(L+1)$ private rays per segment. The four-level limit bounds this at 
 Higher levels do not guarantee a better answer: integration error, field interpolation,
 boundary resolution and subtraction noise remain. Smooth-field time-integration orders are
 2 for Boris, 4 for RK4 and 8 for DOP853; Richardson changes differentiation order only.
-DOP853 here has no adaptive error controller or dense output: `DT` is the nominal
+[DOP853 here has no adaptive error controller or dense output: `DT` is the nominal
 step for all three methods, subdivided at field-support transitions. These controls
-do not select the production-particle integrator. Higher order is more expensive per
+do not select the production-particle integrator.]{#ug-11-03} Higher order is more expensive per
 step and does not guarantee a symplectic map or better accuracy for nonsmooth fields.
 
 The effective settings are printed before the combined matrix. Each element-owned segment map
@@ -116,9 +119,9 @@ level zero the current IPPL output layer suppresses both, leaving an empty timin
 file even when tracking completes successfully.
 
 OrbitThreader prints its effective time step, integrator, map enablement, Richardson
-level, and ring period for each species pass. Reference and perturbed map rays run
+level, and ring period for each species pass. [Reference and perturbed map rays run
 serially on the host; OpenMP thread capacity reported at startup applies to the
-runtime and does not imply parallel ray tracking. Startup also records the loaded
+runtime and does not imply parallel ray tracking.]{#ug-11-04} Startup also records the loaded
 executable path (where supported), build configuration, compiler, configure-time
 CMake C++ flags, assertion status, MPI ranks, and Kokkos host concurrency. CMake flags
 are not a complete compile command: target/dependency options may add flags, and
@@ -179,17 +182,19 @@ tolerances, field selection, or the production-particle integrator.
 | `LOADBALANCINGPAIRWEIGHT` | `0` | Share of the ORB load-balancing weight that follows the P3M particle-particle pair count, in `[0,1]`; the rest follows the particle count. Each part is normalized to its global total, and the pair part counts $n^2$ per mesh vertex. `0` balances particle counts; values above `0` require `FIELDSOLVER, TYPE=P3M`. A pair-weighted cut that leaves a rank region narrower than twice the P3M cutoff is replaced by the particle-count cut. `LOADBALANCINGTHRESHOLD` then applies to each rank's weight share instead of its particle share. |
 | `BOUNDPDESTROY` | `10` | Delete particles outside this many rms beam sizes. Values at or below zero disable the cut. |
 | `MINBINEMITTED` | `10` | Delay space-charge calculation until the primary container has more particles than this threshold. |
-| `MINSTEPFORREBIN` | `200` | Earliest step at which the current tracker may collapse emission bins. |
-| `AUTOPHASE` | `6` | Number of RF phase-search refinements; `0` disables autophasing. |
+| `MINSTEPFORREBIN` | `200` | [Accepted and stored for compatibility; the current tracker does not use it to collapse emission bins.]{#ug-11-05} |
+| `AUTOPHASE` | `6` | [Number of RF phase-search refinements. `0` disables the OrbitThreader phase search, but initialization towards `TRACK.ZSTART` can still phase cavities. Set each cavity's `APVETO=TRUE` when its phase must remain fixed.]{#ug-11-06} |
 | `QM_MODE` | `SINGLE` | `SINGLE` stores one charge and mass per container; `ATTRIBUTES` allocates per-particle `Q` and `M` views. |
 | `AGGRESSIVE_STATE_SYNC` | `FALSE` | MPI-allreduce every shared bunch-state mutation. Intended for diagnosing rank-local state divergence; adds collective overhead. |
 | `VERSION` | `10000` | OPAL input-version code. `RUN` reports incompatible changes when the value predates registered input changes. |
 
-`MINBINEMITTED` and `MINSTEPFORREBIN` affect runtime bin handling. The
-definition of the adaptive histogram itself is documented under
-[Field Solvers / Binning](field-solver/index.qmd#binning).
+
 
 ## Accepted compatibility options
+
+
+
+:::::: {#ug-11-08}
 
 The following names are accepted and stored, but have no current consumer in
 the OPALX `ParallelTracker` source. Do not rely on them to change a simulation.
@@ -200,12 +205,9 @@ the OPALX `ParallelTracker` source. Do not rely on them to change a simulation.
 | `PSDUMPFRAME` | `GLOBAL` | OPAL-CYCL dump frame: `GLOBAL`, `BUNCH_MEAN`, or `REFERENCE`. |
 | `SPTDUMPFREQ` | `1` | Single-particle trajectory dump frequency. `0` is converted to an effectively disabled frequency. |
 | `SCSOLVEFREQ` | `1` | Requested space-charge solve frequency; parsed values below one become one. |
-| `MTSSUBSTEPS` | `1` | Small-step count intended for multiple-time-stepping integration. |
 | `REMOTEPARTDEL` | `0` | Historical remote-particle rms deletion threshold. |
 | `REBINFREQ` | `100` | Historical frequency for resetting energy-bin identifiers. |
 | `CSRDUMP` | `FALSE` | Historical CSR field and line-density output. |
-| `NUMBLOCKS` | `0` | Recycled-CG Krylov-space vector limit. |
-| `RECYCLEBLOCKS` | `0` | Recycled-CG recycle-space vector count. |
 | `NLHS` | `1` | Old solutions retained for a solver starting-vector extrapolation. |
 | `CZERO` | `FALSE` | Historical request for a distribution with zero centroid. |
 | `RNGTYPE` | `RANDOM` | Accepts `RANDOM`, `HALTON`, `SOBOL`, or `NIEDERREITER`; current distribution samplers do not select their engine through it. |
@@ -214,6 +216,9 @@ the OPALX `ParallelTracker` source. Do not rely on them to change a simulation.
 | `LOGBENDTRAJECTORY` | `FALSE` | Historical request to write each bend trajectory. |
 | `MEMORYDUMP` | `FALSE` | Historical SDDS memory output request; the current `OPTION` execution path does not apply it. |
 | `DELPARTFREQ` | `1` | Historical particle-deletion frequency. |
+::::::
+
+
 :::
 
 ::: {.feature-opal}
@@ -257,9 +262,8 @@ The most frequently used controls are:
 | `IDEALIZE` | `FALSE` | `INFO` | `TRUE` |
 | `LOGBENDTRAJECTORY` | `FALSE` | `MEMORYDUMP` | `FALSE` |
 | `MINBINEMITTED` | `10` | `MINSTEPFORREBIN` | `200` |
-| `NLHS` | `1` | `NUMBLOCKS` | `0` |
+| `NLHS` | `1` | `REBINFREQ` | `100` |
 | `PSDUMPFREQ` | `10` |  |  |
-| `RECYCLEBLOCKS` | `0` | `REBINFREQ` | `100` |
 | `REMOTEPARTDEL` | `0.0` | `REPARTFREQ` | `10` |
 | `RHODUMP` | `FALSE` | `RNGTYPE` | `RANDOM` |
 | `SCSOLVEFREQ` | `1` | `SEED` | `123456789` |

@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 :::: {.feature-opal}
 OPAL provides two commands for writing external fields:
 
@@ -71,11 +74,11 @@ This writes a mid-plane map in the `x-y` plane, starting at `(0,0)` with
 systems are supported:
 
 - Cartesian: `(x, y, z, t)`
-- cylindrical about the `z` axis: `(r, phi, z, t)` in OPAL, `(r, phi, y, t)` in OPALX
+- [cylindrical: about the `z` axis in OPAL, `(r, phi, z, t)`; about the vertical `y` axis in OPALX, `(r, phi, y, t)`]{#ug-14-02}
 
 ### Cartesian Mode
 
-Cartesian mode is selected with `COORDINATE_SYSTEM = CARTESIAN`.
+[Cartesian mode is selected with `COORDINATE_SYSTEM = CARTESIAN`; this is the OPALX default.]{#ug-14-04}
 
 :::: {.feature-opal}
 The file format is:
@@ -118,6 +121,8 @@ The file format is:
 ...
 ```
 ::::
+
+[Each `*_STEPS` value is the number of grid samples, including the start point. A coordinate with start `a`, spacing `d`, and count `n` is sampled at `a + j*d` for `j=0,...,n-1`; the final point is `a + (n-1)*d`. Use a count of `1` for a fixed coordinate.]{#ug-14-05}
 
 Attributes in Cartesian mode:
 
@@ -213,4 +218,6 @@ Additional OPALX cylindrical attributes:
 | `DY` | step size in `y [m]` |
 | `Y_STEPS` | number of `y` steps; must be a positive integer |
 | `CYL_ORIGIN_X`, `CYL_ORIGIN_Y`, `CYL_ORIGIN_Z` | optional cylindrical-origin coordinates in `m`; defaults are `0` |
+
+[**UG-14-06:** For OPALX, give `PHI_START` and `DPHI` in radians. The output converts `phi` to degrees. The cylindrical coordinates satisfy `x = CYL_ORIGIN_X + r*cos(phi)`, `z = CYL_ORIGIN_Z + r*sin(phi)`, and `y = CYL_ORIGIN_Y + Y_START + j*DY`.]{.ug-audit-other #ug-14-06}
 ::::

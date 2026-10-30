@@ -6,6 +6,9 @@ status: planned
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 ::: {.feature-opal}
 Optimization problems with more than one criterion are treated in `OPAL` as
@@ -199,7 +202,7 @@ measurement-derived quantities.
 
 ### Example Input File
 
-The original manual includes a full example based on the files
+[**UG-23-01:** The retained OPAL documentation includes a full example based on the files]{.ug-audit-other #ug-23-01}
 [05-DL_QN3.in](examples/05-DL_QN3.in) and
 [tmpl/05-DL_QN3.tmpl](examples/tmpl/05-DL_QN3.tmpl). The example optimizes three
 quadrupole strengths through `DVAR` definitions, evaluates beam statistics as
@@ -224,7 +227,5 @@ legacy plain-text format. The Pareto-front data are written to
 :::
 
 ::: {.feature-opalx}
-This optimization feature is not yet available in OPALX. The OPAL view is
-retained as a compatibility reference and a reminder of intended future
-functionality.
+[`OPTIMIZE`, `DVAR`, `OBJECTIVE`, and `CONSTRAINT` are not available in the current OPALX version. The OPAL view is retained as a compatibility reference. A port and its schedule are unconfirmed.]{#ug-23-02}
 :::

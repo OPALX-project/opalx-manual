@@ -6,29 +6,40 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
-OPALX uses SI units internally. Input attributes that use another convention
-state it explicitly in their parameter tables.
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
+[OPALX uses metres, seconds, and SI electromagnetic-field units, while energy,
+mass, and normalized momentum follow the conventions below.]{#ug-07-01}
 
 ## Physical units
+
+
+
+:::::: {#ug-07-02}
 
 | Quantity | Input convention |
 |---|---|
 | Length | $\mathrm{m}$ |
 | Angle | $\mathrm{rad}$ |
 | Time | $\mathrm{s}$ unless an attribute states otherwise |
-| Quadrupole coefficient | $\mathrm{T\,m^{-1}}$ |
-| Multipole coefficient, $2n$ poles | $\mathrm{T\,m^{-n+1}}$ |
+| `QUADRUPOLE.K1`, `K1S`, `DK1`, `DK1S` | $\mathrm{m^{-2}}$ |
+| Normalized `MULTIPOLE.KN` and `KS` coefficient, $2n$ poles | $\mathrm{m^{-n}}$ |
+| Physical `MULTIPOLET.TP` coefficient, $2n$ poles | $\mathrm{T\,m^{-n+1}}$ |
 | Electric voltage | $\mathrm{MV}$ |
 | Electric field strength | $\mathrm{MV\,m^{-1}}$ |
 | Magnetic field strength | $\mathrm{T}$ in current OPALX field output |
 | Frequency | $\mathrm{MHz}$ |
 | Charged-particle `BEAM.ENERGY` | $\mathrm{GeV}$ |
-| Photon `BEAM.ENERGY` | $\mathrm{eV}$, following the CAIN convention |
+| Photon `BEAM.ENERGY` | $\mathrm{GeV}$; photon transport is unavailable |
 | Particle mass | $\mathrm{GeV\,c^{-2}}$ in `BEAM.MASS` |
 | Normalized momentum | $\widetilde p=p/(mc)=\beta\gamma$, dimensionless |
 | Beam current | $\mathrm{A}$ |
 | Particle charge | elementary-charge units |
 | Normalized and geometric emittance | $\mathrm{m\,rad}$ |
+::::::
+
+
 
 The analytic `LASER` definition uses `WAVELENGTH`, `WAISTX`, and `WAISTY` in
 meters, `PULSEENERGY` in joules, and `PULSELENGTH` in seconds. `DIR` and
@@ -199,21 +210,23 @@ frames for `MONITOR` and `PROBE` records must be considered separately.
 
 ## Multipole conversion
 
-When importing a normalized quadrupole strength $k_1$ from codes such as
-Elegant, convert it to the magnetic gradient required by OPALX using the
-reference rigidity. In the historical convention,
 
-$$
-\frac{dB_y}{dx} = \frac{E[\mathrm{GeV}]}{0.29979}\,k_1,
-$$
 
-with the sign fixed by the coordinate and charge conventions of the source
-code. A convenient conversion for energy in MeV is
+:::::: {#ug-07-03}
 
-```python
-def k1_to_gradient(k1, energy_mev):
-    return 3.33564095e-3 * energy_mev * k1
-```
+`QUADRUPOLE.K1` and the quadrupole entry of `MULTIPOLE.KN` already take a
+normalized strength $k_1$ in $\mathrm{m^{-2}}$. When importing it from another
+code, retain that normalization and set the global reference momentum `P0` in
+$\mathrm{GeV}/c$. OPALX converts the normalized coefficient to a physical
+field coefficient using `P0`; do not first convert $k_1$ to a gradient for
+these attributes. See [`QUADRUPOLE`](../elements.qmd#quadrupole) and
+[`MULTIPOLE`](../elements.qmd#multipole).
 
-Always verify the imported sign with a single-particle trajectory before using
-the result in a lattice study.
+For a physical field-gradient interface, the conversion is
+$G=(B\rho)k_1$, using the reference magnetic rigidity. Use momentum rather
+than total or kinetic energy to determine the rigidity; replacing momentum
+with energy is an ultrarelativistic approximation. Check the coordinate and
+charge conventions and verify the sign with a single-particle trajectory
+before using an imported lattice.
+
+::::::

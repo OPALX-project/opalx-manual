@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 OPALX and OPAL use the same MAD-like command grammar. The dialect is close to
 MAD9.
@@ -41,24 +44,16 @@ re-evaluates it when dependent values change. A logical attribute may be given
 without a value, in which case it implies `TRUE`.
 
 If a labeled command is stored, it can later be re-executed by label only or
-re-executed with modified attributes:
+re-executed with modified attributes.
 
-```text
-QF: QUADRUPOLE, L=1, K1=0.01;
-QF, L=2;
 
-LMD: LMDIF, CALLS=10;
-LMD;
-LMD, CALLS=100, TOLERANCE=1E-5;
-```
 
 ## Identifiers or Labels
 
 An identifier names a keyword, element, beamline, variable, or array. Unquoted
 identifiers begin with a letter and may contain letters, digits, periods, and
-underscores. Quoted identifiers may contain other special characters, though
-the source manual discourages that because it complicates downstream
-post-processing.
+underscores. [Quoted identifiers may contain other special characters. Avoid them when
+downstream post-processing tools require simple names.]{#ug-09-02}
 
 Unquoted names are converted to upper case before storage.
 
@@ -92,14 +87,18 @@ The attribute categories used throughout OPAL are:
 
 ## String Attributes
 
+
+
+:::::: {#ug-09-03}
+
 String attributes carry titles, file names, class names, or options. Strings
 may be quoted with single or double quotes. Concatenation uses `&`, and the
-function `STRING(X)` converts a real expression to a string.
+function `TO_STRING(X)` converts a real expression to a string.
 
 | Operator / Function | Meaning |
 |---|---|
 | `X & Y` | concatenate strings |
-| `STRING(X)` | convert real expression `X` to a string |
+| `TO_STRING(X)` | convert real expression `X` to a string |
 
 Examples:
 
@@ -108,8 +107,11 @@ TITLE, "This is a title for the program run ""test""";
 CALL, FILE="save";
 
 REAL X=1;
-STRING L2=LEP&STRING(X+1);
+STRING L2="LEP" & TO_STRING(X+1);
 ```
+
+::::::
+
 
 ### Predefined String Attributes
 
@@ -152,11 +154,16 @@ X>10 && Y<20 || Z==15
 
 ## Real Expressions
 
-Any real value may be given as an arithmetic expression. Expression definitions
-may be entered in any order; OPAL evaluates them when the required operands are
-available.
+[Any real value may be given as an arithmetic expression. An immediate `=`
+assignment requires its operands to be available when the statement is parsed.
+A retained `:=` expression can use values defined before that expression is
+evaluated.]{#ug-09-04}
 
 Grammar sketch:
+
+
+
+:::::: {#ug-09-05}
 
 ```text
 real-ref  ::= real-variable |
@@ -174,10 +181,13 @@ primary   ::= literal-constant |
               function-name(arguments) |
               (real-expression)
 
-factor    ::= primary | factor ^ primary
+factor    ::= primary | primary ^ primary
 term      ::= factor | term * factor | term / factor
 real-expr ::= term | +term | -term | real-expr + term | real-expr - term
 ```
+::::::
+
+
 
 ## Operators
 
@@ -193,13 +203,20 @@ real-expr ::= term | +term | -term | real-expr + term | real-expr - term
 
 ## Real Functions
 
-The source chapter lists the following built-ins:
 
-- no arguments: `RANF()`, `GAUSS()`, `GETEKIN()`, `USER0()`
+
+:::::: {#ug-09-06}
+
+The OPALX expression parser provides these built-ins:
+
+- no arguments: `RANF()`, `GAUSS()`, `SI()`, `SC()`, `SO()`, `GETEKIN()`
 - one argument: `TRUNC`, `ROUND`, `FLOOR`, `CEIL`, `SIGN`, `SQRT`, `LOG`,
   `EXP`, `SIN`, `COS`, `ABS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `TGAUSS`,
-  `USER1`, `EVAL`
-- two arguments: `ATAN2`, `MAX`, `MIN`, `MOD`, `USER2`
+  `ERF`, `EVAL`
+- two arguments: `ATAN2`, `MAX`, `MIN`, `MOD`, `POW`
+::::::
+
+
 
 Functions of arrays:
 
@@ -208,8 +225,8 @@ Functions of arrays:
 - `VRMS`
 - `VABSMAX`
 
-The source manual explicitly warns that random generators inside ordinary
-expressions may be re-evaluated at unexpected times. `EVAL(...)` can be used to
+[Random generators inside ordinary expressions may be re-evaluated when
+their enclosing expressions are evaluated.]{#ug-09-08} `EVAL(...)` can be used to
 force immediate evaluation and store the result as a constant.
 
 ## Operands in Expressions
@@ -232,7 +249,7 @@ masses:
 | `PI`, `TWOPI`, `RADDEG`, `DEGRAD`, `E` | usual mathematical constants |
 | `EMASS`, `MUMASS`, `PMASS`, `DMASS`, `HMMASS`, `H2PMASS`, `ALPHAMASS`, `CMASS`, `XEMASS`, `UMASS` | predefined particle masses |
 | `CLIGHT`, `AMU` | speed of light and atomic mass unit |
-| `_OPALVERSION_` | OPAL version constant |
+| [`OPALVERSION`]{#ug-09-09} | OPAL version constant |
 | `RANK` | MPI rank |
 
 ### Variable Labels
@@ -281,8 +298,8 @@ operand inside another deferred expression.
 
 ## Element Selection
 
-Element selection is not available in `OPAL-T` and `OPAL-CYCL`, but it is part
-of the general language.
+[Element selection is not available in `OPAL-T` and `OPAL-CYCL`, but it is part
+of the general language.]{#ug-09-10}
 
 ### Element Selection
 
@@ -321,12 +338,21 @@ Examples:
 
 ## Constraints
 
-Constraints are mainly used in matching and optimization:
+
+
+:::::: {#ug-09-11}
+
+Constraint expressions from the legacy OPAL matching language are not
+implemented in the current OPALX attribute and expression parsers. The
+following syntax is retained only as a legacy reference:
 
 ```text
 constraint          ::= array-expr constraint-operator array-expr
 constraint-operator ::= == | < | >
 ```
+::::::
+
+
 
 ## Variable Names
 
@@ -348,12 +374,7 @@ The source chapter documents the usual forms:
 - `*`
 - `\character`
 
-Examples:
 
-```text
-SELECT, PATTERN="D.."
-SELECT, PATTERN="K.*QD.*\\.R1"
-```
 
 ## Arrays
 
@@ -407,6 +428,12 @@ COLUMN(table, column, range)
 ```
 
 In `TABLE(...)`, the special symbol `#` is replaced by the running index.
+
+[`ROW(...)`, `COLUMN(...)`, and `table@place->column` require a named table
+object. Current OPALX does not register table-producing commands, so these
+forms are retained language infrastructure rather than a complete table-analysis
+interface. `TABLE(...)` is a usable array generator and does not require a table
+object.]{#ug-09-13}
 
 ### String Arrays
 

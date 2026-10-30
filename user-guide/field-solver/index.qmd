@@ -9,6 +9,9 @@ aliases:
   - ../structures/index.html
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 ## Shared particle-mesh model {.unnumbered .unlisted}
 
 Both manuals use `FIELDSOLVER` to connect a particle-mesh space-charge model
@@ -63,10 +66,14 @@ and cathode-plane corrections are additional modes described below.
 | `FFT` | Periodic in all three axes | Available | A periodically repeated charge distribution |
 | `OPEN` | Isolated free space | Available | Finite bunches; recommended default |
 | `P3M` | Open or periodic in all three axes | Available | Open or periodic P3M calculations |
-| `CG` | Intended potential solve with field boundary conditions | **Unavailable** | Parser-visible, but construction deliberately fails |
 | `FFT2D5` | Open in transverse, open or periodic longitudinally | Available | Long finite bunches in rings |
 
 : {tbl-colwidths="[12, 24, 22, 42]"}
+
+[The retained OPAL `SAAMG` and adaptive-mesh-refinement (`AMR`) solvers are
+unavailable in OPALX. Their legacy attributes, including `FSTYPE`, `MX`,
+`MY`, `MT`, and `AMR_*`, are not accepted by the current `FIELDSOLVER`
+command.]{#ug-18-02}
 
 ### `NONE` {#solver-none}
 
@@ -151,48 +158,46 @@ once when $\gamma h_z$ is at least twice the largest laboratory spacing and
 $\alpha h$ exceeds $1$. Increase `NZ` by about the reported ratio, at most
 $\gamma$, for a near-isotropic rest-frame mesh.
 
-With all three `BCFFT*=OPEN`, `P3M` supports the
-[shifted-Green cathode correction](#shifted-greens-correction), monolithic or
-binned. Explicit image charges are rejected. The image field is resolved
-by the mesh only; the particle correction is applied to the real bunch.
+
 
 The force split, its error parameters, and the neighbour search are described
 in the [physics manual](../../physics/field-solver/index.qmd#physics-p3m).
 
-### `CG` {#solver-cg}
 
-::: {.callout-warning title="Not usable on current master"}
-`TYPE=CG` is accepted by the input parser, but solver construction throws
-`Cannot use CGSolver yet, not fully implemented.` The generic all-face
-Dirichlet boundary setting therefore has no runnable backend at present.
-:::
 
 ### `FFT2D5` {#solver-2d5}
 
-Uses IPPL's Hockney free-space 2D FFT solver for the transverse fields. The doubled-grid convolution
-removes the periodic wraparound of an ordinary FFT solve.  Uses a $\lambda'(z)$ model in the
-longitudinal direction using the local charge line density
+[`FFT2D5` uses IPPL's Hockney free-space 2D FFT solver for the transverse fields.
+The doubled-grid convolution removes the periodic wraparound of an ordinary FFT
+solve. The longitudinal field is calculated from the derivative of the local
+line-charge density:]{#ug-18-05}
 
 $$
 E_z(z)=-\frac{g}{4\pi\varepsilon_0 \gamma^2}\frac{d}{dz}\lambda(z)
 $$
 
-where $g$ is a constant that depends on the transverse boundary conditions.
+[**UG-18-06:** where $g$ is selected by `PIPEMODE`. This geometry model changes only the
+longitudinal field; the transverse Poisson solves retain open boundaries.
+`PIPEMODE=NONE` disables the longitudinal field.]{.ug-audit-other #ug-18-06}
 
-This solver only supports 'BINS=NONE', 'PARFFTX=FALSE', 'PARFFTY=FALSE', 'PARFFTZ=FALSE'.
+[`FFT2D5` is available only with one MPI rank, `BINS=NONE`, and
+`PARFFTX=FALSE`, `PARFFTY=FALSE`, `PARFFTZ=FALSE`. Keep all three `BCFFT*`
+values `OPEN`; select longitudinal periodicity with `CLOSEDRING=TRUE`.
+Cathode-plane corrections, a fixed Cartesian domain, and distributed execution
+are unavailable for this solver.]{#ug-18-07}
 
 ## `FIELDSOLVER` parameters {#fieldsolver-parameters}
 
 | Parameter | Default | Accepted values / unit | Current effect |
 |---|---:|---|---|
-| `TYPE` | required | `NONE`, `FFT`, `P3M`, `OPEN`, `CG` | Selects the backend described above. |
+| `TYPE` | required | [`NONE`, `FFT`, `P3M`, `OPEN`, `FFT2D5`]{#ug-18-08} | Selects the backend described above. |
 | `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. |
-| `NX`, `NY`, `NZ` | none | positive integer cell counts | Number of mesh points in $x$, $y$, and $z$. The parser stores real values; use integers. |
+| `NX`, `NY`, `NZ` | none | positive integer cell counts | [Number of mesh cells in $x$, $y$, and $z$. Each value must be a finite positive integer that fits a 32-bit signed integer.]{#ug-18-09} |
 | `PARFFTX` | `FALSE` | Boolean | Split the $x$ mesh axis over MPI ranks. |
 | `PARFFTY` | `FALSE` | Boolean | Split the $y$ mesh axis over MPI ranks. |
 | `PARFFTZ` | `TRUE` | Boolean | Split the $z$ mesh axis over MPI ranks. |
 | `BCFFTX`, `BCFFTY`, `BCFFTZ` | `OPEN` | `OPEN`, `PERIODIC`, `DIRICHLET` | Mesh boundary selection. All three values must match. See [Boundary conditions](#boundary-conditions). |
-| `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | Green-function discretization for `TYPE=OPEN`; otherwise ineffective. |
+| `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | [Green-function discretization for `TYPE=OPEN`; otherwise ineffective.]{#ug-18-10} |
 | `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
 | `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
@@ -201,10 +206,16 @@ This solver only supports 'BINS=NONE', 'PARFFTX=FALSE', 'PARFFTY=FALSE', 'PARFFT
 | `CLOSEDRING` | `FALSE` | Boolean | For a ring that is longitudinally closed, set to 'TRUE'. 'TYPE=FFT2D5' only.|
 | `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | Scatters charge cloud longitudinally across slices if set to 'TRUE'. 'TYPE=FFT2D5' only.|
 | `PIPESIZEX` | `1.0` | positive length | Beam pipe horizontal size in metres. 'TYPE=FFT2D5' only. |
-| `PIPESIZEY` | `1.0` | positive lenght | Beam pipe vertical size in metres. 'TYPE=FFT2D5' only. |
-| `REFPATHNAME` | `""` | string | Reference path file name.  If blank (the default) uses the output from the orbit threader. 'TYPE=FFT2D5' only. |
+| `PIPESIZEY` | `1.0` | [positive length]{#ug-18-11} | Beam pipe vertical size in metres. 'TYPE=FFT2D5' only. |
+| [`REFPATHFNAME`]{#ug-18-12} | `""` | string | [Reference-path filename for `TYPE=FFT2D5`. If empty, uses `<input-basename>_DesignPath.dat` in the auxiliary output directory.]{#ug-18-13} |
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
+
+[`REFPATHFNAME` must name a readable design-path file. The reader skips one
+header line and then expects numeric columns
+`s rx ry rz px py pz ex ey ez bx by bz ke time`. At least two distinct
+position samples are required. The transverse mesh spans `PIPESIZEX` and
+`PIPESIZEY`; the longitudinal mesh spans the length of this reference path.]{#ug-18-14}
 
 `PARFFTX`, `PARFFTY`, and `PARFFTZ` select the mesh axes that are split over
 MPI ranks; the defaults split only $z$. With more than one rank, at least one
@@ -212,21 +223,22 @@ flag must be `TRUE`, and the product of the split mesh sizes must be at least
 the number of ranks. ORB load balancing (`OPTION, REPARTFREQ`) moves rank
 boundaries only along the split axes. It needs a power-of-two rank count and
 keeps the current decomposition when a region has fewer than four mesh points
-along the axis it would cut. Mixed boundary conditions, such as periodic $x,y$
-with open $z$, are rejected.
+along the axis it would cut. [Mixed boundary conditions, such as periodic $x,y$
+with open $z$, are rejected.]{#ug-18-15}
 
 ## Mesh and particle-in-cell cycle {#mesh-pic-cycle}
 
-The runtime objects share one distributed field layout containing charge
-density, electric field, potential, and scratch fields. Each active
-space-charge evaluation performs the following cycle:
+[The three-dimensional backends share one distributed field layout containing
+charge density, electric field, potential, and scratch fields. Each active
+three-dimensional space-charge evaluation performs the following cycle.
+`FFT2D5` instead uses transverse slices along its reference path.]{#ug-18-16}
 
 ```{mermaid}
 flowchart LR
     RUN[RUN.FIELDSOLVER] --> PB[Particle bunch]
     PB --> FC[One moving field layout]
     PB --> BFS[Self-field controller]
-    TYPE[FIELDSOLVER.TYPE] --> BACKEND[NONE / FFT / P3M / OPEN / CG]
+    TYPE[FIELDSOLVER.TYPE] --> BACKEND[NONE / FFT / P3M / OPEN]
     BINS[FIELDSOLVER.BINS] --> PATH[Monolithic / binned]
     SOURCE[EMISSIONSOURCE] --> CORR[No correction / image / shifted Green]
     BFS --> BACKEND
@@ -269,10 +281,8 @@ uniformly periodic boundaries.
 
 ### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}
 
-The parser accepts `BCFFTX=DIRICHLET`, `BCFFTY=DIRICHLET`, and
-`BCFFTZ=DIRICHLET` together. These values would impose zero potential on all
-six mesh faces for the `CG` potential solver. Since `CG` is currently disabled,
-this is **not a usable mode** on current master.
+Generic all-face `DIRICHLET` boundaries are not a supported tracking mode.
+Use the open or periodic boundary combinations above.
 
 Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
 `TYPE=P3M` for the shifted-Green correction, and all three `BCFFT*` values
@@ -281,9 +291,11 @@ Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
 
 ## Space-charge modes {#space-charge-modes}
 
-`TYPE` chooses a backend. `BINS` independently chooses whether OPALX performs
-one lab-frame electrostatic solve or several rest-frame solves. An emission
-source can additionally request one cathode-plane correction.
+[**UG-18-17:** For the three-dimensional backends, `TYPE` chooses a backend and `BINS`
+chooses between a lab-frame electrostatic solve and binned rest-frame solves.
+An emission source can additionally request one cathode-plane correction.
+`FFT2D5` uses its own slice algorithm and does not support these binning or
+cathode-plane modes.]{.ug-audit-other #ug-18-17}
 
 ### Monolithic electrostatic mode {#monolithic-mode}
 
@@ -378,8 +390,7 @@ The moving mesh must span both the bunch and its mirror. Once the bunch is far
 from the cathode, this can make the mesh unnecessarily large or lose the
 required resolution. Set `ZEROFACE_MAXSTEPS` to a positive cutoff when the
 correction becomes negligible; `0` means unlimited. `ZEROFACEPLANEDUMP` is a
-non-negative diagnostic frequency, is available only for this explicit-image
-mode, and currently writes only in single-rank runs.
+[diagnostic frequency. Its output is available only for the explicit-image mode without binning and currently writes only in single-rank runs.]{#ug-18-18}
 
 ### Shifted-Green Dirichlet correction {#shifted-greens-correction}
 
@@ -406,7 +417,7 @@ $$
 
 Unlike explicit images, the mesh need not extend from the bunch to the mirror
 distribution, so the method remains usable at larger bunch-plane separation.
-It does not support `ZEROFACEPLANEDUMP`. The
+[It does not support `ZEROFACEPLANEDUMP`.]{#ug-18-19} The
 [physics manual](../../physics/field-solver/index.qmd#physics-dirichlet-boundaries)
 derives both image constructions.
 
@@ -428,7 +439,7 @@ same `ZEROFACE_MAXSTEPS` convention.
 
 : {tbl-colwidths="[25, 24, 20, 31]"}
 
-Do not select `CG` or generic `DIRICHLET` for a current production input. Do
+Do not select generic `DIRICHLET` for a current production input. Do
 not combine cathode corrections with periodic physics. `P3M` supports only the
 shifted-Green correction, and only with open boundaries.
 
@@ -488,9 +499,7 @@ Use `BINS=NONE`, the field-solver default, to disable binning.
 | `DUMPBINSFREQ` | `1` | JSON dump frequency in global steps. Must be at least one when file output is enabled. |
 | `TABLEPRINTFREQ` | `10` | Console bin-statistics frequency in global steps. `0` disables it; negative values are rejected. |
 
-The parser accepts `VELOCITYZ`, `POSITIONZ`, `PZ`, and `GAMMAZ`, but the
-current runtime implements only `VELOCITYZ` and `GAMMAZ`. Selecting either of
-the other two values fails when the bunch creates its bins.
+[The parser accepts `VELOCITYZ`, `GAMMAZ`.]{#ug-18-20}
 
 With normalized momentum $P_z=p_z/(mc)$, the implemented selectors are
 
@@ -512,19 +521,16 @@ particle fraction, combined width, `DESIREDWIDTH`, `BINNINGALPHA`, and
 [physics manual](../../physics/field-solver/index.qmd#physics-adaptive-binning)
 gives the cost function and the role of each parameter.
 
-The current parser does not enforce numeric ranges for `DESIREDWIDTH`,
-`BINNINGALPHA`, or `BINNINGBETA`. In particular, the source descriptions of the
-weights mention `[0,1]`, while the compiled default of `BINNINGBETA` is `1.5`
-and maintained regression inputs use values above one. The manual therefore
-does not claim a range that the implementation contradicts.
+[`DESIREDWIDTH` must be finite and positive. `BINNINGALPHA` and
+`BINNINGBETA` must be finite; they are not restricted to `[0,1]`. In
+particular, the default `BINNINGBETA` is `1.5`.]{#ug-18-21}
 
 ### Runtime notes {.unnumbered}
 
 - Binning is enabled only when a field solver resolves a named `BINNING`
   definition through `BINS`.
 - The current bin object is constructed from the primary particle container.
-- `OPTION.MINBINEMITTED` controls when space charge begins during emission;
-  `OPTION.MINSTEPFORREBIN` controls the earliest bin-collapse step.
+
 - `DUMPBINSFILE` records counts and widths for reproducibility; generated JSON
   is simulation output and does not belong in the manual repository.
 :::

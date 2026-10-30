@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-09-10"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 A tracking block selects a lattice and beam, defines its step schedule, starts
 the tracker, and returns to normal input processing:
 
@@ -29,15 +32,12 @@ ENDTRACK;
 | `INITIALORBIT` | omitted | Name of a completed `COF` result; see [orbit handover](#opalx-initial-orbit). |
 | `BEAM` | `UNNAMED_BEAM` | Single beam name. Set it explicitly for normal runs. |
 | `BEAMS` | empty | Ordered beam-name array. A non-empty array takes precedence over `BEAM`. |
-| `SOURCES` | empty | Accepted for compatibility but ignored; sources come from each selected `BEAM`. |
 | `DT` | `{1e-12}` s | Time-step schedule. Use positive values. |
 | `MAXSTEPS` | `{10}` | Per-segment integration-step limits. Negative values are rejected; values are converted to integers. |
 | `ZSTART` | `0` m | Starting reference position. |
 | `ZSTOP` | `{1e6}` m | Stop-position schedule. |
-| `T0` | `0` s | With `INITIALORBIT`, inherited from COF; an explicit value must match. Otherwise stored but not forwarded to `ParallelTracker`; source timing uses `EMISSIONSOURCE.T0`. |
-| `DTSCINIT` | `1e-12` s | Accepted adaptive-integrator setting; not used by current parallel tracking. |
-| `DTAU` | `-1` | Accepted adaptive-integrator accuracy setting; not used by current parallel tracking. |
-| `TIMEINTEGRATOR` | `RK4` | Accepts `RK-4`, `RK4`, `LF-2`, `LF2`, or `MTS`, but does not currently select the `ParallelTracker` integration kernel. |
+| `T0` | `0` s | [With `INITIALORBIT`, inherited from COF; an explicit value must match. Otherwise stored but not forwarded to `ParallelTracker`; source timing uses `EMISSIONSOURCE.T0`.]{#ug-19-02} |
+| `TIMEINTEGRATOR` | `RK4` | [`RK4` or `LF2`. Production particle tracking currently uses Boris independently of this setting; see [OPALX #653](https://github.com/OPALX-project/OPALX/issues/653).]{#ug-19-05} |
 | `STEPSPERTURN` | `720` | Nominal steps per turn for spectral tune analysis; otherwise inactive in normal tracking. |
 | `EKINSTOP` | `0` (disabled) | Positive reference kinetic-energy target in GeV for [single-gap cyclotron acceleration](cyclotron.qmd#accelerated-beam). |
 :::
@@ -125,9 +125,8 @@ reused for the remaining segments.
 |---|---:|---|
 | `METHOD` | required | Only `PARALLEL` is accepted. |
 | `FIELDSOLVER` | required | Name of the `FIELDSOLVER` used for the run. |
-| `BOUNDARYGEOMETRY` | `NONE` | Optional named boundary geometry. |
 | `TURNS` | omitted; `1` for spectral tunes | Optional `RING` return-count stopping condition. |
-| `TRACKBACK` | `FALSE` | Accepted compatibility value; reverse tracking is not currently applied. |
+| `TRACKBACK` | `FALSE` | [Not yet available.]{#ug-19-07} |
 | `SCFIELDUPDATE` | `MIDPOINT` | Space-charge evaluation point within the drift--kick--drift step: `MIDPOINT` or `PRESTEP`. |
 | `SPECTRALTUNES` | `FALSE` | Run the separate [spectral tune diagnostic](cyclotron.qmd#tune-calculation). |
 | `TUNESAMPLE` | `50` | Positive integer sampling stride for spectral tune rays. |
@@ -176,6 +175,10 @@ uncommitted first drift at a smaller duration. This refinement is restricted
 to bare tracking; space-charge runs retain the ordinary Boris/PIC step sequence.
 See the [numerical method](../physics/overview/index.qmd#ring-boris-pic).
 
+
+
+:::::: {#ug-19-08}
+
 Boundary refinement currently requires:
 
 - Static drifts, markers, monitors, dipoles, quadrupoles, analytic SBEND/RBEND
@@ -190,6 +193,9 @@ Boundary refinement currently requires:
 - `OPTION, REPARTFREQ=0, CHECKPOINTFREQ=0`: no periodic ORB repartitioning or
   checkpoint output; checkpoint restarts also retain fixed steps.
 - No image-charge correction and no fixed Cartesian domain.
+::::::
+
+
 
 A bare-ring setup is:
 
@@ -244,6 +250,10 @@ instead follows the `ZSTOP` and `MAXSTEPS` schedule defined by `TRACK`.
 Consequently, omitting `TURNS` is intentionally different from specifying
 `TURNS=1`.
 
+
+
+:::::: {#ug-19-09}
+
 Explicit turn-count tracking currently has the following restrictions:
 
 - Directed turn counting is implemented only for a `RING`. On a `LINE`, an
@@ -264,6 +274,9 @@ Explicit turn-count tracking currently has the following restrictions:
   eligibility is separate from the narrower conditions for
   [boundary refinement](#ring-boundary-refinement).
 - `TURNS` cannot be combined with `EKINSTOP`.
+::::::
+
+
 
 For an explicit turn count, OPALX disables the `ZSTOP` limit and may increase
 the single `MAXSTEPS` value using `N` times the design circumference to estimate
@@ -392,10 +405,7 @@ sector bends use circular design arcs, while straight and rectangular-bend bodie
 use their straight axes. This assumes a local orbit neighbourhood with an
 unambiguous nearby design path, not intersecting beam-pipe solids. Cyclotron
 sectors retain their native domain predicates. Field selection is unchanged.
-The selected beam cannot have global processes. No RF/6D closure, space charge,
-restart, energy continuation, or automatic integer tune and
-plane assignment is provided. Unsupported attributes such as `ZSTOP`, `BEAMS`,
-`FIELDSOLVER`, and `ENERGYSTART` are errors, not ignored compatibility settings.
+
 
 ### Results and parallel behavior
 
@@ -438,12 +448,12 @@ Particle momenta are full p/(mc) vectors in that frame, including their longitud
 reference momentum. The distribution spread and centroid offsets are retained;
 they do not replace the solved reference.
 
-The initial handover supports one fresh beam, `ZSTART=0`, and completed emission.
+[The initial handover supports one fresh beam, `ZSTART=0`, and completed emission.
 `FROMFILE` and `EMITTEDFROMFILE` are rejected because their existing absolute
 coordinate convention would make placement ambiguous. Restart and spectral tune
 mode cannot use `INITIALORBIT`. Space-charge matching is not performed by COF;
 an orbit-centred bunch is not necessarily a self-consistently matched bunch.
-Space-charge tracking may use either `TURNS` or the `TRACK` stopping schedule.
+Space-charge tracking may use either `TURNS` or the `TRACK` stopping schedule.]{#ug-19-11}
 
 The handover transfers the launch state, not COF's timestep or integration
 settings. COF's ray integrator and TRACK's production Boris integration can

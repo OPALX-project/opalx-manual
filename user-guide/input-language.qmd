@@ -1,11 +1,14 @@
 ---
 title: "Input Language and Execution"
-description: "Understand every statement form and registered object available in a current OPALX input file."
+description: "Understand statement forms and documented objects in an OPALX input file."
 audience: user
 status: current
 last-reviewed: "2026-07-23"
 toc-depth: 3
 ---
+
+{{< include ../includes/user-guide-audit.qmd >}}
+
 
 OPALX reads a MAD-inspired, statement-oriented language. This page is the
 overview: it explains what can appear in an input file and directs readers to
@@ -16,8 +19,7 @@ The catalog was checked against the current parser and registration tables.
 
 ## A simulation at a glance {#simulation-at-a-glance}
 
-Like the NumPy user guide, the manual first groups concepts by what readers are
-trying to accomplish and then provides a complete lookup catalog.
+[This overview groups concepts by task, followed by a lookup catalog.]{#ug-08-01}
 
 :::: {.doc-grid}
 ::: {.doc-card}
@@ -82,8 +84,8 @@ and terminate parsing with the [control statements](control-statements/index.qmd
 
 Statements normally end with a semicolon. Names are case-insensitive in normal
 OPALX input, while string values and file paths retain their contents.
-The complete lexical, expression, array, selection, and constraint rules are in
-[Command Format](command-format/index.qmd); the formal grammar is in
+[Lexical, expression, array, and selection rules are in
+[Command Format](command-format/index.qmd); the formal grammar is in]{#ug-08-02}
 [Appendix B](appendix/language-syntax/index.qmd).
 
 | Form | Example | Meaning |
@@ -151,8 +153,8 @@ run. Define dependencies before the object that refers to them.
 
 ## Beamline definitions {#beamline-definitions}
 
-`LINE` is the lattice container. The remaining entries are every element class
-registered by the current executable. Only source-audited element pages are
+`LINE` is the lattice container. The remaining entries list the element
+interfaces covered in this manual. Only source-audited element pages are
 linked; plain-text entries are registered but do not yet have a maintained
 user-guide section.
 
@@ -160,7 +162,7 @@ user-guide section.
 |---|---|---|
 | `LINE` | Orders named elements into the lattice selected by `TRACK.LINE`. | [Beam Lines](beam-lines/index.qmd) |
 | `DRIFT` | Field-free propagation over a finite length. | [DRIFT](elements.qmd#drift) |
-| `BEAMBEAM` | Experimental single-pass mirrored-primary interaction with optional passive witness containers. | [BEAMBEAM](elements.qmd#beambeam) |
+| `BEAMBEAM` | [Available in OPALX V1.1.0.]{#ug-08-03} | [BEAMBEAM](elements.qmd#beambeam) |
 | `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | [COLLIMATOR](elements.qmd#collimator) |
 | `BOX` | Solid block that deletes particles inside it; requires positive `WIDTH`, `HEIGHT`, and `L`. | [BOX](elements.qmd#box) |
 | `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | [CONSTANTFOCUSING](elements.qmd#constant-focusing) |
@@ -168,26 +170,28 @@ user-guide section.
 | `QUADRUPOLE` | Defines a thick normal or skew quadrupole. | [QUADRUPOLE](elements.qmd#quadrupole) |
 | `MULTIPOLE` | Defines a thick hard-edge quadrupole-to-decapole multipole from normal and skew strength arrays. | [MULTIPOLE](elements.qmd#multipole) |
 | `MULTIPOLET` | Defines a combined-function multipole with fringe and placement controls. | [MULTIPOLET](elements.qmd#multipolet) |
-| `SOLENOID` | Defines a solenoid from a field map scaled by `KS`. | [SOLENOID](elements.qmd#solenoid) |
+| `SOLENOID` | Loads a magnetic field map and applies the configured map scale. | [[SOLENOID](elements.qmd#solenoid)]{#ug-08-04} |
 | `FIELDMAP` | Places a static magnetic or electric field map by a 6D pose; the map sets the length. | [FIELDMAP](elements.qmd#fieldmap) |
-| `RFCAVITY` | Defines a standing-wave cavity from a field map, an ideal uniform RF field, or a single-gap cyclotron kick. | [RFCAVITY](elements.qmd#rfcavity) |
+| `RFCAVITY` | Defines a standing-wave cavity defined by a field map, an analytic model, or a cyclotron single-gap model. | [[RFCAVITY](elements.qmd#rfcavity)]{#ug-08-05} |
 | `TRAVELINGWAVE` | Defines a traveling-wave RF structure with cell and phase-advance controls. | [TRAVELINGWAVE](elements.qmd#travelingwave) |
 | `CYCLOTRONSECTOR` | Defines a PSI-style cyclotron sector field with optional named trim coils. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
 | `TRIMCOIL` | Defines a named cyclotron trim-coil field model referenced by `CYCLOTRONSECTOR`. | [CYCLOTRONSECTOR](elements.qmd#cyclotronsector) |
 | `RING` | Declares an ordered `RING` sequence for ring tracking and COF. | [Beam Lines](beam-lines/index.qmd#ring-geometry-fringes) |
 | `RBEND` | Defines a rectangular bending magnet. | [RBEND](elements.qmd#bends) |
 | `SBEND` | Defines a sector bending magnet. | [SBEND](elements.qmd#bends) |
-| `VERTICALFFAMAGNET` | Defines a vertical fixed-field alternating-gradient magnet. | [Element guide](elements.qmd) |
 | `VARIABLE_RF_CAVITY` | Defines an RF cavity whose phase, amplitude, and frequency are provided by named time models. | [VARIABLE_RF_CAVITY](elements.qmd#variable-rf-cavity) |
 | `LASER` | Defines an analytic laser pulse with direction and polarization; it cannot be tracked yet. | [LASER](elements.qmd#laser) |
 | `MONITOR` | Records beam diagnostics at an element location. | [MONITOR](elements.qmd#monitor) |
 | `PROBE` | Records particle crossings over a configured probe span and accumulates peak diagnostics. | [PROBE](elements.qmd#probe) |
 | `MARKER` | Names a lattice location; it is not placed and has no effect in tracking. | [MARKER](elements.qmd#marker) |
+| `SCALINGFFAMAGNET` | Defines a horizontal fixed-field alternating-gradient magnet. | [[SCALINGFFAMAGNET](elements.qmd#scalingffamagnet)]{#ug-08-07} |
+| `TANH` | Defines a named hyperbolic-tangent end-field profile for scaling FFA magnets. | [End Field models](elements.qmd#end-field-models) |
+| `ENGE` | Defines a named Enge end-field profile for scaling FFA magnets. | [End Field models](elements.qmd#end-field-models) |
+| `ASYMMETRIC_ENGE` | Defines a named Enge profile with independent entrance and exit parameters. | [End Field models](elements.qmd#end-field-models) |
 
 ## Time-dependence definitions {#time-dependence-definitions}
 
-These registered definitions provide named functions used by time-dependent RF
-and scaling attributes. Dedicated parameter pages have not yet been written.
+[These functions used by time-dependent RF and scaling attributes. Their parameters and restrictions are described under [Time-dependence definitions](elements.qmd#element-time-dependence-definitions).]{#ug-08-08}
 
 | Definition | Short explanation |
 |---|---|
@@ -220,7 +224,6 @@ not merely describe a later simulation object.
 | `ECHO` | Writes a message to the OPALX echo stream. | [Control statements](control-statements/index.qmd#echo-statement) |
 | `HELP` or `CLASS?` | Prints parser help for a registered class or object. | [Control statements](control-statements/index.qmd#help-command) |
 | `VALUE` | Evaluates and prints one or more real expressions. | [Control statements](control-statements/index.qmd#value-output-of-expressions) |
-| `SELECT` | Selects lattice positions by range, class, type, or name pattern for subsequent selection-aware commands. | [Control statements](control-statements/index.qmd#select-element-selection) |
 | `DUMPEMFIELDS` | Schedules electromagnetic-field sampling on a Cartesian or cylindrical space-time grid. | [Diagnostics and output](diagnostics-output.qmd) |
 | `SYSTEM` | Runs an operating-system command on rank zero. | [Control statements](control-statements/index.qmd#system) |
 | `PSYSTEM` | Runs an operating-system command on every rank. Use with particular care in MPI jobs. | [Control statements](control-statements/index.qmd#psystem) |

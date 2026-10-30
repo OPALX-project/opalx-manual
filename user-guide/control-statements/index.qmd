@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-10-21"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 These statements control OPALX parsing, variables, file inclusion, and simple
 flow. Global runtime settings are documented separately under
@@ -17,19 +20,26 @@ flow. Global runtime settings are documented separately under
 
 The `HELP` command prints information about a command or object type.
 
+
+
+:::::: {#ug-10-01}
+
 ```text
 HELP;                 // Help on the HELP command itself
-HELP, NAME=label;     // Show attribute types of label
-HELP, label;          // Shortcut form
+HELP, label;          // Show help for label
+label?;               // Equivalent parser help form
 ```
 
 Examples:
 
 ```text
 HELP;
-HELP, NAME=FIELDSOLVER;
 HELP, FIELDSOLVER;
+FIELDSOLVER?;
 ```
+::::::
+
+
 
 ## `STOP` / `QUIT`
 
@@ -73,8 +83,9 @@ REAL GEV = 100;
 P0 = GEV;
 ```
 
-`P0` is a reserved global reference momentum used to normalize magnetic-field
-coefficients.
+[`P0` is a reserved global reference momentum in $\mathrm{GeV}/c$ used to
+normalize magnetic-field coefficients. Its default is `1.0`; set it
+consistently with the intended reference rigidity.]{#ug-10-02}
 
 #### Real Vector Variables
 
@@ -109,9 +120,16 @@ BOOL FLAG = X != 0;
 Built-in mathematical and physical constants are provided. Additional constants
 can be defined with:
 
+
+
+:::::: {#ug-10-03}
+
 ```text
-REAL CONST label: CONSTANT = real-expression;
+REAL CONST label = real-expression;
 ```
+::::::
+
+
 
 The value is evaluated immediately when the line is read and cannot be
 redefined later.
@@ -139,14 +157,22 @@ VECTOR A_ON = TABLE(10, 1);
 
 ### Assignment to Variables
 
-To force immediate evaluation and assign the resulting value as a constant, use
-`EVAL(...)`:
+
+
+:::::: {#ug-10-04}
+
+`=` already evaluates the right-hand side immediately. `EVAL(...)` can also
+freeze a subexpression when it appears within a deferred (`:=`) expression:
 
 ```text
-variable-name = EVAL(real-expression);
+variable-name := EVAL(real-expression);
 ```
 
-This behaves like assignment in C or Fortran.
+The assigned variable remains assignable; `EVAL` makes its argument's value
+constant within the stored expression.
+::::::
+
+
 
 Example:
 
@@ -261,28 +287,6 @@ Typical uses are:
 Because it is implicit, it can also be a source of confusion when switching
 machines. For portable input decks, an explicit `CALL` is often easier to
 manage.
-
-## `SELECT`: Element Selection
-
-`SELECT` marks lattice elements for commands that consume the selection state.
-It can select all elements, clear a selection, or match a line range, class,
-type, or name pattern.
-
-```text
-SELECT, LINE=Line1, RANGE=#S/#E, CLASS=QUADRUPOLE;
-SELECT, LINE=Line1, PATTERN="Q.*";
-SELECT, LINE=Line1, CLEAR=TRUE;
-```
-
-| Attribute | Meaning |
-|---|---|
-| `LINE` | Name of the line to inspect. |
-| `FULL` | Select every position in the line. |
-| `CLEAR` | Clear all selections. |
-| `RANGE` | Restrict selection to a lattice range. |
-| `CLASS` | Match an element class. |
-| `TYPE` | Match an element type name. |
-| `PATTERN` | Match element names with a regular expression. |
 
 ## `IF`: Conditional Execution
 

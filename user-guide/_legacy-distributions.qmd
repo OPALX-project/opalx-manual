@@ -11,8 +11,7 @@ Name: DISTRIBUTION, TYPE = DISTRIBUTION_TYPE,
       ATTRIBUTE2 = ...;
 ```
 
-The supported distribution types depend on whether you are looking at the
-legacy OPAL manual path or the current OPALX implementation.
+[The following distribution types belong to the retained legacy OPAL interface. The current OPALX types are listed in the OPALX view.]{#ug-17-13}
 
 | Type | Description |
 |---|---|

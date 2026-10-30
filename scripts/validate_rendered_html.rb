@@ -68,7 +68,7 @@ field_solver_html_path = SITE / "user-guide/field-solver/index.html"
 if field_solver_html_path.file?
   field_solver_html = File.read(field_solver_html_path)
   field_solver_anchors = %w[
-    solver-backends solver-none solver-fft solver-open solver-p3m solver-cg solver-2d5 fieldsolver-parameters
+    solver-backends solver-none solver-fft solver-open solver-p3m solver-2d5 fieldsolver-parameters
     mesh-pic-cycle boundary-conditions open-periodic-boundaries generic-dirichlet-boundaries
     space-charge-modes monolithic-mode binned-mode explicit-image-charges
     shifted-greens-correction compatibility-selection accuracy-cost binning
@@ -80,7 +80,7 @@ if field_solver_html_path.file?
     "solver-backends" => /data-number=["']\d+\.1["']/,
     "solver-none" => /data-number=["']\d+\.1\.1["']/,
     "solver-p3m" => /data-number=["']\d+\.1\.4["']/,
-    "solver-cg" => /data-number=["']\d+\.1\.5["']/,
+    "solver-2d5" => /data-number=["']\d+\.1\.5["']/,
     "fieldsolver-parameters" => /data-number=["']\d+\.2["']/,
     "generic-dirichlet-boundaries" => /data-number=["']\d+\.4\.2["']/,
     "shifted-greens-correction" => /data-number=["']\d+\.5\.4["']/,

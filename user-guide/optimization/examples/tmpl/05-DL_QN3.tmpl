@@ -57,7 +57,6 @@ REAL bcurrent=qb*bfreq;
 beam1: BEAM, PARTICLE = ELECTRON, pc = P0, NPART = 5000, BFREQ = bfreq,
              BCURRENT = bcurrent, CHARGE = -1;
 
-SELECT, LINE=FODO_Full;
 
 TRACK, LINE=FODO_Full, BEAM=beam1, MAXSTEPS={6e5}, DT={1e-12}, ZSTOP={2.02};
 

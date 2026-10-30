@@ -7,8 +7,15 @@ last-reviewed: "2026-10-21"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 ::: {.feature-opalx}
 OPALX separates the sampled phase space from its placement in the simulation:
+
+
+
+:::::: {#ug-17-01}
 
 ```text
 Dist: DISTRIBUTION, TYPE=GAUSS, NPARTDIST=10000,
@@ -17,8 +24,11 @@ Dist: DISTRIBUTION, TYPE=GAUSS, NPARTDIST=10000,
 Source: EMISSIONSOURCE, DISTRIBUTION=Dist;
 Sources: EMISSIONSOURCELIST=(Source);
 Beam: BEAM, PARTICLE=ELECTRON, PC=0.1, NALLOC=10000,
-      BCHARGE=-1e-9, SOURCES=Sources;
+      BCHARGE=1e-9, SOURCES=Sources;
 ```
+::::::
+
+
 
 The `DISTRIBUTION` defines the particle sample, `EMISSIONSOURCE` adds source
 offsets and timing, `EMISSIONSOURCELIST` groups sources, and `BEAM.SOURCES`
@@ -82,13 +92,15 @@ name: DISTRIBUTION, TYPE=distribution_type, ...;
 OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 `OPALFLATTOP`, `FROMFILE`, and `EMITTEDFROMFILE`.
 
+[The legacy OPAL types `BINOMIAL`, `GAUSSMATCHED`, `MULTIGAUSS`, `GUNGAUSSFLATTOPTH`, and `ASTRAFLATTOPTH` are unavailable in the current OPALX version. The legacy `NONEQUIL` emission model and laser-image distribution attributes are also unavailable.]{#ug-17-02}
+
 ### Available input parameters {.unnumbered}
 
 | Parameter | Default / unit | Used by | Runtime effect |
 |---|---|---|---|
 | `TYPE` | required | all | Selects one of the seven types above. |
 | `NPARTDIST` | `0`, particles | all | Requested macroparticle count. Use a positive integer except where `EMITTEDFROMFILE` explicitly selects all file records. |
-| `FNAME` | empty, path | file types | Input particle file. Relative paths are resolved from the OPALX input file. |
+| `FNAME` | empty, path | file types | [**UG-17-03:** Input particle file. A relative name is first checked in the working directory; if absent, it is checked relative to the OPALX input file directory.]{.ug-audit-other #ug-17-03} |
 | `SIGMAX`, `SIGMAY`, `SIGMAZ` | `0 m` | `UNIFORM`; Gaussian types; transverse flat-top types | Ellipsoid semi-axes for `UNIFORM`, Gaussian widths, or transverse flat-top semi-axes. |
 | `SIGMAPX`, `SIGMAPY`, `SIGMAPZ` | `0`, $\beta\gamma$ | Gaussian types | RMS normalized-momentum widths. |
 | `CORR` | empty array | `MULTIVARIATEGAUSS` | Fifteen off-diagonal correlation coefficients. |
@@ -99,10 +111,10 @@ OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 | `FTOSCAMPLITUDE` | `0 %` | `OPALFLATTOP` | Sinusoidal modulation amplitude, clamped to 100%. |
 | `FTOSCPERIODS` | `0` | `OPALFLATTOP` | Number of modulation periods across the flat interval. |
 | `EMITTED` | `FALSE` | flat-top types; optional emitted-file window | Enables generated time-dependent emission. |
-| `EMISSIONSTEPS` | `100` | `OPALFLATTOP`, `EMITTEDFROMFILE` | Preferred emission resolution; positive values are rounded up. |
+| `EMISSIONSTEPS` | `100` | `OPALFLATTOP`, `EMITTEDFROMFILE` | [**UG-17-04:** Preferred emission resolution; positive values are rounded up, while zero or negative values select `100`.]{.ug-audit-other #ug-17-04} |
 | `CUTOFFX`, `CUTOFFY` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(x,y)$ in units of $\sigma_x$, $\sigma_y$. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
 | `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(p_x,p_y)$ and the per-axis cut on $p_z$, in units of the momentum widths. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
-| `CORRX`, `CORRY`, `CORRZ`, `CORRT` | `0` | none currently | **Accepted but currently ignored; use `CORR` with `MULTIVARIATEGAUSS`.** |
+| `CORRX`, `CORRY`, `CORRZ`, `CORRT` | `0` | none currently | [**Accepted but currently ignored; use `CORR` with `MULTIVARIATEGAUSS`.**]{#ug-17-05} |
 
 Non-file distributions require `PC`, `ENERGY`, or `GAMMA` on `BEAM`.
 `FROMFILE` and `EMITTEDFROMFILE` contain absolute normalized momenta and reject
@@ -128,8 +140,7 @@ U: DISTRIBUTION, TYPE=UNIFORM, NPARTDIST=10000,
    SIGMAX=1e-3, SIGMAY=2e-3, SIGMAZ=3e-3;
 ```
 
-Use `EMISSIONMODEL=NONE` and `T0=0`; other emission models and delayed
-injection are not supported.
+[Use `EMISSIONMODEL=NONE` and `T0=0`. Other emission models are not yet supported.]{#ug-17-06}
 
 ### `GAUSS` {#gauss}
 
@@ -230,9 +241,9 @@ MG: DISTRIBUTION, TYPE=MULTIVARIATEGAUSS, NPARTDIST=10000,
     CORR={0.2,0,0,0,0, 0,0,0,0, 0,0,0, 0,0,0};
 ```
 
-Sampling truncates each coordinate independently at internally fixed
+[Sampling truncates each coordinate independently at internally fixed
 three-sigma bounds; the `CUTOFF*` attributes are ignored, and no phase-space
-adjustment is applied. `T0 > 0` produces one delayed injection, as for `GAUSS`.
+adjustment is applied. `T0 > 0` produces one delayed injection, as for `GAUSS`.]{#ug-17-08}
 
 ### `FLATTOP` {#flattop}
 
@@ -397,8 +408,7 @@ x y z px py pz birth_time
 
 Columns in this format are mapped by name. Positions are metre offsets from
 the emission source `R0`, momenta are absolute normalized values
-$p/(mc)$ plus any source `P0` offset, and `birth_time` is a second offset from
-the source `T0`:
+$p/(mc)$ plus any source `P0` offset, [and `birth_time` is a time offset in seconds from the source `T0`:]{#ug-17-09}
 
 $$
 t_{\mathrm{birth}}=\mathrm{T0}+t_{\mathrm{file}},\qquad
@@ -420,13 +430,12 @@ Record the OPALX version, random seed, `NPARTDIST`, `BEAM.NALLOC`, bunch
 charge, source list, and every referenced file. Keep `NALLOC` at least as large
 as the sum of the source distributions' particle counts.
 
-Current source limitations are deliberate documentation constraints:
+[Current limitations are:]{#ug-17-10}
 
 - only `MULTIVARIATEGAUSS.CORR` affects correlations;
-- the `CUTOFF*` attributes apply to `GAUSS` only; `MULTIVARIATEGAUSS` uses
-  internally fixed three-sigma bounds;
+- [`CUTOFFX`, `CUTOFFY`, `CUTOFFPX`, `CUTOFFPY`, and `CUTOFFPZ` apply to `GAUSS` only; `CUTOFFLONG` also controls the flat-top pulse edges and the optional legacy emitted-file window. `MULTIVARIATEGAUSS` uses internally fixed three-sigma bounds;]{#ug-17-11}
 - `FTOSCAMPLITUDE` and `FTOSCPERIODS` affect only `OPALFLATTOP`;
-- `ASTRA` is supported only by the generated flat-top emitters; and
+- [`ASTRA` is supported only by the generated flat-top distribution]{#ug-17-12} and
 - file distributions take momentum from their files, not from `BEAM` energy.
 :::
 

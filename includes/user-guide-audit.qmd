@@ -1,0 +1,11 @@
+```{=html}
+<style>
+.ug-audit-availability, .ug-audit-key-availability {color:#a34700 !important;}
+.ug-audit-other, .ug-audit-key-other {color:#0055aa !important;}
+.ug-audit-availability *, .ug-audit-other * {color:inherit !important;}
+div.ug-audit-availability, div.ug-audit-other {border-left:3px solid currentColor; padding-left:.7rem; margin:.7rem 0;}
+[id^="ug-"] {scroll-margin-top:6rem;}
+.quarto-dark .ug-audit-availability, .quarto-dark .ug-audit-key-availability {color:#ffb86c !important;}
+.quarto-dark .ug-audit-other, .quarto-dark .ug-audit-key-other {color:#81baff !important;}
+</style>
+```

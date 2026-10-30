@@ -20,7 +20,6 @@ to that current OPALX registration point.
 | [`ECHO`](../user-guide/control-statements/index.qmd#echo-statement) | Write input-language text to the log. |
 | [`HELP`](../user-guide/control-statements/index.qmd#help-command) | Request parser help. |
 | [`OPTION`](../user-guide/options.qmd) | Configure global runtime behavior. |
-| [`SELECT`](../user-guide/control-statements/index.qmd#select-element-selection) | Select output or object state. |
 | [`STOP`, `QUIT`](../user-guide/control-statements/index.qmd#stop-quit) | Stop or leave input processing. |
 | [`PSYSTEM`, `SYSTEM`](../user-guide/control-statements/index.qmd#system) | Invoke supported system actions. |
 | [`TITLE`](../user-guide/control-statements/index.qmd#title-statement) | Attach a title to the calculation. |
@@ -35,7 +34,7 @@ macros](../user-guide/control-statements/index.qmd), plus [`BEAM`](../user-guide
 `EMISSIONSOURCELIST`](../user-guide/beam-distributions.qmd),
 [`FIELDSOLVER`](../user-guide/field-solver/index.qmd), and
 [`BINNING`](../user-guide/field-solver/index.qmd#binning). [`LINE` and `RING`](../user-guide/beam-lines/index.qmd)
-assemble ordered beamline elements. The complete statement catalog is in
+assemble ordered beamline elements. The statement catalog is in
 [Input Language and Execution](../user-guide/input-language.qmd).
 
 The following high-use interfaces already have source-audited tables:

@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 ::: {.feature-opalx}
 `BEAM` defines the physical species and reference state for one particle
 container. A typical generated distribution uses:
@@ -31,11 +34,13 @@ charge. The named emission-source list must exist when `RUN` resolves the beam.
 | `GAMMA` | unset | - | Reference Lorentz factor; must be greater than one. |
 | `BCHARGE` | `0` | C | Bunch-charge magnitude used with `NALLOC` to calculate macroparticle charge. |
 | `NALLOC` | required | particles | Positive allocation and macroparticle-weight baseline. Real input is converted to an integer size. |
-| `SOURCES` | required | name | `EMISSIONSOURCELIST` used by this non-photon beam. Not allowed on a beam that receives decay daughters. |
+| `SOURCES` | required | name | [`EMISSIONSOURCELIST` used by a source beam; forbidden on a beam selected as another beam's `DAUGHTERBEAM`.]{#ug-16-01} |
 | `GLOBALPROCESSES` | empty | names | Uppercase array of global processes. Only `DECAY` is currently accepted. |
 | `DAUGHTERBEAM` | empty | name | Beam/container that receives daughter particles from a configured decay. |
-| `POLARIZATION` | unset | - | Muon-only vector `{Px, Py, Pz}` with $|\mathbf P|\leq1$; requires `PARTICLE`. Setting it, including to zero, enables spin tracking. Every particle starts with this vector, given along the same axes as the distribution momenta. |
-| `BCURRENT`, `BFREQ` | unset | - | Legacy attributes explicitly rejected by OPALX; use `BCHARGE`. |
+| `POLARIZATION` | unset | - | [Muon-only vector `{Px, Py, Pz}` with $|\mathbf P|\leq1$; requires `PARTICLE`. Setting it, including to zero, enables spin tracking. Every particle starts with this vector, given along the same axes as the distribution momenta.]{#ug-16-02} |
+| `BCURRENT`, `BFREQ` | unset | - | [Legacy attributes explicitly rejected by OPALX; use `BCHARGE`.]{#ug-16-03} |
+
+[The additional `TUNEINITIAL` array supplies repeated triples `{kinetic_energy_GeV, radius_m, radial_momentum_mc, ...}` to the experimental `RUN,SPECTRALTUNES=TRUE` diagnostic. It does not replace the ordinary source distribution. See [Tune Calculation](cyclotron.qmd#tune-calculation).]{#ug-16-04}
 
 The predefined `PARTICLE` values are `PHOTON`, `ELECTRON`, `POSITRON`, `MUON`,
 `PION`, `PROTON`, `ANTIPROTON`, `DEUTERON`, `HMINUS`, `H2P`, `ALPHA`,
@@ -53,14 +58,9 @@ either type must omit all three reference-energy attributes. See
 
 ## Allocation and sources
 
-`NALLOC` is required and must be positive. It remains the denominator used to
-derive macroparticle charge even when the sum of `NPARTDIST` over all sources
-sets a different runtime allocation. Keep `NALLOC` at least as large as that
-sum unless the weighting is intentional.
+[`NALLOC` is required and must be positive. It remains the denominator used to derive macroparticle charge even when the sum of `NPARTDIST` over all sources sets a different runtime allocation. For a source beam with `N` generated particles, the total charge magnitude is `N * BCHARGE / NALLOC`; set `NALLOC=N` when the generated bunch should carry `BCHARGE`. Keep allocation and particle counts consistent unless a different weighting is intentional.]{#ug-16-05}
 
-Every tracked non-photon beam requires a non-empty `SOURCES` name, except a
-beam that receives decay daughters. The target list must contain at least one
-`EMISSIONSOURCE`; it is resolved during `RUN`.
+[**UG-16-06:** Each tracked source beam requires a non-empty `SOURCES` name. The target list must contain at least one `EMISSIONSOURCE`; it is resolved during `RUN`. A decay daughter beam receives particles only from its parent decay and must omit `SOURCES`.]{.ug-audit-other #ug-16-06}
 
 ## Multiple species, decay, and spin {#multiple-species-decay-and-spin}
 
@@ -79,9 +79,7 @@ creates one particle container per entry. For decay calculations:
   its parent. The default charges are $+1$ for `PION` and $-1$ for `MUON` and
   `ELECTRON`, so set `CHARGE` where needed. For $\mu^+\to e^+$, use
   `PARTICLE=ELECTRON, CHARGE=1`; `PARTICLE=POSITRON` is rejected as a daughter.
-- A daughter beam uses the reference particle of the first beam of its chain.
-  It must not set `SOURCES`, `GAMMA`, `ENERGY` or `PC`, and it cannot be the
-  first entry of `TRACK.BEAMS`.
+- [A beam selected as a `DAUGHTERBEAM` must omit `GAMMA`, `ENERGY`, `PC`, and `SOURCES`. It inherits the reference particle and frame of the first source beam in its decay chain. The first entry of `TRACK.BEAMS` must be a source beam, not a decay daughter.]{#ug-16-07}
 - Parent and daughter beams must represent one physical particle per
   macroparticle: `BCHARGE = NALLOC * |CHARGE| * q_e`.
 - Muon decay requires `POLARIZATION`. A daughter muon beam also needs it so the
@@ -92,10 +90,9 @@ physics model and validation.
 
 ## Photon definitions
 
-`PARTICLE=PHOTON` is accepted as a definition but is rejected by `TRACK`.
+[Not yet implemented]{#ug-16-08}
 Photon beams require positive `ENERGY` and `NALLOC`, and reject `MASS`,
-`CHARGE`, `PC`, `GAMMA`, and `SOURCES`. The current source declares the shared
-`BEAM.ENERGY` input unit as GeV; no photon transport path consumes the value yet.
+`CHARGE`, `PC`, `GAMMA`, and `SOURCES`. [`BEAM.ENERGY` uses GeV. Photon transport is not yet available.]{#ug-16-09}
 :::
 
 ::: {.feature-opal}

@@ -6,12 +6,12 @@ status: planned
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 ::: {.feature-opalx}
-`GEOMETRY` is not registered by the current OPALX executable. Internal
-boundary-geometry classes remain in the source, but they do not provide a
-usable OPALX input definition. The OPAL view preserves the complete legacy
-interface.
+[`GEOMETRY` is not available in the current OPALX version.]{#ug-21-01}
 :::
 
 ::: {.feature-opal}

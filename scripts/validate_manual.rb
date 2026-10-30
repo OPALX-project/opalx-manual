@@ -130,7 +130,7 @@ field_solver_sections = [
   ["### `FFT` {#solver-fft}", "solver-fft"],
   ["### `OPEN` {#solver-open}", "solver-open"],
   ["### `P3M` {#solver-p3m}", "solver-p3m"],
-  ["### `CG` {#solver-cg}", "solver-cg"],
+  ["### `FFT2D5` {#solver-2d5}", "solver-2d5"],
   ["## `FIELDSOLVER` parameters {#fieldsolver-parameters}", "fieldsolver-parameters"],
   ["## Mesh and particle-in-cell cycle {#mesh-pic-cycle}", "mesh-pic-cycle"],
   ["## Boundary conditions {#boundary-conditions}", "boundary-conditions"],
@@ -174,14 +174,13 @@ if field_solver_page.file?
   end
 
   {
-    "disabled CG backend" => "Cannot use CGSolver yet, not fully implemented.",
     "open P3M backend" => "`TYPE=P3M`; all `BCFFT*=OPEN`",
     "periodic P3M backend" => "`TYPE=P3M`; all `BCFFT*=PERIODIC`",
     "P3M cutoff modes" => "`RCUT_CELLS` (default `2`)",
     "P3M binning support" => "`P3M` can use the [binned rest-frame mode](#binned-mode) with any `MAXBINS`",
     "ORB decomposition axes" => "boundaries only along the split axes",
     "uniform boundary restriction" => "Mixed boundary conditions",
-    "generic Dirichlet limitation" => "this is **not a usable mode**",
+    "generic Dirichlet limitation" => "Generic all-face `DIRICHLET` boundaries are not a supported tracking mode.",
     "shifted-Green backend requirement" =>
       "This mode requires `TYPE=OPEN`, or `TYPE=P3M` with all three `BCFFT*=OPEN`",
     "explicit-image backend requirement" => "other backends, including `P3M`, are rejected"
@@ -284,9 +283,9 @@ if input_language_page.file?
   %w[
     BEAM DISTRIBUTION EMISSIONSOURCE EMISSIONSOURCELIST FIELDSOLVER BINNING LINE
     DRIFT COLLIMATOR BOX CONSTANTFOCUSING CONSTANTEFIELDCAVITY QUADRUPOLE MULTIPOLE MULTIPOLET SOLENOID FIELDMAP RFCAVITY
-    TRAVELINGWAVE CYCLOTRONSECTOR TRIMCOIL RING RBEND SBEND VERTICALFFAMAGNET VARIABLE_RF_CAVITY LASER MONITOR
+    TRAVELINGWAVE CYCLOTRONSECTOR TRIMCOIL RING RBEND SBEND VARIABLE_RF_CAVITY LASER MONITOR
     PROBE MARKER POLYNOMIAL_TIME_DEPENDENCE SINUSOIDAL_TIME_DEPENDENCE
-    SPLINE_TIME_DEPENDENCE COF TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE SELECT
+    SPLINE_TIME_DEPENDENCE COF TRACK RUN ENDTRACK OPTION TITLE CALL ECHO HELP VALUE
     DUMPEMFIELDS SYSTEM PSYSTEM STOP QUIT
   ].each do |statement|
     unless input_language_text.include?("| `#{statement}`")
@@ -367,7 +366,6 @@ if elements_page.file?
     end
   end
   {
-    "regression-driven scope" => "every element type found in the current",
     "MULTIPOLE order limit" => "Each array may have at most five entries",
     "strength-error behavior" => "added to `K1` for both particles and the reference particle",
     "global P0 rigidity" => "`P0` is not taken from `BEAM`",
@@ -585,14 +583,14 @@ source_audited_inputs = {
     GLOBALPROCESSES DAUGHTERBEAM POLARIZATION
   ],
   "user-guide/tracking.qmd" => %w[
-    LINE SOURCES BEAM BEAMS DT DTSCINIT DTAU T0 MAXSTEPS ZSTART ZSTOP STEPSPERTURN
-    TIMEINTEGRATOR INITIALORBIT EKINSTOP METHOD TURNS FIELDSOLVER BOUNDARYGEOMETRY TRACKBACK SCFIELDUPDATE
+    LINE BEAM BEAMS DT T0 MAXSTEPS ZSTART ZSTOP STEPSPERTURN
+    TIMEINTEGRATOR INITIALORBIT EKINSTOP METHOD TURNS FIELDSOLVER TRACKBACK SCFIELDUPDATE
     SPECTRALTUNES TUNESAMPLE TUNEINTEGRATOR TUNESECTOR
   ],
   "user-guide/options.qmd" => %w[
     ECHO INFO TRACE WARN SEED TELL PSDUMPFREQ STATDUMPFREQ CHECKPOINTFREQ STEPINFOFQ PRINTRANKDISTRFQ
-    PSDUMPEACHTURN PSDUMPFRAME SPTDUMPFREQ REPARTFREQ REBINFREQ SCSOLVEFREQ MTSSUBSTEPS
-    REMOTEPARTDEL RHODUMP EBDUMP RANKDUMP CSRDUMP AUTOPHASE NUMBLOCKS RECYCLEBLOCKS NLHS
+    PSDUMPEACHTURN PSDUMPFRAME SPTDUMPFREQ REPARTFREQ REBINFREQ SCSOLVEFREQ
+    REMOTEPARTDEL RHODUMP EBDUMP RANKDUMP CSRDUMP AUTOPHASE NLHS
     CZERO RNGTYPE ENABLEHDF5 ENABLEVTK ASCIIDUMP BOUNDPDESTROY BEAMHALOBOUNDARY CLOTUNEONLY
     IDEALIZED LOGBENDTRAJECTORY VERSION MEMORYDUMP HALOSHIFT DELPARTFREQ MINBINEMITTED
     MINSTEPFORREBIN COMPUTEPERCENTILES QM_MODE AGGRESSIVE_STATE_SYNC LOADBALANCINGTHRESHOLD
@@ -603,9 +601,9 @@ source_audited_inputs = {
     BCHARGE ZEROFACE_R0Z SHIFTED_GREENS_FUNCTION ZEROFACEPLANEDUMP ZEROFACE_MAXSTEPS
   ],
   "user-guide/elements.qmd" => %w[
-    TYPE APERTURE L ELEMEDGE WAKEF PARTICLEMATTERINTERACTION X Y Z THETA PHI PSI
+    TYPE APERTURE L ELEMEDGE X Y Z THETA PHI PSI
     DX DY DZ DTHETA DPHI DPSI OUTFN DELETEONTRANSVERSEEXIT
-    GEOMETRY NSLICES EX EY EZ STRENGTH RADIUS K1 DK1 K1S DK1S KN DKN KS DKS
+    GEOMETRY EX EY EZ STRENGTH RADIUS K1 DK1 K1S DK1S KN DKN KS DKS
     TP LFRINGE RFRINGE HAPERT VAPERT MAXFORDER ROTATION EANGLE BBLENGTH ANGLE
     MAXXORDER VARRADIUS ENTRYOFFSET SCALING_MODEL FMAPFN FAST
     ESCALE ZREVERSE
@@ -690,11 +688,8 @@ binning_text = binning_text.split(/(?=^##\s)|^:::\s*$/, 2).first.to_s
   errors += error("field-solver Binning section is missing input attribute: #{attribute}") unless
     binning_text.include?("`#{attribute}`")
 end
-%w[VELOCITYZ POSITIONZ PZ GAMMAZ].each do |parameter|
-  errors += error("field-solver Binning section is missing parser value: #{parameter}") unless binning_text.include?("`#{parameter}`")
-end
-unless binning_text.include?("implements only `VELOCITYZ` and `GAMMAZ`")
-  errors += error("field-solver Binning section must distinguish parser values from runtime support")
+%w[VELOCITYZ GAMMAZ].each do |parameter|
+  errors += error("field-solver Binning section is missing supported selector: #{parameter}") unless binning_text.include?("`#{parameter}`")
 end
 
 dual_pages = %w[
@@ -741,11 +736,11 @@ unless beam_lines_text.include?("feature-opalx") && beam_lines_text.include?("{#
 end
 
 {
-  "user-guide/wakefields/index.qmd" => "not registered by the current OPALX executable",
-  "user-guide/geometry/index.qmd" => "not registered by the current OPALX executable",
-  "user-guide/particle-matter/index.qmd" => "not registered by the current OPALX executable",
-  "user-guide/optimization/index.qmd" => "not yet available in OPALX",
-  "user-guide/sampler/index.qmd" => "not registered by the current OPALX executable"
+  "user-guide/wakefields/index.qmd" => "`WAKE` and `FILTER` are not available in the current OPALX version.",
+  "user-guide/geometry/index.qmd" => "`GEOMETRY` is not available in the current OPALX version.",
+  "user-guide/particle-matter/index.qmd" => "`PARTICLEMATTERINTERACTION` is not available in the current OPALX version.",
+  "user-guide/optimization/index.qmd" => "`OPTIMIZE`, `DVAR`, `OBJECTIVE`, and `CONSTRAINT` are not available in the current OPALX version.",
+  "user-guide/sampler/index.qmd" => "`SAMPLE` and `SAMPLING` are not available in the current OPALX version."
 }.each do |relative, notice|
   errors += error("#{relative} is missing its OPALX unavailable notice") unless (ROOT / relative).read.include?(notice)
 end

@@ -6,6 +6,9 @@ status: current
 last-reviewed: "2026-08-26"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 OPALX is a modern particle-accelerator simulation program built for portable
 execution on CPUs and GPUs. It retains OPAL's MAD-inspired input language while
 reworking the runtime around current C++, MPI, Kokkos, and IPPL interfaces.

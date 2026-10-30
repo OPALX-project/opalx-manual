@@ -6,11 +6,12 @@ status: planned
 last-reviewed: "2026-07-23"
 ---
 
+{{< include ../../includes/user-guide-audit.qmd >}}
+
+
 
 ::: {.feature-opalx}
-`SAMPLE` and `SAMPLING` are not registered by the current OPALX executable.
-The OPAL view preserves the complete legacy workflow as a compatibility
-reference and a reminder of intended future functionality.
+[`SAMPLE` and `SAMPLING` are not available in the current OPALX version.]{#ug-24-01}
 :::
 
 ::: {.feature-opal}
@@ -110,7 +111,7 @@ The method semantics depend on whether `RANDOM` is enabled:
 
 ## Example Input File
 
-The original manual gives a complete example in
+[**UG-24-02:** The retained OPAL documentation gives a complete example in]{.ug-audit-other #ug-24-02}
 [Sample.in](examples/Sample.in):
 
 ```text

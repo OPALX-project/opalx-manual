@@ -240,9 +240,8 @@ to `SAAMG` workflows.
 `ITSOLVER` selects the Krylov or direct linear solver used by the iterative
 field-solver family.
 
-For `SAAMG`, the documented choices are:
+For `SAAMG`, the retained alternatives include:
 
-- `CG` (default)
 - `BICGSTAB`
 - `GMRES`
 
@@ -404,17 +403,14 @@ The AMR multigrid extensions are:
 | `AMR_MG_REBALANCE` | Rebalance solver/preconditioner communicators; default `FALSE` |
 | `AMR_MG_REUSE` | MueLu reuse mode; default `RAP` |
 | `AMR_MG_TOL` | Solver tolerance; default `1e-10` |
-| `ITSOLVER` | Base-level linear solver; default `CG` |
+| `ITSOLVER` | Base-level linear solver |
 
-For `ITSOLVER` on the AMR base level, the legacy interface documents:
+For `ITSOLVER` on the AMR base level, retained alternatives include:
 
 - `BICGSTAB`
 - `MINRES`
 - `PCPG`
-- `CG`
 - `GMRES`
-- `STOCHASTIC_CG`
-- `RECYCLING_CG`
 - `RECYCLING_GMRES`
 - `KLU2`
 - `SUPERLU`
@@ -468,7 +464,6 @@ Fs1: FIELDSOLVER, FSTYPE=AMR_MG,
 
 beam1: BEAM, PARTICLE=PROTON, PC=P0, NPART=1e5, BCURRENT=2.0E-3, CHARGE=1.0, BFREQ=frequency;
 
-SELECT, LINE=l1;
 
 TRACK, LINE=l1, BEAM=beam1, MAXSTEPS=nstep*turns, STEPSPERTURN=nstep;
 RUN, METHOD="CYCLOTRON-T", BEAM=beam1, FIELDSOLVER=Fs1, DISTRIBUTION=Dist1,

@@ -51,8 +51,6 @@ The following attributes are shared by all elements.
 | `THETA`, `PHI`, `PSI` | Orientation angles relative to the first beamline using absolute positioning. |
 | `DX`, `DY`, `DZ` | Position errors that do not affect the design trajectory. |
 | `DTHETA`, `DPHI`, `DPSI` | Rotation errors that do not affect the design trajectory. |
-| `WAKEF` | Attach a wakefield defined by the `WAKE` command. |
-| `PARTICLEMATTERINTERACTION` | Attach a particle-matter interaction handler. |
 | `OUTFN` | Base file name for element-generated output. |
 | `DELETEONTRANSVERSEEXIT` | Control whether particles exiting on the transverse sides are deleted in OPAL-T. |
 
@@ -491,8 +489,7 @@ Common attributes:
 : file name for lost-particle output. If omitted, the element label is used.
   The output is written as H5hut, or ASCII when `ASCIIDUMP` is enabled.
 
-`PARTICLEMATTERINTERACTION`
-: activates scattering and energy-loss modeling when configured.
+
 
 ### OPAL-T mode {#opal-opal-t-mode-2}
 
@@ -663,7 +660,7 @@ implemented like `RBEND` with `E1 = 0` and without fringe fields.
 
 ## Bending Magnets {#opal-bending-magnets}
 
-Legacy OPAL supports four bend families:
+[**UG-12-34:** The legacy bend families described here are:]{.ug-audit-other #ug-12-34}
 
 - `RBEND` for rectangular bends in OPAL-T
 - `RBEND3D` for rectangular bends with field-map support in OPAL-T
@@ -1226,17 +1223,11 @@ transverse profile and length `L`.
 Important attributes are:
 
 - `XSIZE`, `YSIZE`: ellipse axes
-- `PARTICLEMATTERINTERACTION`: attach scattering and energy-loss modeling
 
 If no particle-matter interaction handler is attached, particles hitting the
 degrader are simply recorded and deleted.
 
-Example:
 
-```text
-DEGPHYS: PARTICLEMATTERINTERACTION, TYPE=SCATTERING, MATERIAL=GRAPHITE;
-DEG1: DEGRADER, L=0.15, ELEMEDGE=0.02, PARTICLEMATTERINTERACTION=DEGPHYS;
-```
 
 ## Vacuum {#opal-vacuum}
 
@@ -1244,8 +1235,8 @@ DEG1: DEGRADER, L=0.15, ELEMEDGE=0.02, PARTICLEMATTERINTERACTION=DEGPHYS;
 associated stripping physics. When an interaction occurs, the particle state at
 that instant is written out.
 
-`MINR`, and `MAXR` limits. In OPAL-T it is described by the usual `L` and
-`ELEMEDGE` placement parameters.
+[`MINR` and `MAXR` specify the limits. In OPAL-T, placement is described by
+the usual `L` and `ELEMEDGE` parameters.]{#ug-12-35}
 
 Important attributes are:
 
@@ -1253,7 +1244,6 @@ Important attributes are:
 - `TEMPERATURE`: gas temperature in `K`
 - `GAS = H2 | AIR`
 - `STOP`: whether the interacting particle is deleted immediately
-- `PARTICLEMATTERINTERACTION`
 
 Cyclotron mode additionally supports a pressure map through:
 
@@ -1261,16 +1251,9 @@ Cyclotron mode additionally supports a pressure map through:
 - `PSCALE`: scale factor applied to that map
 
 If `PMAPFN` is supplied, `PRESSURE` acts as the default value outside the map
-extent. For stripping studies, `PARTICLEMATTERINTERACTION` should usually point
-to a handler with `TYPE=BEAMSTRIPPING`.
+extent.
 
-Example:
 
-```text
-bstp_phys: PARTICLEMATTERINTERACTION, TYPE=BEAMSTRIPPING;
-vac: VACUUM, PRESSURE=1E-8, TEMPERATURE=300,
-     GAS=H2, STOP=true, PARTICLEMATTERINTERACTION=bstp_phys;
-```
 
 The particles stripped in the residual gas are written to the configured output
 file regardless of the value of `STOP`.

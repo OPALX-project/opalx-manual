@@ -13,7 +13,7 @@ The following objects are registered in the current OPALX configurator.
 | RF and electric fields | `RFCAVITY`, `TRAVELINGWAVE`, `CONSTANTEFIELDCAVITY`, `CONSTANTFOCUSING`, `VARIABLE_RF_CAVITY` |
 | Transport | `DRIFT`, `QUADRUPOLE`, `RBEND`, `SBEND`, `SOLENOID`, [`FIELDMAP`](../user-guide/elements.qmd#fieldmap) |
 | Particle removal | [`COLLIMATOR`](../user-guide/elements.qmd#collimator), [`BOX`](../user-guide/elements.qmd#box) |
-| Multipoles and specialized magnets | `MULTIPOLE`, `MULTIPOLET`, `VERTICALFFAMAGNET` |
+| Multipoles and specialized magnets | `MULTIPOLE`, `MULTIPOLET`, [`SCALINGFFAMAGNET`](../user-guide/elements.qmd#scalingffamagnet) |
 | Cyclotrons | [`CYCLOTRONSECTOR`](../user-guide/elements.qmd#cyclotronsector), `TRIMCOIL` |
 | Sources and interactions | `LASER` (cannot be tracked yet), [`BEAMBEAM`](../user-guide/elements.qmd#beambeam) (experimental single-pass model) |
 | Diagnostics and structure | `MONITOR`, `MARKER`, `PROBE`, `LINE`, `RING` |
@@ -21,7 +21,7 @@ The following objects are registered in the current OPALX configurator.
 
 Capitalization above follows the user-facing convention. The
 [Elements User Guide](../user-guide/elements.qmd) gives source-audited
-attributes for every registered type and distinguishes maintained regression
+attributes for the documented element types and distinguishes maintained regression
 coverage from source-only support. Its OPAL view also retains non-CYCL legacy
 interfaces; that does not imply OPALX registration. See
 [Element Physics](../physics/elements/index.qmd) for detailed bends and

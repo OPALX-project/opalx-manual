@@ -7,21 +7,22 @@ last-reviewed: "2026-10-23"
 body-classes: "opalx-sidebar-page-toc"
 ---
 
+{{< include ../includes/user-guide-audit.qmd >}}
+
+
 Elements are named objects placed in three dimensions and assembled into a
 `LINE`. Shared concepts are described once; select OPALX or OPAL above for
 version-specific interfaces.
 
 ::: {.feature-opalx}
-The OPALX view covers every element type found in the current source registry,
-including interfaces without maintained regression inputs. It was audited against the current OPALX source registry.
-Regression coverage is stated separately from parser registration.
+
 
 | Type | Regression use | External data |
 |---|---|---|
 | `DRIFT` | Field-free transport | none |
 | `COLLIMATOR` | Source registered; no maintained regression input | none |
 | `BOX` | Source registered; no maintained regression input | none |
-| `BEAMBEAM` | Experimental mirrored-primary interaction and passive witnesses | optional particle input files |
+| `BEAMBEAM` | [Available in OPALX V1.1.0.](#beambeam) | [optional particle input files]{#ug-12-02} |
 | `CONSTANTEFIELDCAVITY` | Uniform electric field | none |
 | `CONSTANTFOCUSING` | Collective linear focusing for DIH studies | none |
 | `QUADRUPOLE` | Normalized quadrupole | none |
@@ -37,7 +38,7 @@ Regression coverage is stated separately from parser registration.
 | `MARKER` | Source registered; no maintained regression input | none |
 | `PROBE` | Cyclotron segment recording; coasting and RF integration checks | `.h5`/`.loss`, `.hist`, `.peaks` |
 | `RBEND`, `SBEND` | Source registered; no maintained regression input | none |
-| `VERTICALFFAMAGNET` | Source registered; no maintained regression input | none |
+| `SCALINGFFAMAGNET` | Source registered; see [scaling FFA interface](#scalingffamagnet) | [optional end-field model]{#ug-12-03} |
 | `VARIABLE_RF_CAVITY` | Source registered; no maintained regression input | time models |
 
 : {tbl-colwidths="[28, 42, 30]"}
@@ -66,8 +67,7 @@ and accepts the following common attributes.
 | `APERTURE` | none | Transverse aperture string, for example `CIRCLE(0.02)`, `ELLIPSE(0.03,0.02)`, `RECTANGLE(0.03,0.02)`, or `SQUARE(0.02)`. Dimensions are full widths in metres. Other shapes and a third argument are rejected. Without it, the element has no transverse limit. See [Particle removal](#particle-removal). |
 | `DELETEONTRANSVERSEEXIT` | `TRUE` | Requests particle deletion when an element reports a transverse aperture exit. |
 | `TYPE` | unset | Type-specific selector, used by `RFCAVITY` and `MONITOR` below. Only listed values are accepted: `STANDING`, `SINGLEGAP` and `IDEAL` for `RFCAVITY`; `RING`, `CARBONCYCL`, `CYCIAE`, `AVFEQ`, `FFA`, `BANDRF`, `SYNCHROCYCLOTRON`, `SINGLEGAP`, `STANDING`, `TEMPORAL` and `SPATIAL` for other elements. |
-| `OUTFN` | unset | Output file name, used by `MONITOR`. |
-| `WAKEF`, `PARTICLEMATTERINTERACTION` | unset | Parsed but not acted on. `RBEND` and `SBEND` reject them. |
+
 
 : {tbl-colwidths="[28, 15, 57]"}
 
@@ -76,6 +76,8 @@ absolute pose fails; supplying neither also fails. `PSI` alone does not select
 absolute placement. All elements of one line must use the same strategy: a line
 that mixes `ELEMEDGE` and absolute poses is rejected. `MARKER` is the exception;
 its placement attributes are ignored.
+
+[These placement rules have element-specific exceptions: `PROBE` uses its detector endpoints, `FIELDMAP` requires an absolute pose, and `SCALINGFFAMAGNET` uses its dedicated aperture dimensions and rejects `APERTURE`. The following sections give those interfaces.]{#ug-12-05}
 
 ### Particle removal: `APERTURE`, `COLLIMATOR`, and `BOX` {#particle-removal}
 
@@ -127,8 +129,7 @@ D1: DRIFT, L=0.5, ELEMEDGE=0.0;
 | Parameter | Default | Current behavior |
 |---|---:|---|
 | `L` | unset | Drift length in metres; use a positive value. |
-| `GEOMETRY` | unset | Parsed boundary-geometry name, but not transferred by the current `DRIFT` implementation. |
-| `NSLICES` | `1` | Map-tracking compatibility value; inactive in the current `PARALLEL` tracking path. |
+
 
 ## `COLLIMATOR` {#collimator}
 
@@ -189,6 +190,8 @@ See [Particle removal](#particle-removal) for how it differs from `APERTURE`
 and `COLLIMATOR`.
 
 ## `BEAMBEAM` {#beambeam}
+
+[**Availability:** `BEAMBEAM` is available in OPALX V1.1.0.]{#ug-12-07}
 
 `BEAMBEAM` defines a single-pass interaction between a tracked primary bunch
 and its counter-propagating mirrored primary. Selected additional particle
@@ -353,9 +356,9 @@ Q1: QUADRUPOLE, L=0.5, ELEMEDGE=0.0, K1=0.54;
 
 | Parameter | Default | Unit | Current behavior |
 |---|---:|---:|---|
-| `K1` | `0` | $\mathrm m^{-2}$ | Normal normalized quadrupole strength. |
+| `K1` | `0` | $\mathrm m^{-2}$ | [Normalized normal quadrupole strength.]{#ug-12-08} |
 | `K1S` | `0` | $\mathrm m^{-2}$ | Skew normalized quadrupole strength. |
-| `DK1` | `0` | $\mathrm m^{-2}$ | Normal error, added to `K1` for both particles and the reference particle. |
+| `DK1` | `0` | $\mathrm m^{-2}$ | [Normal error, added to `K1` for both particles and the reference particle.]{#ug-12-09} |
 | `DK1S` | `0` | $\mathrm m^{-2}$ | Skew error, added to `K1S` in the same way. |
 
 : {tbl-colwidths="[18, 12, 18, 52]"}
@@ -379,9 +382,9 @@ M1: MULTIPOLE, L=0.5, ELEMEDGE=0.0, KN={0.0,0.54,1.2};
 
 | Parameter | Default | Unit | Current behavior |
 |---|---:|---:|---|
-| `KN` | empty | $\mathrm m^{-(n+1)}$ | Normal normalized strengths $K_n$, index $n$ from 0 (dipole) to 4 (decapole). |
+| `KN` | empty | $\mathrm m^{-(n+1)}$ | [Normal normalized strengths $K_n$, index $n$ from 0 (dipole) to 4 (decapole).]{#ug-12-11} |
 | `KS` | empty | $\mathrm m^{-(n+1)}$ | Skew normalized strengths with the same indexing. |
-| `DKN` | empty | $\mathrm m^{-(n+1)}$ | Normal errors, added to `KN` for both particles and the reference particle. Missing entries are padded with zero. |
+| `DKN` | empty | $\mathrm m^{-(n+1)}$ | [Normal errors, added to `KN` for both particles and the reference particle. Missing entries are padded with zero.]{#ug-12-12} |
 | `DKS` | empty | $\mathrm m^{-(n+1)}$ | Skew errors, added to `KS` in the same way. |
 
 : {tbl-colwidths="[14, 12, 18, 56]"}
@@ -391,7 +394,7 @@ zero; otherwise the element is rejected. `MULTIPOLE` is placed as a straight
 element, so a dipole field would steer the beam away from it. Use `SBEND` or
 `RBEND` for a dipole.
 
-Particles and the reference particle use the same field for all orders. The
+[Particles and the reference particle use the same field for all orders.]{#ug-12-13} The
 strengths are converted with $B\rho = P_0/c$ from the global `P0`, as for
 `QUADRUPOLE`, and do not depend on the beam's charge. The field is described in
 [Element Physics](../physics/elements/index.qmd#sec-elements-multipoles). As
@@ -422,7 +425,7 @@ MT1: MULTIPOLET,
 | `EANGLE` | unset | rad | Entrance angle for curved geometry. |
 | `BBLENGTH` | unset | m | Half-length used for the field calculation's bounding region. |
 | `ANGLE` | `0` | rad | Nonzero selects the constant-radius curved implementation; zero selects straight geometry. |
-| `VARRADIUS` | `FALSE` | Boolean | Variable-radius selector. Variable-radius curved magnets are currently rejected. |
+| `VARRADIUS` | `FALSE` | Boolean | [Variable-radius selector. Variable-radius curved magnets are currently rejected.]{#ug-12-14} |
 | `ENTRYOFFSET` | `0` | m | Accepted only with `VARRADIUS=TRUE`; there is no supported variable-radius curved configuration yet. |
 | `SCALING_MODEL` | unset | name | Optional `TIMEDEPENDENCE` object multiplying the magnetic field as a function of time. |
 
@@ -434,8 +437,7 @@ aperture; do not substitute the common `APERTURE` string for them. The six-entry
 
 ## `SOLENOID` {#solenoid}
 
-`SOLENOID` loads a magnetic field map and multiplies it by `KS`. The map defines the actual longitudinal field-support interval,
-which may differ from nominal `L`.
+[**UG-12-15:** `SOLENOID` loads a magnetic field map. The current mapped-field calculation multiplies the loaded field directly by `KS` (and by `KS+DKS` for tracked particles), despite the normalized-strength wording in the input help. The map defines the actual longitudinal field-support interval, which may differ from nominal `L`.]{.ug-audit-other #ug-12-15}
 
 ```opal
 S1: SOLENOID,
@@ -445,11 +447,11 @@ S1: SOLENOID,
 
 | Parameter | Default | Current behavior |
 |---|---:|---|
-| `KS` | unset ($0$ when read) | Plain multiplier on the field map. It is not converted with a rigidity: for a map normalized to 1 T, `KS` is the field in tesla. |
-| `DKS` | unset ($0$ when read) | Additive error on `KS` for tracked particles; the reference-particle field omits this error. |
+| `KS` | unset ($0$ when read) | [**UG-12-16:** Direct multiplier on the loaded magnetic field in the current mapped-field calculation. Check the map normalization; the input-help label $\mathrm m^{-1}$ does not describe the applied scale.]{.ug-audit-other #ug-12-16} |
+| `DKS` | unset ($0$ when read) | Additive scale error for tracked particles; the reference-particle field omits this error. |
 | `FMAPFN` | unset | Required field-map filename. Tracking cannot apply a solenoid without a loaded map. |
-| `ZREVERSE` | `FALSE` | Reads the map back to front: mirrors it in $z$ and negates $B_z$, as when the magnet is turned around. Only G4beamline cylinder maps support it. |
 | `FAST` | `TRUE` | Parsed but not used. |
+| `ZREVERSE` | `FALSE` | [Reverse the map longitudinally and negate its longitudinal magnetic field. Supported only by G4beamline `cylinder` maps; see [field-map restrictions](appendix/field-maps/index.qmd#opalx-g4bl-cylinder).]{#ug-12-17} |
 
 The element does not generate an analytic hard-edge solenoid when `FMAPFN` is
 missing. Keep the field map beside the input or use an unambiguous relative
@@ -542,9 +544,9 @@ Gun: RFCAVITY,
 | `FAST` | `TRUE` | Boolean | Parsed but not used. |
 | `APVETO` | `FALSE` | Boolean | If true, excludes this cavity from automatic phase optimization. |
 | `DESIGNENERGY` | `-1` | MeV | Positive target exit kinetic energy; the autophaser also adjusts amplitude to reach it. Negative disables the target. |
-| `GEOMETRY` | unset | name | Parsed boundary-geometry compatibility attribute; not connected by the current element update. |
+| `GEOMETRY` | unset | name | [Parsed boundary-geometry compatibility attribute; not connected by the current element update.]{#ug-12-18} |
 | `RMIN`, `RMAX`, `ANGLE`, `PDIS`, `GAPWIDTH`, `PHI0` | unset | model-specific | Used by the separate `SINGLEGAP` interface; see the cyclotron guide. They do not configure the `STANDING` or `IDEAL` field. |
-| `PHASE_MODEL`, `AMPLITUDE_MODEL`, `FREQUENCY_MODEL` | unset | name | Rejected for `IDEAL`. For `STANDING`, names are stored but not resolved into time-dependence objects. Use `VARIABLE_RF_CAVITY` when RF parameters must vary with time. |
+| `PHASE_MODEL`, `AMPLITUDE_MODEL`, `FREQUENCY_MODEL` | unset | name | [Rejected for `IDEAL`. For `STANDING`, names are stored but not resolved into time-dependence objects. Use `VARIABLE_RF_CAVITY` when RF parameters must vary with time.]{#ug-12-19} |
 
 : {tbl-colwidths="[24, 12, 15, 49]"}
 
@@ -554,7 +556,7 @@ sine factor. `OPTION.AUTOPHASE>0` searches the reference-particle phase for
 maximum exit energy, using the option value as the number of refinement passes.
 This also applies to `IDEAL`, including amplitude adjustment when
 `DESIGNENERGY>0`. Set `APVETO=TRUE` to retain the specified phase, or
-`OPTION, AUTOPHASE=0;` to disable automatic phasing globally.
+[`OPTION, AUTOPHASE=0;` to disable the normal phase search. To preserve a cavity phase also during advancement to `TRACK.ZSTART`, set `APVETO=TRUE` on that cavity; the global option is not honored during that initial advancement.]{#ug-12-20}
 
 ### Ideal uniform RF field {#rfcavity-ideal}
 
@@ -617,13 +619,12 @@ TW1: TRAVELINGWAVE,
 | `APVETO` | `FALSE` | Boolean | Excludes the structure from automatic phase optimization when true. |
 | `NUMCELLS` | unset | cells | Number of cells, converted from real input to an integer. Use a positive integer. |
 | `MODE` | `1/3` | turns | RF phase advance between neighboring cells, expressed as a fraction of $2\pi$. |
-| `DESIGNENERGY` | `-1` | MeV | Positive autophaser target exit kinetic energy; negative disables the target. |
+| `DESIGNENERGY` | `-1` | MeV | [Positive autophaser target exit kinetic energy; negative disables the target. Traveling-wave target-energy tuning is incomplete; do not rely on it to set a consistent field amplitude throughout the structure.]{#ug-12-21} |
 
 : {tbl-colwidths="[20, 12, 15, 53]"}
 
 Use a regression-matched map, cell count, and mode as one consistent set. As
-with `RFCAVITY`, `AUTOPHASE=0` disables phase searching globally and
-`APVETO=TRUE` disables it for this element only.
+[with `RFCAVITY`, use `APVETO=TRUE` to preserve this element's prescribed phase, including advancement to `TRACK.ZSTART`. `AUTOPHASE=0` disables the normal search but is not honored during that initial advancement.]{#ug-12-22}
 
 ## `CYCLOTRONSECTOR` {#cyclotronsector}
 
@@ -829,8 +830,7 @@ phase-space file. Probe output basenames must be unique within a run; existing p
 are rejected, so use a fresh basename for each run. Recording
 supports particle sorting and MPI migration, including empty ranks. It does not
 relax existing restrictions of the SINGLEGAP cyclotron transport model.
-Checkpoint restart and continuation of an earlier particle tracking run are not
-yet supported. An independent fresh `TRACK` run starts a new recording and
+ An independent fresh `TRACK` run starts a new recording and
 requires fresh output basenames. Legacy FFA/RingElement probe placement remains a separate feature. `COF`
 currently requires a field-only lattice without `PROBE`; use a separate `RING`
 for the orbit solve. A newly emitted particle begins its crossing history at its
@@ -855,16 +855,14 @@ B1: SBEND, L=0.5, ELEMEDGE=1.0, ANGLE=0.1,
 | `K1`, `K1S` | $\mathrm m^{-2}$ | Normal and skew quadrupole strengths. |
 | `K2`, `K2S`, `K3`, `K3S` | $\mathrm m^{-3}$, $\mathrm m^{-4}$ | Parsed but not applied: the field has dipole and quadrupole terms only. |
 | `HGAP` | m | Half gap, default 0. `HGAP > 0` gives an Enge fringe field reaching five full gaps past each face and a vertical aperture of $\pm$`HGAP`. `HGAP = 0` gives a hard edge and no aperture. |
-| `GAP` | m | `RBEND` only: full gap, instead of `HGAP`. Giving both is rejected. `SBEND` rejects `GAP`. |
 | `FINT` | none | Fringe integral, default `0.5`. Used only with `HGAP > 0`, for the vertical edge focusing. |
 | `HAPERT` | m | Horizontal half-aperture. Must be positive, needs `HGAP > 0`, and cannot be combined with `APERTURE`. |
-| `E1`, `E2` | rad | `RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them. |
+| `E1`, `E2` | [rad]{.ug-audit-availability} | [**UG-12-24:** `RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them.]{.ug-audit-availability #ug-12-24} |
 | `FMAPFN` | path | `RBEND` only: a `1DProfile1` fringe-profile file, or `"1DPROFILE1-DEFAULT"` for OPAL's default profile. The dipole is then calibrated to `ANGLE`; `K0`…`K3S` and `FINT` are rejected. `SBEND` ignores it. |
 | `DESIGNENERGY` | MeV | `RBEND` only: kinetic energy the field is set for. The field is scaled by $p(\mathrm{DESIGNENERGY})/P_0$. Must be positive. `SBEND` rejects it. |
 | `H1`, `H2` | $\mathrm m^{-1}$ | Pole-face curvature: rejected by `RBEND`, ignored by `SBEND`. |
-| `GREATERTHANPI` | - | Rejected by `SBEND`, ignored by `RBEND`. |
-| `SLICES`, `STEPSIZE`, `NSLICES` | - | Parsed but not used. |
-| `WAKEF`, `PARTICLEMATTERINTERACTION` | name | Rejected. |
+| `GAP`, `GREATERTHANPI` | [m / —]{.ug-audit-availability} | [`GAP` is the full gap for `RBEND`, instead of `HGAP`; giving both is rejected. `SBEND` rejects `GAP`. `GREATERTHANPI` is rejected by `SBEND` and ignored by `RBEND`.]{.ug-audit-availability} |
+| `SLICES`, `STEPSIZE` | - | Parsed but not used. |
 
 : {tbl-colwidths="[22, 14, 64]"}
 
@@ -893,12 +891,12 @@ field model.
 | `R0` | m |   | Radial scale $R_0$. If positive, curvature is towards negative x i.e. anticlockwise. If negative, curvature is towards positive x i.e. clockwise. |
 | `FIELD_INDEX` |  |  | The scaling magnet field index $k$. |
 | `TAN_DELTA` |  | 0 | Spiral factor $\tan(\delta)$. |
-| `MAX_Y_POWER` | integer | 3 | The maximum power in y that will be considered in the field expansion (default 3). |
+| `MAX_Y_POWER` | integer | 3 | [Maximum power of $y$ in the field expansion, limited to 20; real input is rounded down to an integer.]{#ug-12-25} |
 | `FRINGE_LENGTH` | m | 0.1 | Exponential decay constant for the fringe field. |
 | `RADIAL_NEG_EXTENT` | m | 1 | Field width, from the reference point towards the middle of the ring. |
 | `RADIAL_POS_EXTENT` | m | 1 | Field width, from the reference point towards the outside of the ring. |
 | `HEIGHT` | m | 1 | Full height of the field element. |
-| `AZIMUTHAL_EXTENT` | m | * | Field map cut off in $\psi$ direction from the element centre. The default is given by $(`LENGTH`/2 + 5 \times `FRINGE_LENGTH`)$. |
+| `AZIMUTHAL_EXTENT` | m | * | Field map cut off in $\psi$ direction from the element centre. [Without a named end-field model, the default is `L/2 + 5*FRINGE_LENGTH`; with a named model, it is derived from that model's centre and fringe lengths.]{#ug-12-26} |
 | `END_FIELD_MODEL` | |  | If set, enables a field model plugin like ENGE function. Set to the name of the EndFieldModel element. |
 
 
@@ -922,9 +920,9 @@ applies a `tanh` fringe field. The e-fold length of the tanh function is defined
 by `FRINGE_LENGTH` parameter. Note that if the `FRINGE_LENGTH` is comparable to
 `L`, the field at the magnet centre may never reach `B0`; the magnet in this
 case is fringe-field dominated. The `END_FIELD_MODEL` parameter is a string that
-enables the user to define a plug in element like an Enge function. This model
-then replaces the default tanh model and supercedes both `L` and `FRINGE_LENGTH`
-parameters. See End Field Models below for options.
+[selects a named model such as an Enge function. This model
+replaces the default tanh model and supersedes both `L` and `FRINGE_LENGTH`.
+See End Field Models below for options.]{#ug-12-27}
 
 A diagram of the field generated by a `SCALINGFFAMAGNET` is shown below.
 
@@ -978,7 +976,7 @@ This is implemented in ScalingFFAMagnet by default.
 
 Enge end field model generates an end field like
 
-$f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x + L/2)}} - 1$
+[**UG-12-28:** $f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x - L/2)}} - 1$]{.ug-audit-other #ug-12-28}
 
 where $p(x)$ is a polynomial like
 
@@ -989,16 +987,16 @@ $p(x) = c_0 + c_1 \left(\frac{x}{\lambda_f}\right) + c_2 \left(\frac{x}{\lambda_
 
 | Parameter | Unit | Default | Meaning |
 |---|---:|---:|---|
-| `START_HALF_LENGTH` | m |   | Half length of the end of the field model $L_s$. |
+| `START_HALF_LENGTH` | [m]{.ug-audit-other} |  | [**UG-12-29:** Entrance half-length offset $L_s$.]{.ug-audit-other #ug-12-29} |
 | `START_FRINGE_LENGTH` | m |   | E-fold distance $\lambda_s,f$. |
 | `START_COEFFICIENTS` |  |   | List of polynomial coefficients $c_s,n$. |
-| `END_HALF_LENGTH` | m |   | Half length of the start of the field model $L_e$. |
+| `END_HALF_LENGTH` | [m]{.ug-audit-other} |  | [**UG-12-30:** Exit half-length offset $L_e$.]{.ug-audit-other #ug-12-30} |
 | `END_FRINGE_LENGTH` | m |   | E-fold distance for the end field $\lambda_e,f$. |
 | `END_COEFFICIENTS` |  |   | List of polynomial coefficients for the end field $c_e,n$. |
 
 `ASYMMETRIC_ENGE` end field model generates an end field like
 
-$f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p(x + L_e)}} - 1$
+[**UG-12-31:** $f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p_e(x - L_e)}} - 1$]{.ug-audit-other #ug-12-31}
 
 where $p_s(x)$ is a polynomial like
 
@@ -1068,9 +1066,9 @@ this element, even with zero amplitude. See the
   (peak-to-peak) and `DC_OFFSETS` are optional; missing entries default to 0, 1
   and 0, and extra entries are ignored. With the cavity's time in seconds, `FREQUENCIES` are in Hz;
   these are modulation frequencies, distinct from the MHz output expected
-  by `FREQUENCY_MODEL`. The current sinusoidal integral has an inconsistent
+  by `FREQUENCY_MODEL`. [The current sinusoidal integral has an inconsistent
   oscillating-amplitude normalization; use a polynomial frequency model
-  when the RF phase must be the integral of its specified frequency.
+  when the RF phase must be the integral of its specified frequency.]{#ug-12-33}
 
 `SPLINE_TIME_DEPENDENCE`
 : Interpolates `VALUES` at strictly increasing `TIMES`, in seconds when used
