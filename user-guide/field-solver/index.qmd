@@ -66,7 +66,7 @@ and cathode-plane corrections are additional modes described below.
 | `FFT` | Periodic in all three axes | Available | A periodically repeated charge distribution |
 | `OPEN` | Isolated free space | Available | Finite bunches; recommended default |
 | `P3M` | Open or periodic in all three axes | Available | Open or periodic P3M calculations |
-| `FFT2D5` | Open in transverse, open or periodic longitudinally | Available | Long finite bunches in rings |
+| `FFT2D5` | Open in transverse, open or periodic longitudinally | Available; tracking validation pending | Long finite bunches in rings |
 
 : {tbl-colwidths="[12, 24, 22, 42]"}
 
@@ -179,6 +179,13 @@ $$
 [**UG-18-06:** where $g$ is selected by `PIPEMODE`. This geometry model changes only the
 longitudinal field; the transverse Poisson solves retain open boundaries.
 `PIPEMODE=NONE` disables the longitudinal field.]{.ug-audit-other #ug-18-06}
+
+::: {.callout-warning title="Validation status"}
+FFT2D5 passes the current unit tests, which check solver operation and individual
+numerical stages. Its accuracy in end-to-end particle tracking has not yet been
+validated against independent physics benchmarks. Treat tracking results as
+provisional until this validation is complete.
+:::
 
 [`FFT2D5` is available only with one MPI rank, `BINS=NONE`, and
 `PARFFTX=FALSE`, `PARFFTY=FALSE`, `PARFFTZ=FALSE`. Keep all three `BCFFT*`
