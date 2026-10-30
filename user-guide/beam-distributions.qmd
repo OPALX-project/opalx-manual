@@ -100,7 +100,7 @@ OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 |---|---|---|---|
 | `TYPE` | required | all | Selects one of the seven types above. |
 | `NPARTDIST` | `0`, particles | all | Requested macroparticle count. Use a positive integer except where `EMITTEDFROMFILE` explicitly selects all file records. |
-| `FNAME` | empty, path | file types | [**UG-17-03:** Input particle file. A relative name is first checked in the working directory; if absent, it is checked relative to the OPALX input file directory.]{.ug-audit-other #ug-17-03} |
+| `FNAME` | empty, path | file types | [Input particle file. A relative name is first checked in the working directory; if absent, it is checked relative to the OPALX input file directory.]{#ug-17-03} |
 | `SIGMAX`, `SIGMAY`, `SIGMAZ` | `0 m` | `UNIFORM`; Gaussian types; transverse flat-top types | Ellipsoid semi-axes for `UNIFORM`, Gaussian widths, or transverse flat-top semi-axes. |
 | `SIGMAPX`, `SIGMAPY`, `SIGMAPZ` | `0`, $\beta\gamma$ | Gaussian types | RMS normalized-momentum widths. |
 | `CORR` | empty array | `MULTIVARIATEGAUSS` | Fifteen off-diagonal correlation coefficients. |
@@ -111,7 +111,7 @@ OPALX accepts exactly `UNIFORM`, `GAUSS`, `MULTIVARIATEGAUSS`, `FLATTOP`,
 | `FTOSCAMPLITUDE` | `0 %` | `OPALFLATTOP` | Sinusoidal modulation amplitude, clamped to 100%. |
 | `FTOSCPERIODS` | `0` | `OPALFLATTOP` | Number of modulation periods across the flat interval. |
 | `EMITTED` | `FALSE` | flat-top types; optional emitted-file window | Enables generated time-dependent emission. |
-| `EMISSIONSTEPS` | `100` | `OPALFLATTOP`, `EMITTEDFROMFILE` | [**UG-17-04:** Preferred emission resolution; positive values are rounded up, while zero or negative values select `100`.]{.ug-audit-other #ug-17-04} |
+| `EMISSIONSTEPS` | `100` | `OPALFLATTOP`, `EMITTEDFROMFILE` | [Defines the number of emission steps.]{#ug-17-04} |
 | `CUTOFFX`, `CUTOFFY` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(x,y)$ in units of $\sigma_x$, $\sigma_y$. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
 | `CUTOFFPX`, `CUTOFFPY`, `CUTOFFPZ` | `3`, $\sigma$ | `GAUSS` | Semi-axes of the elliptical cut on $(p_x,p_y)$ and the per-axis cut on $p_z$, in units of the momentum widths. `0` disables the cut. Ignored by `MULTIVARIATEGAUSS`. |
 | `CORRX`, `CORRY`, `CORRZ`, `CORRT` | `0` | none currently | [**Accepted but currently ignored; use `CORR` with `MULTIVARIATEGAUSS`.**]{#ug-17-05} |

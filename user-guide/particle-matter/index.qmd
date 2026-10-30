@@ -53,7 +53,7 @@ T_{\max} =
 {1 + 2 \gamma m_e/M + (m_e/M)^2}.
 $$ {#eq-partmatter-tmax}
 
-[**UG-22-02:** The retained OPAL documentation states that this form is used for incident `PROTON`, `DEUTERON`,]{.ug-audit-other #ug-22-02}
+[The retained OPAL documentation states that this form is used for incident `PROTON`, `DEUTERON`,]{#ug-22-02}
 `MUON`, `HMINUS`, and `H2P` beams over the documented energy ranges, and also
 for `ALPHA` particles in their supported range.
 

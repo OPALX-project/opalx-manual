@@ -111,7 +111,7 @@ The method semantics depend on whether `RANDOM` is enabled:
 
 ## Example Input File
 
-[**UG-24-02:** The retained OPAL documentation gives a complete example in]{.ug-audit-other #ug-24-02}
+[The retained OPAL documentation gives a complete example in]{#ug-24-02}
 [Sample.in](examples/Sample.in):
 
 ```text

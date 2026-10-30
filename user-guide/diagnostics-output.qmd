@@ -219,5 +219,5 @@ Additional OPALX cylindrical attributes:
 | `Y_STEPS` | number of `y` steps; must be a positive integer |
 | `CYL_ORIGIN_X`, `CYL_ORIGIN_Y`, `CYL_ORIGIN_Z` | optional cylindrical-origin coordinates in `m`; defaults are `0` |
 
-[**UG-14-06:** For OPALX, give `PHI_START` and `DPHI` in radians. The output converts `phi` to degrees. The cylindrical coordinates satisfy `x = CYL_ORIGIN_X + r*cos(phi)`, `z = CYL_ORIGIN_Z + r*sin(phi)`, and `y = CYL_ORIGIN_Y + Y_START + j*DY`.]{.ug-audit-other #ug-14-06}
+[For OPALX, give `PHI_START` and `DPHI` in radians. The output converts `phi` to degrees. The cylindrical coordinates satisfy `x = CYL_ORIGIN_X + r*cos(phi)`, `z = CYL_ORIGIN_Z + r*sin(phi)`, and `y = CYL_ORIGIN_Y + Y_START + j*DY`.]{#ug-14-06}
 ::::

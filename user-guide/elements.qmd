@@ -437,7 +437,7 @@ aperture; do not substitute the common `APERTURE` string for them. The six-entry
 
 ## `SOLENOID` {#solenoid}
 
-[**UG-12-15:** `SOLENOID` loads a magnetic field map. The current mapped-field calculation multiplies the loaded field directly by `KS` (and by `KS+DKS` for tracked particles), despite the normalized-strength wording in the input help. The map defines the actual longitudinal field-support interval, which may differ from nominal `L`.]{.ug-audit-other #ug-12-15}
+[`SOLENOID` loads a magnetic field map. The current mapped-field calculation multiplies the loaded field directly by `KS` (and by `KS+DKS` for tracked particles), despite the normalized-strength wording in the input help. The map defines the actual longitudinal field-support interval, which may differ from nominal `L`.]{#ug-12-15}
 
 ```opal
 S1: SOLENOID,
@@ -447,7 +447,7 @@ S1: SOLENOID,
 
 | Parameter | Default | Current behavior |
 |---|---:|---|
-| `KS` | unset ($0$ when read) | [**UG-12-16:** Direct multiplier on the loaded magnetic field in the current mapped-field calculation. Check the map normalization; the input-help label $\mathrm m^{-1}$ does not describe the applied scale.]{.ug-audit-other #ug-12-16} |
+| `KS` | unset ($0$ when read) | [Direct multiplier on the loaded magnetic field in the current mapped-field calculation. Check the map normalization; the input-help label $\mathrm m^{-1}$ does not describe the applied scale.]{#ug-12-16} |
 | `DKS` | unset ($0$ when read) | Additive scale error for tracked particles; the reference-particle field omits this error. |
 | `FMAPFN` | unset | Required field-map filename. Tracking cannot apply a solenoid without a loaded map. |
 | `FAST` | `TRUE` | Parsed but not used. |
@@ -857,11 +857,11 @@ B1: SBEND, L=0.5, ELEMEDGE=1.0, ANGLE=0.1,
 | `HGAP` | m | Half gap, default 0. `HGAP > 0` gives an Enge fringe field reaching five full gaps past each face and a vertical aperture of $\pm$`HGAP`. `HGAP = 0` gives a hard edge and no aperture. |
 | `FINT` | none | Fringe integral, default `0.5`. Used only with `HGAP > 0`, for the vertical edge focusing. |
 | `HAPERT` | m | Horizontal half-aperture. Must be positive, needs `HGAP > 0`, and cannot be combined with `APERTURE`. |
-| `E1`, `E2` | [rad]{.ug-audit-availability} | [**UG-12-24:** `RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them.]{.ug-audit-availability #ug-12-24} |
+| `E1`, `E2` | rad | [`RBEND` only: entrance and exit pole-face angles, default `ANGLE/2` each. They must satisfy `E1 + E2 = ANGLE`; give one and the other is derived. Each must lie strictly between $-\pi/2$ and $\pi/2$. `SBEND` rejects them.]{#ug-12-24} |
 | `FMAPFN` | path | `RBEND` only: a `1DProfile1` fringe-profile file, or `"1DPROFILE1-DEFAULT"` for OPAL's default profile. The dipole is then calibrated to `ANGLE`; `K0`…`K3S` and `FINT` are rejected. `SBEND` ignores it. |
 | `DESIGNENERGY` | MeV | `RBEND` only: kinetic energy the field is set for. The field is scaled by $p(\mathrm{DESIGNENERGY})/P_0$. Must be positive. `SBEND` rejects it. |
 | `H1`, `H2` | $\mathrm m^{-1}$ | Pole-face curvature: rejected by `RBEND`, ignored by `SBEND`. |
-| `GAP`, `GREATERTHANPI` | [m / —]{.ug-audit-availability} | [`GAP` is the full gap for `RBEND`, instead of `HGAP`; giving both is rejected. `SBEND` rejects `GAP`. `GREATERTHANPI` is rejected by `SBEND` and ignored by `RBEND`.]{.ug-audit-availability} |
+| `GAP`, `GREATERTHANPI` | m / — | `GAP` is the full gap for `RBEND`, instead of `HGAP`; giving both is rejected. `SBEND` rejects `GAP`. `GREATERTHANPI` is rejected by `SBEND` and ignored by `RBEND`. |
 | `SLICES`, `STEPSIZE` | - | Parsed but not used. |
 
 : {tbl-colwidths="[22, 14, 64]"}
