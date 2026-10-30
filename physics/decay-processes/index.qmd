@@ -257,8 +257,8 @@ container's polarization view at decay time.
 The runtime cost of the decay process is dominated by the rejection
 sampling of the Michel spectrum; everything else is closed-form.
 
-- **Decay flagging.** Per-particle Bernoulli draw against
-  [@eq-decay-prob]; survivors retain their state, marked particles
+- **Decay flagging.** OPALX performs a per-particle Bernoulli draw against
+  [@eq-decay-prob]. Survivors retain their state, and marked particles
   are compacted into a dense view of $(\vec R, \vec P,
   \Delta t, \vec P_{\text{pol}})$ tuples by a Kokkos parallel scan.
 - **Michel $x$.** $x$ is drawn uniformly on $[x_{\min}, 1]$ and

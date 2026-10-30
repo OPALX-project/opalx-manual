@@ -367,7 +367,7 @@ coarsening $y$ need not improve the result; this historical fixed-box scan
 must not be conflated with current envelope-dependent domain sizing.
 
 ![Historical pair-4 field and first-kick refinement relative to the truncated
-manufactured source; coarse and fine subsets are fitted separately.](figures/track12-first-kick-convergence.png){#fig-beambeam-first-kick width="95%"}
+manufactured source. Coarse and fine subsets are fitted separately.](figures/track12-first-kick-convergence.png){#fig-beambeam-first-kick width="95%"}
 
 ## Results and their interpretation {#sec-beam-beam-results}
 
