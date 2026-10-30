@@ -4,13 +4,13 @@ Status updated: 2026-10-30. Current manual: `72a3965`; original User Guide sourc
 
 | Scope | Unresolved work | Record |
 |---|---|---|
-| User Guide 6–24 | 4 existing numbered review decisions; 123 accepted, 20 removed, 1 rejected, 3 moved to issues, 3 retired from review | [Detailed audit](USER_GUIDE_6_24_AUDIT.md) / [local index](_site/user-guide-audit.html) |
-| Cross-chapter consistency | 0 pending; 2 resolved on 2026-10-30 | Table below |
+| User Guide 6–24 | 0 existing numbered review decisions; 123 accepted, 20 removed, 5 rejected, 3 moved to issues, 3 retired from review | [Detailed audit](USER_GUIDE_6_24_AUDIT.md) / [local index](_site/user-guide-audit.html) |
+| Cross-chapter consistency | 0 pending consistency follow-ups | Table below |
 | Getting Started 2–5 | Chapters 2–4 change markings cleared on 2026-10-30; recorded execution limitation remains | [Audit](GETTING_STARTED_AUDIT.md) |
 | Source verification/implementation | 7 OPEN issues, tracked separately from manual review | Issue table below |
 | Publication | Accepted User Guide decisions authorized for commit/push on2026-10-30 | Verify the resulting Actions run and published pages |
 
-All 154 original User Guide finding IDs and statuses are retained. The chapter-local “Local review” boxes are removed; numbered orange/blue proposals remain visible. No new implementation work is inferred from a pending documentation decision.
+All 154 original User Guide finding IDs and statuses are retained. The chapter-local “Local review” boxes are removed; all numbered proposals are resolved. No new implementation work is inferred from a pending documentation decision.
 
 ## Pending decisions by finding
 
@@ -18,14 +18,10 @@ These proposals are already marked in the manual. Review the current wording; im
 
 | Finding | Topic | Decision remaining |
 |---|---|---|
-| [UG-12-28](_site/user-guide/elements.html#ug-12-28) | Symmetric Enge exit offset | Accept or revise the exit term using p(x-L/2), replacing the old p(x+L/2) shift. |
-| [UG-12-29](_site/user-guide/elements.html#ug-12-29) | Asymmetric Enge entrance half-length | Confirm START_HALF_LENGTH describes the entrance offset L_s. |
-| [UG-12-30](_site/user-guide/elements.html#ug-12-30) | Asymmetric Enge exit half-length | Confirm END_HALF_LENGTH describes the exit offset L_e. |
-| [UG-12-31](_site/user-guide/elements.html#ug-12-31) | Asymmetric Enge exit formula | Accept or revise use of the separate exit polynomial p_e and the exit shift x-L_e. |
 
 ## Cross-chapter consistency
 
-Both cross-chapter follow-ups were accepted and resolved on 2026-10-30. All 154 historical IDs/statuses are preserved.
+2 documentation follow-ups are separate from the original numbered audit decisions. All 154 historical IDs/statuses are preserved. Resolution decisions are recorded below.
 
 | Follow-up | Discrepancy | Resolution | References |
 |---|---|---|---|

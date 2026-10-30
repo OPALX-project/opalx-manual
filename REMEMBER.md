@@ -1816,3 +1816,7 @@ Use this template for subsequent entries:
 - Apply CONS-01: remove both obsolete Cyclotron no-space-charge restrictions; refer to documented TURNS restrictions and the external-field reference stopping plane. Retain the fixed-step example and its stopping explanation.
 - Apply CONS-02: use BCHARGE = 1e-9 in the assignment example and bunch charge in the BEAM catalog. Mark both follow-ups resolved. Preserve unrelated edits; no commit or push requested.
 - Validation passes: 56-chapter source check, both affected HTML renders, 64-page rendered-link check, focused replacement/anchor checks and whitespace. No code or numerical changes.
+
+### 2026-10-30 — retain original Enge wording
+
+- User confirmed keeping original UG-12-28 through UG-12-31. Restore original formulas and START/END_HALF_LENGTH descriptions, remove pending annotations, retain stable anchors, and close all four proposals as rejected. No numbered User Guide decisions remain: 123 accepted, 5 rejected, 3 retired, 20 removed, 3 moved to issues. Preserve CONS-01/02 corrections and unrelated edits. No commit or push requested.

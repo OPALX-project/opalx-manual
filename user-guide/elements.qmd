@@ -976,7 +976,7 @@ This is implemented in ScalingFFAMagnet by default.
 
 Enge end field model generates an end field like
 
-[**UG-12-28:** $f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x - L/2)}} - 1$]{.ug-audit-other #ug-12-28}
+[$f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x + L/2)}} - 1$]{#ug-12-28}
 
 where $p(x)$ is a polynomial like
 
@@ -987,16 +987,16 @@ $p(x) = c_0 + c_1 \left(\frac{x}{\lambda_f}\right) + c_2 \left(\frac{x}{\lambda_
 
 | Parameter | Unit | Default | Meaning |
 |---|---:|---:|---|
-| `START_HALF_LENGTH` | [m]{.ug-audit-other} |  | [**UG-12-29:** Entrance half-length offset $L_s$.]{.ug-audit-other #ug-12-29} |
+| `START_HALF_LENGTH` | m |   | [Half length of the end of the field model $L_s$.]{#ug-12-29} |
 | `START_FRINGE_LENGTH` | m |   | E-fold distance $\lambda_s,f$. |
 | `START_COEFFICIENTS` |  |   | List of polynomial coefficients $c_s,n$. |
-| `END_HALF_LENGTH` | [m]{.ug-audit-other} |  | [**UG-12-30:** Exit half-length offset $L_e$.]{.ug-audit-other #ug-12-30} |
+| `END_HALF_LENGTH` | m |   | [Half length of the start of the field model $L_e$.]{#ug-12-30} |
 | `END_FRINGE_LENGTH` | m |   | E-fold distance for the end field $\lambda_e,f$. |
 | `END_COEFFICIENTS` |  |   | List of polynomial coefficients for the end field $c_e,n$. |
 
 `ASYMMETRIC_ENGE` end field model generates an end field like
 
-[**UG-12-31:** $f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p_e(x - L_e)}} - 1$]{.ug-audit-other #ug-12-31}
+[$f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p(x + L_e)}} - 1$]{#ug-12-31}
 
 where $p_s(x)$ is a polynomial like
 

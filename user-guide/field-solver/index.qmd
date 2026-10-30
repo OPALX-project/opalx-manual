@@ -180,6 +180,12 @@ $$
 longitudinal field; the transverse Poisson solves retain open boundaries.
 `PIPEMODE=NONE` disables the longitudinal field.]{#ug-18-06}
 
+The longitudinal density derivative is evaluated at slice centers. It is
+interpolated to each particle with the same longitudinal shape as charge
+deposition: linear interpolation when `SCATTERLONGITUDINALLY=TRUE`, or the
+containing cell otherwise. Closed-ring interpolation wraps at the path boundary.
+
+
 ::: {.callout-warning title="Validation status"}
 FFT2D5 passes the current unit tests, which check solver operation and individual
 numerical stages. Its accuracy in end-to-end particle tracking has not yet been
@@ -223,6 +229,19 @@ header line and then expects numeric columns
 `s rx ry rz px py pz ex ey ez bx by bz ke time`. At least two distinct
 position samples are required. The transverse mesh spans `PIPESIZEX` and
 `PIPESIZEY`; the longitudinal mesh spans the length of this reference path.]{#ug-18-14}
+
+For an open reference path, its endpoints must cover the full bunch throughout
+tracking, including particles behind the initial reference-particle position.
+Particles beyond either endpoint cause an error before charge deposition.
+Provide an extended `REFPATHFNAME` if the generated design path does not cover
+the bunch; endpoint clamping would otherwise concentrate charge artificially.
+
+The transverse slice source uses laboratory positions and line charge. Its
+Poisson electric field is already the laboratory transverse field; the magnetic
+self-field is $\mathbf B_\perp=\beta\,\hat{\mathbf t}\times\mathbf E_\perp/c$.
+For comoving paraxial particles, the resulting transverse Lorentz force is
+$\mathbf F_\perp=q\mathbf E_\perp/\gamma^2$.
+
 
 `PARFFTX`, `PARFFTY`, and `PARFFTZ` select the mesh axes that are split over
 MPI ranks; the defaults split only $z$. With more than one rank, at least one

@@ -1,11 +1,100 @@
 ---
 title: "Install and Build OPALX"
-description: "Clone OPALX and build a serial, OpenMP, CUDA, or HIP executable."
+description: "Run OPALX with Docker or build a serial, OpenMP, CUDA, or HIP executable from source."
 audience: user
 status: current
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-30"
 ---
 
+
+Run the ready-made CPU image with Docker, or follow the source-build
+instructions below for a custom CPU or GPU build.
+
+::: {.feature-opalx}
+## Run with Docker {#run-with-docker}
+
+The public image `ghcr.io/opalx-project/opalx:cpu` contains OPALX and its
+runtime dependencies, including MPI. You do not need compilers or a local MPI
+installation. It uses the CPU/OpenMP backend; GPU images are not provided.
+Docker automatically selects the Linux x86-64 (`amd64`) or ARM64 image for
+your machine, including Intel and Apple silicon Macs.
+
+### Set up Docker on a Mac
+
+1. Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/),
+   choosing the Apple silicon or Intel download to match your Mac.
+2. Open Docker Desktop and wait until it is running.
+3. In Terminal, check Docker and download the OPALX image:
+
+```bash
+docker run --rm hello-world
+docker pull ghcr.io/opalx-project/opalx:cpu
+docker run --rm ghcr.io/opalx-project/opalx:cpu --help
+```
+
+The public image can be pulled without a GitHub account or `docker login`.
+Docker Desktop runs the Linux container on macOS. Allocate enough memory and
+CPUs in Docker Desktop for your simulation.
+
+### Run a simulation
+
+In Terminal, change to the directory containing your input file, replacing
+`/path/to/simulation` and `case.in` with your own directory and filename:
+
+```bash
+cd /path/to/simulation
+
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e OMP_NUM_THREADS=4 \
+  -v "$PWD:/data" \
+  ghcr.io/opalx-project/opalx:cpu case.in --info 2
+```
+
+The mounted directory is `/data` inside the container and is its working
+directory. Output files appear beside your input and belong to your macOS
+user. Distribution files, field maps, and other referenced files must be
+inside this directory or its subdirectories; use paths relative to the input
+working directory. `--rm` removes the container after it exits and keeps the
+files written into the mounted directory.
+
+This command uses one MPI rank and four OpenMP threads. Adjust
+`OMP_NUM_THREADS` to the CPUs available to Docker. For a first input and its
+required distribution file, see
+[Run a First Simulation](first-simulation.qmd#regression-smoke-test); replace
+the executable invocation there with the Docker command above and use
+`Drift-1-fromfile.in` in place of `case.in`.
+
+For multiple MPI ranks, set `OPALX_NP` and increase shared memory, for example:
+
+```bash
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e OPALX_NP=2 -e OMP_NUM_THREADS=2 \
+  --shm-size=1g \
+  -v "$PWD:/data" \
+  ghcr.io/opalx-project/opalx:cpu case.in --info 2
+```
+
+This requests two ranks with two threads each. Choose shared memory and total
+memory to suit the case. Random particle generation draws samples per thread,
+so changing the thread count can change the particle sample.
+
+### Image versions
+
+The `cpu` and `latest` tags follow successful builds of `master`; they are
+moving development versions, rather than the OPALX 1.0.0 release used in the
+source-build instructions below. Run `docker pull` again to obtain an update.
+Record the image digest printed by `docker pull` for reproducible runs, and
+use `ghcr.io/opalx-project/opalx@sha256:<digest>` in place of the tagged image
+to select that exact image. Replace `<digest>` with the recorded hash.
+
+The [Docker README]({{< meta source-code-url >}}/blob/master/docker/README.md)
+describes commit and release tags, local image builds, and the development
+container.
+:::
+
+## Source-build prerequisites
 
 OPALX uses CMake and Kokkos to select the execution backend. The following
 toolchain is recommended for current development and production builds:
