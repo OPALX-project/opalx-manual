@@ -3,12 +3,15 @@ title: "Coordinate Systems"
 description: "Coordinate frames, element placement, local charts, ports, and geometric conventions."
 audience: physics
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-10-30"
 ---
 
-This chapter collects the current coordinate-system and placement language for
-OPALX. It has been migrated from the OPALX physics notes and is being checked
-against the orbit-threading and element-placement implementation.
+This chapter describes the coordinate and placement concepts used by OPALX
+and a proposed extension based on named ports and a geometry graph. Current
+OPALX provides rigid element placement, element-local field frames, and `LINE`
+and `RING` sequences. General named-port connections, patch objects, graph
+assembly and time-dependent rigid placement are design proposals, not current
+input interfaces.
 
 {{< include _quick-reader.qmd >}}
 
