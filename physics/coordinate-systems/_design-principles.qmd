@@ -25,12 +25,14 @@ The two viewpoints answer different questions:
 
 ### Current OPALX implementation context
 
-The current tracker advances particles in physical time with a Boris-Buneman
-update. Elements have spatial placement and local field frames, and the
-orbit-threading layer queries active supports during field assembly. The design
-described here extends those implemented concepts into one geometry
-representation without importing a second machine model from historical
-documentation.
+The current tracker advances particles in physical time. Ordinary particle
+transport uses a Boris-Buneman update. Elements have rigid spatial placement
+and local field frames; field assembly uses orbit-threader support queries
+or specialized spatial selection for compatible analytic rings.
+
+The port graph, generalized placement tuple and dynamic-motion transforms
+below are proposed extensions. They do not describe an existing general
+port-graph implementation.
 
 ### A geometry graph and placement tuple
 
@@ -41,10 +43,12 @@ $$
 \mathcal G=(\mathcal N,\mathcal E) .
 $$
 
-Here $\mathcal N$ is the set of named ports and free anchors, and
-$\mathcal E$ is the set of placed objects that span those ports. A placed
-object may be a physics element, a pure drift, or a tracking-neutral geometry
-operator such as a patch or survey shift.
+In this proposed graph, $\mathcal N$ contains named ports, free anchors and,
+when needed, internal junction nodes. Each edge in $\mathcal E$ represents
+a two-ended connection or a two-port placed object. A multiport object, such
+as a splitter, requires an explicit internal subgraph rather than one ordinary
+directed edge. Physics elements, drifts and geometry-only operators can be
+represented within this convention.
 
 This representation unifies linear and circular machines immediately:
 
@@ -54,7 +58,7 @@ This representation unifies linear and circular machines immediately:
 3. a sector machine is a subgraph together with one or more symmetry
    transforms that replicate it.
 
-Every placed object $i$ should be representable by a tuple
+Every two-port placed object $i$ should be representable by a tuple
 
 $$
 \mathfrak E_i=
@@ -75,10 +79,14 @@ $$
 
 Here $M_i$ is the physics model, $U_i$ the canonical local chart,
 $\Omega_i\subset U_i$ the local support, $\psi_i$ the intrinsic geometry map,
-$p_i^{\mathrm{in}}$ and $p_i^{\mathrm{out}}$ the named ports, $A_i$ and $B_i$
-the nominal entrance and exit transforms, $\Delta T_i^{\mathrm{err}}$ the
-static alignment-error transform, $\Delta T_i^{\mathrm{dyn}}(t)$ any
-time-dependent motion, and $\tau_i$ timing metadata.
+and $p_i^{\mathrm{in}}$ and $p_i^{\mathrm{out}}$ the named ports. For the
+displayed active-pose products, define $A_i$ to map canonical element
+coordinates into entrance-port coordinates, and $B_i$ to map exit-port
+coordinates into canonical element coordinates. Products act right to left.
+The static correction $\Delta T_i^{\mathrm{err}}$ and dynamic correction
+$\Delta T_i^{\mathrm{dyn}}(t)$ are expressed in that canonical frame;
+$\tau_i$ denotes timing metadata. These are conventions of the proposed model,
+not the direction of the current stored `CoordinateSystemTrafo` objects.
 
 If $T(p_i^{\mathrm{in}})$ denotes the laboratory-frame pose of the entrance
 port, then the runtime pose of the canonical element frame is
@@ -90,7 +98,7 @@ $$
 The corresponding exit-port pose is
 
 $$
-T(p_i^{\mathrm{out}})=T_i(t)\,B_i .
+T(p_i^{\mathrm{out}},t)=T_i(t)\,B_i .
 $$
 
 ### Transition maps as first-class objects
@@ -100,14 +108,18 @@ of information:
 
 1. the rigid port-to-port patch transform $C_{pq}$ attached to the named
    interface;
-2. the induced chart-change map
-   $g_{ij}(t)=P_i^{-1}(\cdot,t)\circ P_j(\cdot,t)$ when an actual local chart
-   conversion is needed.
+2. the induced change from chart $j$ to chart $i$,
+   $g_{ij}(u_j,t)=P_i^{-1}(P_j(u_j,t),t)$, restricted to points for which
+   $P_j(u_j,t)\in P_i(U_i,t)$ and the local inverse exists.
 
-If the common region is only a glued entrance or exit face, $g_{ij}$ reduces to
-the familiar rigid handoff encoded by $C_{pq}$. If there is volumetric overlap,
-$g_{ij}$ provides a precise way to translate diagnostics, apertures, or
-field-evaluation points from one local chart to the other.
+For compatible Cartesian port frames, the frame change can be represented
+by the rigid patch transform $C_{pq}$. A coordinate change between curved
+element charts also includes their intrinsic maps and need not be rigid:
+
+$$g_{ij}=\psi_i^{-1}\circ T_i^{-1}\circ T_j\circ\psi_j,$$
+
+on the domain where these local maps and inverses exist. Sharing only a face
+does not by itself make the chart-coordinate map rigid.
 
 ### Two complementary coordinate charts
 
@@ -128,11 +140,12 @@ The front-end syntax should compile to the graph-based placement model above.
 The intent is to extend the present manual concepts rather than replace them
 with an unrelated syntax.
 
-| Input notion | Keep or extend | Proposed semantics |
+| Input notion | Current status | Proposed semantics |
 |---|---|---|
-| `LINE` | Keep | Ordered open path in the placement graph; not a separate machine type. |
-| Anchors and explicit placement data | Keep | Explicit anchor pose for a named frame or for the root of a line. |
-| `ELEMEDGE` | Keep as compatibility mode | Reference coordinate only; compile once into explicit transforms and do not use it directly for runtime ownership. |
-| Alignment errors | Keep | Populate the static error transform $\Delta T_i^{\mathrm{err}}$. |
-| Named ports and patches | Add or expose explicitly | Declare interface charts, pure geometry transforms, and closure constraints independently of the physics elements. |
-| Chart and support attributes | Add | Declare `STRAIGHT`, `ARC`, or `USER` intrinsic charts, explicit support regions, and timing metadata. |
+| `LINE` | Implemented ordered sequence | Represent as an ordered open path in the proposed placement graph. |
+| `RING` | Implemented periodic sequence topology | Represent as a cycle; geometric closure and closed-orbit conditions remain separate. |
+| Line origin and explicit element poses | Implemented | Reuse these poses as roots or anchors; generic named free anchors would be an extension. |
+| `ELEMEDGE` | Implemented reference-coordinate placement | Compile into element transforms; keep reference-coordinate bookkeeping distinct from field-support selection. |
+| Alignment errors | Implemented static misalignment transform | Relate the stored parent-to-local transform to the proposed active correction explicitly. |
+| Named ports and patch objects | Proposed extension | Declare interface charts, geometry transforms and closure constraints independently of physics elements. |
+| Generic chart, support and timing attributes | Proposed extension | Define any `STRAIGHT`, `ARC` or `USER` syntax and dynamic timing semantics before exposing them as an input interface. |
