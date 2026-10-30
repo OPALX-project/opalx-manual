@@ -29,7 +29,9 @@ title-block-style: none
 Andreas Adelmann (PSI); Pedro Calvo (CIEMAT); <!-- Achim Gsell (PSI); --> Sriramkrishnan
 Muralikrishnan (JSC); <!-- Philippe Piot (NIU); --> Chris Rogers (RAL); Mohsen Sadr
 (PSI/MIT); Jochem Snuverink (PSI); Jonathan Thompson (RAL); Daniel Winklehner
-(MIT); Yuanjie Bi (Sun Yat-sen University); John Biddiscombe (CSCS/ETH)
+(MIT); Yuanjie Bi (Sun Yat-sen University); John Biddiscombe (CSCS/ETH);
+M. Zampetakis (PSI); R. S. Ammann (PSI/ETH); C. Jolly (RAL);
+S. A. Klapproth (PSI/ETH); A. P. Liemen (PSI/ETH)
 
 ```{=html}
 <div class="institution-grid" aria-label="Contributing institutions">
