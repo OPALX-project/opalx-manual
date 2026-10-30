@@ -41,7 +41,7 @@ where one is available and repeat the run with a smaller time step.
 
 ## A very short active element gives step-dependent results
 
-If an active element is comparable in length to one integration step, some
-particles can enter or leave it on different steps and receive different
-numbers of kicks. Reduce the time step until the observable of interest is
+If an active element's length is comparable to the distance covered in one
+integration step, some particles can enter or leave it on different steps and
+receive different numbers of kicks. Reduce the time step until the observable of interest is
 stable. Treat that convergence check as part of the simulation setup.

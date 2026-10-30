@@ -39,5 +39,5 @@ performance-portable change.
 Pull-request CI includes serial, OpenMP, CUDA, and HIP compilation, with SYCL
 coverage where the runner supports it. Compile workflows run on labeled,
 non-draft pull requests to `master`; use the `compile-ci` label when the change
-is ready for those checks. Fast regression cases are executed with the serial
-artifact and compared to maintained metrics.
+is ready for those checks. Fast regression cases are executed, and their results are compared to
+maintained / trusted results.

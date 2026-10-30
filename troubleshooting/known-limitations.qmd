@@ -25,5 +25,5 @@ last-reviewed: "2026-07-23"
   its own timestep study because its integration and return plane can differ
   from COF's. Explicit `TURNS` currently excludes space charge and RF.
 
-These limitations are documentation status, not a substitute for the issue
-tracker. Report unexpected implemented behavior with a reproducible case.
+These notes describe the current documentation status; they do not replace the
+issue tracker. Report unexpected behavior in implemented features with a reproducible case.
