@@ -9,8 +9,8 @@ last-reviewed: "2026-09-07"
 ::: {.feature-opalx}
 
 `OPTION, ENABLELINEARTRANSFERMAPS=TRUE` enables numerical linear maps during
-the design-reference OrbitThreader pass. This describes the implementation on
-the `546-add-linear-transfer-matrix-to-each-elemen` development branch.
+the design-reference OrbitThreader pass. The implementation uses the
+shared external-field ray tracker and the segmented linear-map builder.
 No analytic element map is used by the calculator: every matrix is reconstructed
 from external-field tracking, including fields supplied by supported field maps.
 Collective fields are excluded; RF cavities and traveling-wave structures are
@@ -59,14 +59,26 @@ $$
 \left(|\mathbf e_s\times\mathbf e_s'|,\mathbf e_s\cdot\mathbf e_s'\right).
 $$
 
+The initial transverse $x$ axis is the enclosing beamline's $x$ axis
+projected perpendicular to the launch tangent and normalized. If that
+projection is nearly zero, the beamline's $y$ axis supplies the fallback.
+The other transverse axis is $\mathbf e_y=\mathbf e_s\times\mathbf e_x$.
+
 There is no added roll about the tangent. Straight sections therefore retain
-their transverse axes without requiring a nonzero curvature.
+their transverse axes without requiring a nonzero curvature. For an exactly
+opposite tangent, the minimum-rotation axis is not unique: the implementation
+retains the previous transverse $x$ axis and reconstructs $y$ from the cross
+product with the new tangent.
 
 ## Finite differences and overlaps
 
 For each coordinate $j$, launch two rays with $X_j=\pm\epsilon_j$ and all
 other coordinates zero. `LINEARTRANSFERMAPSTEPS` sets the six starting amplitudes;
-the defaults are $10^{-3}$ in each coordinate's units. Construct the six columns
+the defaults are $10^{-3}$ in each coordinate's units. Supply exactly six
+finite, positive amplitudes. They must remain nonzero after all requested
+Richardson halvings, and the momentum-offset amplitude must satisfy
+$0<\epsilon_\delta<1$ so that both perturbed momentum magnitudes remain
+positive. Construct the six columns
 
 $$
 D_{\mathrm{in},j}=\frac{X^+_{\mathrm{in},j}-X^-_{\mathrm{in},j}}{2},\qquad
@@ -153,7 +165,9 @@ Three quantities must remain separate:
 
 1. **Design circumference**: $C_{\mathrm{design}}=\sum_i L_i$, counting each
    nominal occurrence once. Bend lengths are design arc lengths (including the
-   chord-to-arc conversion for an RBEND); drifts fill the nominal gaps.
+   chord-to-arc conversion for an RBEND). Declared drift elements contribute
+   their lengths. Spatial gaps or overlaps between independently supplied poses
+   do not add or subtract length automatically.
 2. **Field support**: the spatial domain in which a source contributes to
    $\mathbf E$ and $\mathbf B$. This can extend into a drift, another magnet, or
    across the ring seam, without adding geometric length.
@@ -161,8 +175,11 @@ Three quantities must remain separate:
    transverse plane. It is a closed-orbit circumference only after position and
    momentum closure have been established.
 
-Use explicit 6D entrance poses for new lattices; `ELEMEDGE` is deprecated and is
-not part of this design. `RING` is a beam-sequence declaration, not an element,
+Use explicit 6D entrance poses for new lattices. `ELEMEDGE` remains an
+implemented reference-coordinate placement mode; a beamline must consistently
+use that mode or explicit poses rather than mix them. Both modes produce
+element transforms used by the map calculation.
+`RING` is a beam-sequence declaration, not an element,
 and has no `CIRCUMFERENCE` input attribute. Its computed length does not check
 that the independently supplied 3D poses form a contiguous, closed geometry.
 
@@ -174,8 +191,12 @@ $$
 \mathbf n_{\mathrm{start}}=\mathbf u_{\mathrm{start}}/|\mathbf u_{\mathrm{start}}|,
 $$
 
-in the launch crossing direction, after travelling more than
-$C_{\mathrm{design}}/2$. The crossing is refined by reintegration and bisection.
+in the launch crossing direction. A signed negative-side excursion of more
+than $10^{-9}$ m arms the reference return; the next negative-to-nonnegative
+crossing is refined by reintegration and bisection. For backward threading,
+the signed section distance is reversed with the timestep direction.
+The private shadow-ray exit search uses a separate gate of half the recorded
+reference flight time; that is not the reference-return arming rule.
 Failure to return within $2C_{\mathrm{design}}$ (or four nominal flight times)
 raises an error. This bounded search targets a simple one-circuit ring; it is
 not a general multi-loop return detector or a closed-orbit solver.
@@ -206,8 +227,8 @@ all 36 matrix entries: the three- and four-gap results agree with the five-gap
 result within $10^{-8}$ in the test's coordinate units, while the two-gap cutoff
 produces a resolved change above $10^{-6}$. Nominal lengths and body endpoints
 remain unchanged. These are case-specific assertions, not universal cutoff
-recommendations. The relevant C++ tests pass, including the OrbitThreader suite
-on two ranks. The
+recommendations. The recorded validation included the relevant C++ tests
+and the OrbitThreader suite on two MPI ranks. The
 [six-cell DBA smoke run](map-3-fringe-dba.qmd#map3-six-cell-ring) separately records
 its non-closed reference return.
 
@@ -425,8 +446,9 @@ make the canonical-$J$ test a diagnostic, not a universal invariant. Field
 interpolation, finite differences and state-dependent subdivision also preclude
 an unconditional symplecticity claim.
 
-The source repository's `sandbox/map-2` cases compare all 36 entries against
-closed-form drift, quadrupole, FODO and DBA matrices. The DBA convergence script
+The archived `sandbox/map-2` studies compare all 36 entries against
+closed-form drift, quadrupole, FODO and DBA matrices. These sandbox cases are
+not part of the published source repository. The DBA convergence script
 records stdout with `--info 2`, signed $R_{16}$ and $R_{26}$, determinant and
 canonical-$J$ residuals, and the difference from the finest numerical map.
 That last comparison helps distinguish time discretization from the fixed
@@ -668,6 +690,9 @@ OMP_NUM_THREADS=1 OMP_PROC_BIND=false \
 ```
 
 Without the map environment variable this optional machine benchmark is skipped.
+Run this machine benchmark on one MPI rank; it explicitly rejects multi-rank
+execution. The separate command-level MPI regressions test status propagation
+and are not this optional machine study.
 The static 72 MeV proton case starts from the first legacy `ic.dat` row,
 $(r,p_r,y,p_y)=(2.1314,-0.00024,0,0)$ in metres and mechanical $p/(mc)$.
 The section is global $Z=0$, with positive-$Z$ return. The trim profile uses

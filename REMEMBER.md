@@ -58,8 +58,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | `DOC-CREDITS` | Synchronize developer credits with the current paper authors | When the paper author list changes or before a release | Active opalx-paper/main.tex authors compared with front-page credits after the paper pull on 2026-10-30; five missing authors added | Recheck after author-list changes; preserve existing developer credits |
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Spin tracking, decay processes, bend and multipole sections on 2026-10-29; focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Continue chapters 28–35 audit: chapter 28 completed on PR #23 (02 rejected, 06 deleted); all twelve chapter 29 findings applied. Chapters 30–35 remain; next is chapter 30. Preserve prior CAIN/source-frame follow-ups. |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Spin tracking, decay processes, bend and multipole sections on 2026-10-29; focused external magnetic-field superposition and cyclotron terminal RF endpoint semantics on 2026-10-25; focused field-solver P3M, cathode-image and binning sections on 2026-10-22; focused Beam-Beam section removal/download update on 2026-10-06; full chapter review 2026-10-04 | Continue chapters 28–35 audit: PH-28-01/03–37 applied (06 deleted), 02 rejected; PH-28-37 marks probes as work in progress. All presented decisions resolved. Chapters 29–35 remain. Preserve prior CAIN/source-frame follow-ups. |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Chapters 28–35 reviewed on 2026-10-30; accepted/custom decisions applied | PH-35-03 remains a red proposal for colleague review; rejected wording retained. Preserve prior CAIN/source-frame follow-ups. |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
 | `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions |
@@ -1713,3 +1712,46 @@ Use this template for subsequent entries:
 
 - User accepts the concise Work in progress notice and intended-model opening for cyclotron PROBE. Apply only those changes; preserve every equation and all remaining diagnostic text.
 - Exact replacement and focused diff reviewed; manual validator (56 chapters), whitespace and chapter HTML render pass. No pending presented review decisions; changes remain local and uncommitted.
+
+### 2026-10-30 — apply accepted chapter 30 Physics audit
+
+- Apply PH-30-01–06, all six user-accepted findings (ten exact replacements) across the Elements chapter and its bend/multipole sections. Clarify rectangular-bend frames, rigidity units, fringe signs and normalization, profile restrictions, multipole error-array alignment and synchronous-orbit energy balance. Preserve experimental status and update the completed review date.
+- Source review uses origin/master 9a14973b0030355e1291159281c5ed8e66c3ea56; the active OPALX feature branch is older and is preserved. No code or numerical tolerance changes. Validation passes: 56-chapter source validator, chapter HTML render, exact reconstruction of all ten accepted replacements and whitespace checks. Diff reviewed; no code or simulation tests needed for this documentation-only change. No commit or push requested for this application.
+
+### 2026-10-30 — apply chapter 31 Physics decisions
+
+- Apply six accepted findings and custom PH-31-02 (nine replacements); preserve rejected PH-31-05 exactly. Preserve custom words verbatim, using LaTeX delimiters for the exponent only. Clarify chapter title, RF execution/median-plane restrictions, EKINSTOP sequencing, tune normalization and archived study provenance.
+- Retain experimental status and the previous review date: the rejected RF/PIC paragraph remains a known discrepancy with refreshed origin/master 9a14973b. Preserve chapter 30 edits and other shared-checkout work. No code, tolerances or archived-script execution. Validation passes: 56-chapter source validator, chapter HTML render, exact decision reconstruction, preservation of rejected text and whitespace checks. Diff reviewed. No commit or push.
+
+### 2026-10-30 — apply accepted chapter 32 Physics audit
+
+- Apply PH-32-01–08 (nine exact replacements): current map interface, perturbation constraints, initial transverse-frame convention, declared ring length, ELEMEDGE availability, reference-return arming, sandbox provenance and recorded validation scope. Preserve chapter 30/31 edits.
+- Review against origin/master 9a14973b; no code, tolerances or study-script execution. Retain experimental status and previous review date: Hairer and CERN source URLs could not be independently retrieved during the external-reference check. Validation passes: 56-chapter source validator, chapter HTML render, exact reconstruction of all nine accepted replacements, preserved chapter 30/31 hashes and whitespace checks. Diff reviewed. No commit or push.
+
+### 2026-10-30 — apply accepted chapter 33 Physics findings
+
+- Apply PH-33-01–05 (nine exact replacements). Clarify title, archived source matching, sandbox provenance, planar/aperture scope and saltation assumptions. PH-33-06 remains pending; retain its original citation URL. Preserve previous and concurrent edits.
+- Keep experimental status and prior review date while the audit decision is incomplete. No code, tolerances, simulations or recovered-script execution. Validation passes: 56-chapter source validator, chapter HTML render, exact reconstruction of nine approved replacements and whitespace checks. Focused diff reviewed. No commit or push.
+
+### 2026-10-30 — finish chapter 33 link decision
+
+- Apply custom PH-33-06 using the exact link label JACoW proceedings and the verified proceedings PDF URL. All chapter 33 decisions are now applied. Preserve unrelated changes; no commit or push.
+
+### 2026-10-30 — apply accepted chapter 34 Physics audit
+
+- Apply PH-34-01–03: distinguish collective fields from related material interactions, document MIDPOINT/PRESTEP sampling, and qualify the Beam-Beam verification example with a direct section link. Keep planned status; update the completed short-page review date. Preserve all earlier and concurrent edits.
+- No code, numerical tolerances or simulations changed. Validation passes: 56-chapter source validator, chapter HTML render, exact accepted-replacement reconstruction and whitespace. Focused diff reviewed. No commit or push. Chapter 35 is the remaining chapter in this audit scope.
+
+### 2026-10-30 — apply resolved chapter 35 Physics decision
+
+- Apply PH-35-01: describe ZEROFACE_MAXSTEPS as a fixed configured step cutoff, zero indefinite, without an automatic image-field negligibility test. Keep original material for PH-35-02, 04 and 05. PH-35-03 remains unresolved and unchanged; preserve planned status and review date. Audit scope ends at chapter35.
+- Preserve earlier and concurrent edits. No code changes, solver runs, recovered-script execution, commit or push.
+- Validation passes: 56-chapter source validator, chapter35 HTML render, exact replacement reconstruction, retained-original assertions and whitespace check. Focused diff reviewed. PH-35-03 is the sole unresolved chapter35 decision.
+
+### 2026-10-30 — annotate PH-35-03 for colleague review
+
+- At user request, add the PH-35-03 proposal in a red review callout in chapter35, preserving the original CM subsection and downstream exception. Treat PH-05-03 as the contextual PH-35-03 identifier. This is a review annotation, not acceptance of the replacement. Preserve metadata, other audit decisions and concurrent edits. No commit or push.
+
+### 2026-10-30 — publish chapters 30–35 Physics audit
+
+- Publish accepted/custom chapter30–34 corrections and PH-35-01. Preserve rejected wording; PH-35-03 remains a red proposal for colleague review beside the original. Chapter28/29 already merged. Exclude separate terminology/punctuation edits. No code or numerical tolerances changed; archived scripts were not executed.

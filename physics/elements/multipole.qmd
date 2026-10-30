@@ -63,12 +63,23 @@ accepts the coefficient arrays:
 - `DKS`: skew strength errors
 
 Each array may have at most five entries, and the first (dipole) entry of each
-must be zero. `MULTIPOLE` is placed as a straight element, so a dipole term
-would steer the beam away from it; use `SBEND` or `RBEND` instead.
+must be zero. Before combining coefficients, `DKN` is resized to the length
+of `KN`, and `DKS` to the length of `KS`: missing error entries become zero,
+and excess error entries are discarded. To give an error to a nominally zero
+higher-order term, include its zero entry in the corresponding nominal array.
+`MULTIPOLE` is placed as a straight element, so a dipole term would steer the
+beam away from it; use `SBEND` or `RBEND` instead.
 
 At update time the strengths and their errors are added and converted to field
 coefficients with the rigidity $P_0/c$ from the global `P0` (GeV/$c$, default
-1):
+1). With `P0` in GeV/$c$, the rigidity factor used here is
+$$
+\mathcal R_0[\mathrm{T\,m}]
+=\frac{P_0[\mathrm{GeV}/c]}{0.299792458}.
+$$
+The implementation obtains this factor by converting `P0` to eV/$c$ before
+dividing by $c$ in m/s. Thus the following $P_0/c$ factors denote
+$\mathcal R_0$:
 $$
 B_n = \frac{P_0}{c}\,\frac{K_n + \Delta K_n}{n!},
 \qquad
