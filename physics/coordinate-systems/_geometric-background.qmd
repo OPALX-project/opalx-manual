@@ -45,9 +45,17 @@ $$
 $$
 
 is the local support on which the field, aperture, material, or map model is
-defined. The local block picture is not yet the lab-frame placement. A
-placement map $P_i$ rotates and translates that local description into the
-laboratory frame.
+defined. The intrinsic geometry map and the placed map are distinct. In the proposed
+notation, let $T_i(t)$ map Cartesian coordinates in the canonical element
+frame into laboratory coordinates. Then
+
+$$P_i(u_i,t)=T_i(t)\,\psi_i(u_i).$$
+
+Here the rigid transform acts on the Cartesian point produced by $\psi_i$;
+it is not generally a rigid map of curvilinear coordinates $u_i$ themselves.
+The current `CoordinateSystemTrafo::transformTo()` uses the opposite direction,
+from parent coordinates into local coordinates; its inverse corresponds to
+the local-to-laboratory rigid map above.
 
 ::: {.content-visible when-format="html"}
 ![Local versus placed descriptions of an element: (a) a local chart with support $\Omega_i \subset U_i$ and ports $p_{i,\mathrm{in}}$ and $p_{i,\mathrm{out}}$; and (b) the corresponding placement in laboratory space obtained by the rigid placement map $P_i$.](figures/local-placement.svg){#fig-coordinate-local-placement width="100%"}
@@ -65,14 +73,12 @@ laboratory frame.
 
 ### Ports
 
-A *port* is a distinguished interface chart on the boundary of that support. If
+A *port* is a distinguished geometric interface chart with an adapted frame.
+It need not be a boundary of the field support. If
 
-$$
-\Sigma_{i,\alpha}\subset\partial\Omega_i
-$$
+$$\Sigma_{i,\alpha}\subset\overline{U_i}$$
 
-is a marked boundary patch and $F_{i,\alpha}$ is an adapted frame attached to
-that patch, then
+is such an interface and $F_{i,\alpha}$ is its adapted frame, then
 
 $$
 p_{i,\alpha}=(\Sigma_{i,\alpha},F_{i,\alpha})
@@ -100,21 +106,26 @@ additional named interface charts, but they do not change the basic definition.
 
 ### Transition maps and closure
 
-When two local descriptions are joined, the relevant datum is a transition map
-between charts. On an overlap or a common interface one may write
+At a fixed time, the transition from local chart $j$ into chart $i$ is
 
-$$
-g_{ij}=P_i^{-1}\circ P_j .
-$$
+$$g_{ij}(u_j,t)=P_i^{-1}(P_j(u_j,t),t).$$
 
-If the connection is localized to named ports $p$ and $q$, the same datum can
-be stored as a rigid port-to-port patch transform $C_{pq}$. In that sense, the
-port notion is not an additional physical ingredient. It is the
-implementation-level representative of a chosen interface chart.
+It is defined only where the placed charts overlap and $P_i$ has a local
+inverse. Restrict the maps to a compatible interface when only a face is
+shared; a global inverse over an entire ring or all element charts is not assumed.
 
-This language is particularly useful for rings. Transporting local frames
-around a full loop need not return one to the original frame with the identity
-transform. The residual closure transform is part of the geometry. This is the
-fibre-bundle point emphasized by Forest and Hirata: one should not force one
-global chart when the machine is naturally assembled from local ones
-[@foresthirata].
+For compatible Cartesian port frames, store their rigid frame change as
+$C_{pq}$. For general local charts, retain the intrinsic-coordinate maps as
+well; the full $g_{ij}$ need not be rigid. This separates the proposed
+port-frame connection from the coordinate representation used inside each element.
+
+For rings, distinguish the geometric closure of the placed machine from the
+rotation accumulated by a transported frame. Forest and Hirata discuss a
+nontrivial rotation of a parallel-transported frame that requires a matching
+transformation to close the coordinate description [@foresthirata]. This
+does not license a physical gap between the ends of a full ring.
+
+A nonidentity residual must be identified as frame transport, an intentional
+sector/symmetry identification, or a geometric closure mismatch. Current
+OPALX `RING` declares periodic sequence topology; it does not by itself
+validate three-dimensional geometric closure or find a closed orbit.
