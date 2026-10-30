@@ -73,44 +73,13 @@ time, not a proper-time interval; the time-dilation factor $\gamma$
 performs the conversion. For the small per-step decay probabilities
 typical in storage-ring or beamline applications,
 $1 - e^{-x} \approx x$, so this reduces to the familiar
-$p \approx \Delta t / (\gamma\tau_0)$ — but the exponential form
-remains correct for the rare large-$\Delta t$ steps near a stopper or
-beam dump.
-
-
-:::: {.callout-note #ph-37-04-colleague-review title="PH-37-04 — State the frozen-gamma and end-of-step decay approximation"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-remains correct for the rare large-$\Delta t$ steps near a stopper or
-beam dump.
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-remains exact for a constant $\gamma$ during the interval. OPALX evaluates
-$\gamma$ from the post-transport momentum and places daughters at the
-end-of-step position; it does not sample the decay time within the step.
-For varying momentum, the continuous survival exponent would be
-$-\int dt/[\gamma(t)\tau_0]$. Reduce the timestep when momentum changes
-appreciably or when the decay position matters. Nonpositive tracker timesteps
-produce no decays.
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** The exponential avoids the small-probability linearization, but it does not make a frozen-gamma/end-point algorithm exact for an arbitrarily large step through a changing trajectory or stopping material.
-
-**Code behavior:** Decay::apply returns zero for dt<=0; markDecayedParticles uses the supplied tracker dt and current P. Daughter R is copied from the parent after transport, without a sampled substep decay time.
-
-**Evidence:**
-
-- [origin/master:src/Processes/GlobalProcesses/Decay.cpp — apply, markDecayedParticles, collectDecayedParents]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Processes/GlobalProcesses/Decay.cpp)
-- [origin/master:src/Algorithms/ParallelTracker.cpp — global processes after timeIntegration2]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Algorithms/ParallelTracker.cpp)
-- [origin/master:src/Processes/GlobalProcesses/MuonDecay.cpp — daughter R assignment]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Processes/GlobalProcesses/MuonDecay.cpp)
-:::
-::::
+$p \approx \Delta t / (\gamma\tau_0)$. The exponential form is also
+correct for large $\Delta t$, but only if $\gamma$ is constant during the step. 
+OPALX takes $\gamma$ from the momentum at the end of
+the step and does not pick a decay time inside the step, so a daughter
+always starts at the end-of-step position. For signigiant change in the momentum
+during a timestep, or when the decay position matters, reduce `DT`. A step
+with $\Delta t \le 0$ gives no decays.
 
 ## Pion decay: $\pi^\pm \to \mu^\pm + \nu_\mu$ {#sec-pion-decay}
 
@@ -142,9 +111,10 @@ $\vec p^{\,*}_\mu = p^*\,(\sin\theta^*\cos\phi^*,
 
 The decay $\pi \to \mu\,\nu_\mu$ proceeds through the V-A charged
 current. In the pion rest frame the neutrino is massless and emerges
-with definite helicity ($-$ for $\nu_\mu$, $+$ for $\bar\nu_\mu$);
-angular-momentum conservation with the spin-$0$ pion then forces the
-muon to carry the *opposite* helicity. The resulting muon polarization
+with definite helicity ($-$ for $\nu_\mu$, $+$ for $\bar\nu_\mu$).
+The pion has spin $0$, so the muon spin points opposite to the neutrino
+spin. The muon also moves opposite to the neutrino, so it has the
+*same* helicity as the neutrino. The resulting muon polarization
 vector in the muon rest frame is therefore
 $$
   \vec P_\mu = h\,\hat p^{\,*}_\mu,
@@ -177,38 +147,6 @@ where $\vec u_\mu$ is the muon lab momentum in $\beta\gamma$ units and
 $\gamma_\mu = \sqrt{1 + |\vec u_\mu|^2}$. For a pion at rest this
 reduces to $\vec P_\mu = h\,\hat p^{\,*}_\mu$.
 
-
-:::: {.callout-note #ph-37-01-colleague-review title="PH-37-01 — Correct the pion-decay helicity explanation"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-angular-momentum conservation with the spin-$0$ pion then forces the
-muon to carry the *opposite* helicity.
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-angular-momentum conservation with the spin-$0$ pion requires opposite
-spin directions for the two back-to-back daughters. Their helicities are
-therefore the same: negative for $\pi^+\to\mu^+\nu_\mu$ and positive for
-$\pi^-\to\mu^-\bar\nu_\mu$.
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** Opposite spin directions with opposite momentum directions give the same helicity, not opposite helicity. Repair the prose without changing the correct sampler signs.
-
-**Code behavior:** Master uses helicitySign=+1 for negative pions and -1 for positive pions, then transforms the muon spin four-vector. The existing displayed h signs are correct and remain unchanged.
-
-**Evidence:**
-
-- [origin/master:src/Processes/GlobalProcesses/PionDecay.cpp — helicitySign and boosted spin]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Processes/GlobalProcesses/PionDecay.cpp)
-- [origin/master:unit_tests/Processes/GlobalProcesses/TestDecay.cpp — PionDecayMuonSpinIsHelicityInPionRestFrame]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/unit_tests/Processes/GlobalProcesses/TestDecay.cpp)
-- Angular-momentum conservation for a spin-zero parent; existing displayed pion helicity equation
-:::
-::::
-
 ## Muon decay: $\mu^\pm \to e^\pm + \nu + \bar\nu$ {#sec-muon-decay}
 
 Muon decay is a three-body weak process. With two unobserved
@@ -231,7 +169,12 @@ $$ {#eq-michel-spectrum}
 with the kinematic threshold $x_{\min} = m_e / (m_\mu / 2)
 \approx 9.7\times 10^{-3}$. The spectrum peaks at $x = 1$ with
 $f_{\max} = 2$. OPALX samples $x$ by rejection against this upper
-bound.
+bound. Because $x$ starts at $x_{\min}$ and not at $0$, the integral of
+$f$ over this range is
+$$
+  Z = \int_{x_{\min}}^{1} f(x)\,dx = 1 - 2x_{\min}^3 + x_{\min}^4 ,
+$$ {#eq-michel-norm}
+slightly below $1$, and the normalized spectrum is $f/Z$.
 
 ### Joint distribution and the V-A asymmetry
 
@@ -270,7 +213,7 @@ $$ {#eq-muon-cdf}
 For $u \sim U(0, 1)$, setting $F(c) = u$ gives the quadratic
 $$
   \frac{\alpha}{4}\,c^{2} + \frac{1}{2}\,c
-  - \Big(\frac{\alpha}{4} + \frac{1}{2} - u\Big) = 0,
+  + \Big(\frac{1}{2} - \frac{\alpha}{4} - u\Big) = 0,
 $$ {#eq-muon-cosCDF}
 solved analytically and the root in $[-1, 1]$ selected. The degenerate
 limit $\alpha \to 0$ (unpolarized muon or zero V-A asymmetry at
@@ -287,104 +230,6 @@ to (the bunch-frame axes, the same as the momentum's, see the
 spin-tracking section); the rotated rest-frame momentum is fed to the Lorentz boost
 of the next section.
 
-
-:::: {.callout-note #ph-37-02-colleague-review title="PH-37-02 — Fix the constant term in the inverse-CDF quadratic"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-  \frac{\alpha}{4}\,c^{2} + \frac{1}{2}\,c
-  - \Big(\frac{\alpha}{4} + \frac{1}{2} - u\Big) = 0,
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-  \frac{\alpha}{4}\,c^{2} + \frac{1}{2}\,c
-  + \Big(\frac{1}{2} - \frac{\alpha}{4} - u\Big) = 0,
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** The printed equation has the wrong signs on the constant 1/2 and u. It contradicts both the preceding CDF and the implementation.
-
-**Code behavior:** MuonDecay.cpp uses cQ=0.5-alpha/4-u. At alpha=0 the correct equation is c/2+1/2-u=0, giving c=2u-1, as the prose states.
-
-**Evidence:**
-
-- [origin/master:src/Processes/GlobalProcesses/MuonDecay.cpp — aQ, bQ, cQ]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Processes/GlobalProcesses/MuonDecay.cpp)
-- Chapter37 eq-muon-cdf and eq-muon-cosCDF; independent algebraic residual check
-:::
-::::
-
-
-:::: {.callout-note #ph-37-03-colleague-review title="PH-37-03 — Normalize the truncated Michel distribution consistently"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording (1/4):**
-
-  f(x) = 2\,x^2\,(3 - 2x), \qquad x \in [x_{\min}, 1],
-
-::: {style="color: #c00000;"}
-**Accepted correction (1/4):**
-
-  f(x) = 2\,x^2\,(3 - 2x), \qquad x \in [x_{\min}, 1],
-  \qquad Z=\int_{x_{\min}}^1 f(x)\,dx
-  =1-2x_{\min}^3+x_{\min}^4,
-:::
-
-**Original wording (2/4):**
-
-with the kinematic threshold
-
-::: {style="color: #c00000;"}
-**Accepted correction (2/4):**
-
-where $f$ is the rejection-sampling weight and the normalized energy
-marginal on this interval is $f/Z$. The kinematic threshold is
-:::
-
-**Original wording (3/4):**
-
-  accepted against $f_{\max} = 2$. Since $\int_0^1 f(x)\,dx = 1$, about
-  half of the draws are accepted.
-
-::: {style="color: #c00000;"}
-**Accepted correction (3/4):**
-
-  accepted against $f_{\max} = 2$. The acceptance probability is
-  $Z/[2(1-x_{\min})]$, approximately one half.
-:::
-
-**Original wording (4/4):**
-
-  histogram with $\tfrac12(1 + A\,c)$, where $A = s\,|\vec P|/3$ is
-  the asymmetry of [@eq-muon-asymmetry] averaged over $x$, and checks
-
-::: {style="color: #c00000;"}
-**Accepted correction (4/4):**
-
-  histogram with $\tfrac12(1 + A\,c)$, using the finite-threshold coefficient
-  $$
-  A=s\,|\vec P|\,
-  \frac{\tfrac13+\tfrac23x_{\min}^3-x_{\min}^4}
-       {1-2x_{\min}^3+x_{\min}^4}.
-  $$
-  This tends to $s\,|\vec P|/3$ as $x_{\min}\to0$. The test also checks
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** The current text mixes the massless [0,1] normalization with the implemented truncated interval and describes an approximate asymmetry as the exact test oracle. The numerical change is small, but the mathematical and test descriptions should agree.
-
-**Code behavior:** The implementation samples on [xMin,1]. TestMuonDecaySpectrum computes michelNormalization(a) and angularAsymmetryNumerator(a) explicitly and compares against their ratio.
-
-**Evidence:**
-
-- [origin/master:unit_tests/Physics/TestMuonDecaySpectrum.cpp — michelNormalization, angularAsymmetryNumerator, integratedAsymmetry]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/unit_tests/Physics/TestMuonDecaySpectrum.cpp)
-- [origin/master:src/Processes/GlobalProcesses/MuonDecay.cpp — xMin and rejection loop]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/src/Processes/GlobalProcesses/MuonDecay.cpp)
-- [Reference](https://pdg.lbl.gov/2024/reviews/rpp2024-rev-muon-decay-params.pdf)
-:::
-::::
 
 ## Lorentz boost to the lab frame {#sec-decay-boost}
 
@@ -428,8 +273,8 @@ sampling of the Michel spectrum; everything else is closed-form.
   are compacted into a dense view of $(\vec R, \vec P,
   \Delta t, \vec P_{\text{pol}})$ tuples by a Kokkos parallel scan.
 - **Michel $x$.** $x$ is drawn uniformly on $[x_{\min}, 1]$ and
-  accepted against $f_{\max} = 2$. Since $\int_0^1 f(x)\,dx = 1$, about
-  half of the draws are accepted.
+  accepted with probability $f(x)/f_{\max}$, with $f_{\max} = 2$. The
+  fraction of draws accepted is $Z/[2(1 - x_{\min})]$, about one half.
 - **Muon $\cos\theta$.** Closed-form root of [@eq-muon-cosCDF] —
   no rejection, no iteration.
 - **Pion $\cos\theta$.** A single uniform draw.
@@ -466,9 +311,15 @@ generated daughters against the analytic forms above.
 - **Muon decay.** [TestMuonDecaySpectrum.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Physics/TestMuonDecaySpectrum.cpp)
   decays $10^5$ fully polarized muons at rest, with $x$ sampled from
   the full Michel spectrum. It compares the daughter $\cos\theta$
-  histogram with $\tfrac12(1 + A\,c)$, where $A = s\,|\vec P|/3$ is
-  the asymmetry of [@eq-muon-asymmetry] averaged over $x$, and checks
-  that the mean $\cos\theta$ has the sign of the muon charge. It runs
+  histogram with $\tfrac12(1 + A\,c)$, where $A$ is $\alpha(x)$ of
+  [@eq-muon-asymmetry] averaged over $x \in [x_{\min}, 1]$,
+  $$
+    A = s\,|\vec P|\,
+        \frac{\tfrac13 + \tfrac23 x_{\min}^3 - x_{\min}^4}{Z} ,
+  $$
+  with $Z$ from [@eq-michel-norm]. Since $x_{\min}$ is small, $A$ is
+  close to $s\,|\vec P|/3$. The test also checks that the mean
+  $\cos\theta$ has the sign of the muon charge. It runs
   for $\mu^-$ and $\mu^+$.
   [TestMuonDecay.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Physics/TestMuonDecay.cpp)
   checks the Michel spectrum and its limits.
@@ -476,39 +327,12 @@ generated daughters against the analytic forms above.
 - **Decay process.** [TestDecay.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Processes/GlobalProcesses/TestDecay.cpp)
   checks the decay law and its momentum dependence, reproducibility
   with the same seed, removal without a daughter beam, daughter
-  position and count, energy conservation for boosted parents, the
-  daughter species check, and the pion-daughter spin of
+  position and count, that daughter muons from moving pions satisfy
+  $E^2 = p^2 + m_\mu^2$, the daughter species check, and the
+  pion-daughter spin of
   [@eq-pion-spin-rest].
   [TestDecayChain.cpp]({{< meta source-code-url >}}/blob/master/unit_tests/Track/TestDecayChain.cpp)
   checks how decay chains are resolved from `DAUGHTERBEAM` and that
   invalid settings are rejected.
 
 These tests run as part of the ctest suite.
-
-:::: {.callout-note #ph-37-05-colleague-review title="PH-37-05 — Describe what the boosted-daughter test actually verifies"}
-
-Accepted audit correction, shown with the original for colleague review.
-
-**Original wording:**
-
-  position and count, energy conservation for boosted parents, the
-  daughter species check, and the pion-daughter spin of
-
-::: {style="color: #c00000;"}
-**Accepted correction:**
-
-  position and count, finite positive on-shell muon energies for boosted
-  pion parents, the daughter species check, and the pion-daughter spin of
-:::
-
-::: {style="color: #c00000;"}
-**Justification:** A mass-shell identity is not an independent energy-conservation test. Limit this validation claim to the actual assertions.
-
-**Code behavior:** Despite its name, PionDecayBoostedConservesEnergy checks E^2=p^2+m_mu^2 and finite positive daughter energy. It does not reconstruct a neutrino or independently compare the sum of daughter energies with the parent energy. The separate spectrum tests check the boosted box distribution.
-
-**Evidence:**
-
-- [origin/master:unit_tests/Processes/GlobalProcesses/TestDecay.cpp:579–612 — PionDecayBoostedConservesEnergy]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/unit_tests/Processes/GlobalProcesses/TestDecay.cpp)
-- [origin/master:unit_tests/Physics/TestPionDecaySpectrum.cpp — boosted flat-box spectrum]({{< meta source-code-url >}}/blob/9a14973b0030355e1291159281c5ed8e66c3ea56/unit_tests/Physics/TestPionDecaySpectrum.cpp)
-:::
-::::
