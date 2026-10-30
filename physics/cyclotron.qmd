@@ -226,7 +226,7 @@ K=(\sqrt{1+|\mathbf p|^2}-1)M\ \geq\ 10^9\,\mathrm{EKINSTOP}.
 $$
 
 The criterion is checked immediately after each complete RF kick, including a
-decelerating harmonic kick. The tracker never applies a fractional RF impulse.
+decelerating harmonic kick. The tracker never applies a fractional RF kick.
 It first advances a trial reference over the requested step and retains its
 state and terminal-gap duration. It then advances the single physical particle
 independently over the requested duration. That particle may stop at its own

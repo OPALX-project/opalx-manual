@@ -804,7 +804,7 @@ particle initially on the detector is not recorded until it leaves and returns.
 A 1 nm excursion from the detector plane arms the next crossing and suppresses
 near-plane jitter. Crossings are interpolated between accepted particle states.
 Choose `DT` small enough to resolve each crossing and keep the probe away from
-RF impulse planes; see [crossing accuracy](../physics/overview/index.qmd#cyclotron-probe-diagnostics).
+RF kick planes; see [crossing accuracy](../physics/overview/index.qmd#cyclotron-probe-diagnostics).
 
 For basename `radial-probe`, the outputs are:
 
