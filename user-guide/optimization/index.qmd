@@ -202,7 +202,7 @@ measurement-derived quantities.
 
 ### Example Input File
 
-[**UG-23-01:** The retained OPAL documentation includes a full example based on the files]{.ug-audit-other #ug-23-01}
+[The retained OPAL documentation includes a full example based on the files]{#ug-23-01}
 [05-DL_QN3.in](examples/05-DL_QN3.in) and
 [tmpl/05-DL_QN3.tmpl](examples/tmpl/05-DL_QN3.tmpl). The example optimizes three
 quadrupole strengths through `DVAR` definitions, evaluates beam statistics as

@@ -56,23 +56,19 @@ Line attributes:
 
 Instead of referring directly to an element, a beamline member can refer to
 another named beam line. This provides shorthand notation for repeated lattice
-segments. [**UG-15-03:** Define each element and named sub-line before the `LINE` that uses it; members are resolved when the line definition is parsed.]{.ug-audit-other #ug-15-03}
+segments. [Define each element and named sub-line before the `LINE` that uses it; members are resolved when the line definition is parsed.]{#ug-15-03}
 
 Example:
 
 
 
-:::::: {.ug-audit-other #ug-15-04}
-**UG-15-04 — Technical / units / links**
+:::::: {#ug-15-04}
 
 ```text
 S: LINE = (C, D, E);
 L: LINE = (A, B, S, B, A, S, A, B);
 ```
 ::::::
-
-
-
 [This expands in two steps.]{#ug-15-05}
 
 1. Replace `S` by its definition:

@@ -181,8 +181,7 @@ $$ {#eq-wake-stencil-odd}
 
 
 
-:::::: {.ug-audit-other #ug-20-02}
-**UG-20-02 — Technical / units / links**
+:::::: {#ug-20-02}
 
 At interior points with spacing $h$, the derivative uses the fourth-order
 centred stencil
@@ -193,9 +192,6 @@ $$ {#eq-wake-stencil-derivative}
 
 The smoothing filter is then applied to the derivative.
 ::::::
-
-
-
 For the FFT-based smoothers, the line-density Fourier coefficients are
 computed, high-frequency content is removed according to the chosen criterion,
 and the smoothed profile is reconstructed by inverse transform.
