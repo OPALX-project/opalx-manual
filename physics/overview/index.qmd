@@ -333,15 +333,15 @@ classDiagram
     +execute()
     +timeIntegration1(pusher)
     +timeIntegration2(pusher)
-    +computeSpaceChargeFields(step)
-    +computeExternalFields(oth)
+    +computeSpaceChargeFields(sourceOth)
+    +computeExternalFields(oths)
     +emitFromEmissionSources(t, dt)
     +updateReference(pusher)
   }
 
   class PartBunch {
-    +bunchUpdate()
-    +computeSelfFields()
+    +updateAllParticleMoments()
+    +calcBeamParameters()
     +incrementT()
     +getParticleContainer(i)
   }
@@ -390,11 +390,11 @@ active field in the element's local frame. Explicit placement uses translations
 and rotations; reference-line attributes may be compiled into the same spatial
 representation where supported by the element.
 
-At runtime `OrbitThreader` queries the active supports near the reference
-particle. Each particle container is transformed into an active element's local
-frame for field evaluation and then transformed back. This permits overlapping
-field supports without assigning every longitudinal position to a single
-element.
+At runtime, ordinary element selection uses each container’s `OrbitThreader`
+support query. Compatible analytic rings instead select candidates from
+particle positions using spatial support tests. Each selected element is
+evaluated with its local frame and support condition. This permits overlapping
+field supports without assigning every longitudinal position to a single element.
 
 Element length, field support, and aperture are distinct concepts. Models that
 need a finite transverse extent must define it through their supported geometry
@@ -543,9 +543,10 @@ a fringe-field correction to the placement path length.
 ### Orbit Threader and Autophasing {#sec.opalt.sec.orbitthreader}
 
 The `OrbitThreader` integrates a design particle through the lattice and
-builds an interval-based occupancy map (`IndexMap`). Furthermore when the
-reference particle hits an rf-structure for the first time then it
-auto-phases the rf-structure, see Appendix Auto-phasing Algorithm. The multi map structure speeds up the
+builds an interval-based occupancy map (`IndexMap`). If autophasing is enabled, `OrbitThreader` invokes the cavity autophaser
+on first encounter with supported `RFCAVITY` and `TRAVELINGWAVE` elements.
+Cavities with `APVETO` retain their configured phase. See the
+[autophasing appendix](../../user-guide/appendix/autophase/index.qmd). The multi map structure speeds up the
 search for elements that influence the particles at a given position in
 3D space by minimizing the looping over elements when integrating an
 ensemble of particles. For each time step, `IndexMap` returns a set of
@@ -907,8 +908,14 @@ as the field vanishes. It is not an implemented variable-radius `MULTIPOLET` mod
 
 ### Cyclotron segment diagnostics {#cyclotron-probe-diagnostics}
 
-The cyclotron [PROBE](../../user-guide/elements.qmd#probe) applies the accepted
-endpoint interpolation above in both directions. Its legacy endpoint names
+::: {.callout-note title="Work in progress"}
+Cyclotron `PROBE` support is work in progress. The following describes the
+intended diagnostic model; implementation details and output conventions may
+change.
+:::
+
+The intended cyclotron [PROBE](../../user-guide/elements.qmd#probe) model uses
+the accepted-endpoint interpolation above in both directions. Its legacy endpoint names
 $(XSTART,YSTART)$ represent laboratory $(x,z)$; the laboratory $y$ coordinate is
 vertical. Let $\mathbf a=(x_a,0,z_a)$ and $\mathbf b=(x_b,0,z_b)$ be the
 segment endpoints [m], $\mathbf d=\mathbf b-\mathbf a$, and
