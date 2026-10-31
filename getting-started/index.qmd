@@ -3,7 +3,7 @@ title: "Install and Build OPALX"
 description: "Run OPALX with Docker or build a serial, OpenMP, CUDA, or HIP executable from source."
 audience: user
 status: current
-last-reviewed: "2026-10-30"
+last-reviewed: "2026-10-31"
 ---
 
 
@@ -36,7 +36,45 @@ The public image can be pulled without a GitHub account or `docker login`.
 Docker Desktop runs the Linux container on macOS. Allocate enough memory and
 CPUs in Docker Desktop for your simulation.
 
-### Run a simulation
+Check that the image matches your Mac:
+
+```bash
+docker run --rm --entrypoint uname ghcr.io/opalx-project/opalx:cpu -m
+```
+
+Expect `aarch64` on Apple silicon and `x86_64` on Intel. If an Apple silicon
+Mac reports `x86_64`, check whether `DOCKER_DEFAULT_PLATFORM` is set to
+`linux/amd64`; this selects an Intel image that runs under slower emulation.
+Unset that variable with `unset DOCKER_DEFAULT_PLATFORM`, then pull the image
+again to select the native architecture.
+
+### Run a first example {#docker-first-example}
+
+With Docker running, clone the regression inputs into a working directory of
+your choice and run the small drift example. This step also requires Git
+(check with `git --version`). On a Mac, `xcode-select --install` installs the
+Command Line Tools, including Git, if needed.
+
+```bash
+git clone --depth=1 https://github.com/OPALX-project/regression-tests-x.git
+cd regression-tests-x/RegressionTests/Drift-1-fromfile
+
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e OMP_NUM_THREADS=1 \
+  -v "$PWD:/data" \
+  ghcr.io/opalx-project/opalx:cpu Drift-1-fromfile.in --info 2
+```
+
+The checkout contains both `Drift-1-fromfile.in` and its required particle
+distribution, `distr-gauss.txt`. The run writes results, including
+`Drift-1-fromfile.stat`, beside the input. Check that OPALX exits successfully
+and the statistics file is present. This is a first-run check; it does not
+automatically compare numerical results with the regression references.
+See [Run a First Simulation](first-simulation.qmd#regression-smoke-test) for
+more about the example and its outputs.
+
+### Run your own simulation {#run-a-simulation}
 
 In Terminal, change to the directory containing your input file, replacing
 `/path/to/simulation` and `case.in` with your own directory and filename:
@@ -59,11 +97,7 @@ working directory. `--rm` removes the container after it exits and keeps the
 files written into the mounted directory.
 
 This command uses one MPI rank and four OpenMP threads. Adjust
-`OMP_NUM_THREADS` to the CPUs available to Docker. For a first input and its
-required distribution file, see
-[Run a First Simulation](first-simulation.qmd#regression-smoke-test); replace
-the executable invocation there with the Docker command above and use
-`Drift-1-fromfile.in` in place of `case.in`.
+`OMP_NUM_THREADS` to the CPUs available to Docker.
 
 For multiple MPI ranks, set `OPALX_NP` and increase shared memory, for example:
 
