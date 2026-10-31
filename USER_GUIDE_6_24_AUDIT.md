@@ -6,7 +6,7 @@ Manual baseline: `be613707d9768c8f1af606bc2cc068f561871a64`. Audited OPALX maste
 
 Current manual: `72a3965`. Status refreshed on 2026-10-30. The original baseline and all recorded User Guide decisions are retained.
 
-123 findings, including all 16 English edits, have been accepted and appear as normal text. 4 findings remain pending; 3 moved to an OPALX issue; 20 removed from the manual; 1 rejected with original wording restored; 3 retired from review with their legacy documentation retained. IDs remain stable. UG-08-03, UG-12-02 and UG-12-07 record the user's confirmed V1.1.0 availability; other future plans remain unconfirmed unless supported by evidence.
+123 findings, including all 16 English edits, have been accepted and appear as normal text. 0 findings remain pending; 3 moved to an OPALX issue; 20 removed from the manual; 5 rejected with original wording restored; 3 retired from review with their legacy documentation retained. IDs remain stable. UG-08-03, UG-12-02 and UG-12-07 use the user's requested “Available soon” wording without a fixed release commitment; other future plans remain unconfirmed unless supported by evidence.
 
 **Scope:** current OPALX and shared User Guide content in chapters 6–24. Retained OPAL comparisons are checked for provenance, clear availability boundaries and obvious presentation errors; this is not a fresh validation of historical OPAL physics. Getting Started and the appendices are outside this audit. The later origin/main synchronization updates Field Maps separately.
 
@@ -16,20 +16,19 @@ Current manual: `72a3965`. Status refreshed on 2026-10-30. The original baseline
 
 Decision summary updated: 2026-10-30. All recorded user decisions are included.
 
-**4 manual review decisions remain.** Within the original audit these comprise 4 proposed corrections and 0 existing availability notices to confirm. Additional cross-chapter follow-ups are listed separately below.
+**0 manual review decisions remain.** Within the original audit these comprise 0 proposed corrections and 0 existing availability notices to confirm. Additional cross-chapter follow-ups are listed separately below.
 
-The proposed wording is already marked in the local manual. The remaining manual work is to accept, reject or revise those proposals. Source verification and implementation issues are tracked separately below.
+The table below records any remaining manual decisions. Source verification and implementation issues are tracked separately below.
 
-All English edits are accepted. Chapters 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 have no pending findings in the original numbered User Guide audit. Counts describe documentation review, not a list of implementation tasks.
+All English edits are accepted. Chapters 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 have no pending findings in the original numbered User Guide audit. Counts describe documentation review, not a list of implementation tasks.
 
 | Chapter | Manual decisions | Implementation hold | Remaining IDs |
 |---|---:|---:|---|
-| 12 — Elements | 4 | 0 | [UG-12-28](_site/user-guide/elements.html#ug-12-28), [UG-12-29](_site/user-guide/elements.html#ug-12-29), [UG-12-30](_site/user-guide/elements.html#ug-12-30), [UG-12-31](_site/user-guide/elements.html#ug-12-31). Symmetric/asymmetric Enge formulas and entrance/exit offsets. |
-| **Total** | **4** | **0** | **4 unresolved** |
+| **Total** | **0** | **0** | **0 unresolved** |
 
-Remaining marker colors: 0 orange and 4 blue.
+Remaining marker colors: 0 orange and 0 blue.
 
-Suggested next discussion: UG-12-28.
+No manual decisions remain.
 
 ## Pending decisions by finding
 
@@ -37,19 +36,15 @@ These proposals are already marked in the manual. Review the current wording; im
 
 | Finding | Topic | Decision remaining |
 |---|---|---|
-| [UG-12-28](_site/user-guide/elements.html#ug-12-28) | Symmetric Enge exit offset | Accept or revise the exit term using p(x-L/2), replacing the old p(x+L/2) shift. |
-| [UG-12-29](_site/user-guide/elements.html#ug-12-29) | Asymmetric Enge entrance half-length | Confirm START_HALF_LENGTH describes the entrance offset L_s. |
-| [UG-12-30](_site/user-guide/elements.html#ug-12-30) | Asymmetric Enge exit half-length | Confirm END_HALF_LENGTH describes the exit offset L_e. |
-| [UG-12-31](_site/user-guide/elements.html#ug-12-31) | Asymmetric Enge exit formula | Accept or revise use of the separate exit polynomial p_e and the exit shift x-L_e. |
 
 ## Cross-chapter consistency
 
-2 documentation follow-ups are separate from the original numbered audit decisions. Existing accepted text and all 154 historical IDs/statuses are preserved; these follow-ups are not implementation defects.
+2 documentation follow-ups are separate from the original numbered audit decisions. All 154 historical IDs/statuses are preserved. Resolution decisions are recorded below.
 
-| Follow-up | Discrepancy | Next manual decision | References |
+| Follow-up | Discrepancy | Resolution | References |
 |---|---|---|---|
-| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Agree one description of support and distinguish any validation policy from an enforced limitation. Keep both existing approvals until that wording decision. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
-| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Align the catalog and attribute-assignment example with supported BEAM attributes such as BCHARGE, allocation and source lists, consistent with the approved BEAM table. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
+| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Resolved 2026-10-30: user accepted space-charge support under the documented TURNS restrictions; corrected both Cyclotron restrictions while retaining the fixed-step example. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
+| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Resolved 2026-10-30: user accepted BCHARGE = 1e-9 in the attribute-assignment example and bunch charge in the BEAM catalog. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
 
 ## Other audit scope
 
@@ -87,7 +82,7 @@ The accepted User Guide decisions are authorized for commit/push on2026-10-30. V
 | 9 | [user-guide/command-format/index.qmd](user-guide/command-format/index.qmd) | 9 | 0 | 0 | 2 | 1 | 1 | 0 |
 | 10 | [user-guide/control-statements/index.qmd](user-guide/control-statements/index.qmd) | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
 | 11 | [user-guide/options.qmd](user-guide/options.qmd) | 7 | 0 | 0 | 0 | 1 | 0 | 0 |
-| 12 | [user-guide/elements.qmd](user-guide/elements.qmd) | 25 | 0 | 4 | 0 | 6 | 0 | 0 |
+| 12 | [user-guide/elements.qmd](user-guide/elements.qmd) | 25 | 0 | 0 | 0 | 6 | 4 | 0 |
 | 13 | [user-guide/cyclotron.qmd](user-guide/cyclotron.qmd) | 5 | 0 | 0 | 0 | 0 | 0 | 0 |
 | 14 | [user-guide/diagnostics-output.qmd](user-guide/diagnostics-output.qmd) | 4 | 0 | 0 | 1 | 1 | 0 | 0 |
 | 15 | [user-guide/beam-lines/index.qmd](user-guide/beam-lines/index.qmd) | 6 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -280,12 +275,12 @@ Experimental single-pass mirrored-primary interaction with optional passive witn
 
 **Proposed wording / discussion addition**
 ```text
-Available in OPALX V1.1.0.
+Available soon.
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:146`; `git grep BEAMBEAM 9a14973b -- src: no implementation/registration matches`.
 
-**User decision:** User confirmed availability in V1.1.0; retain orange availability annotation.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-08-04 — Technical / units / links — Accepted 2026-10-29
 
@@ -1110,12 +1105,12 @@ BEAMBEAM is not registered or implemented in the current master snapshot. Preser
 
 **Proposed wording / discussion addition**
 ```text
-| `BEAMBEAM` | [Available in OPALX V1.1.0.](#beambeam) | optional particle input files |
+| `BEAMBEAM` | [Available soon.](#beambeam) | optional particle input files |
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:145-179`; `git grep -i beambeam master -- src: one incidental comment, no element implementation`.
 
-**User decision:** User confirmed availability in V1.1.0; retain orange availability annotation.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-12-03 — Feature coverage / availability — Accepted 2026-10-29
 
@@ -1196,12 +1191,12 @@ Keep the previously documented feature visible without claiming it is currently 
 
 **Proposed wording / discussion addition**
 ```text
-**Availability:** `BEAMBEAM` is available in OPALX V1.1.0.
+**Availability:** Available soon.
 ```
 
 Evidence: `src/OpalConfigure/Configure.cpp:145-179`; `git ls-remote origin refs/heads/master: 9a14973b0030355e1291159281c5ed8e66c3ea56`.
 
-**User decision:** User confirmed BEAMBEAM availability in V1.1.0; replace the obsolete master-registration discussion with the release statement.
+**User decision:** User requests “Available soon.” without a fixed release version (2026-10-30). Preserve the accepted status and stable anchor.
 
 ### UG-12-08 — English — Accepted 2026-10-29
 
@@ -1638,7 +1633,7 @@ See End Field Models below for options.
 
 Evidence: `src/Elements/OpalScalingFFAMagnet.cpp:setupNamedEndField`.
 
-### UG-12-28 — Technical / units / links — Pending
+### UG-12-28 — Technical / units / links — Rejected; original wording restored
 
 Location: `user-guide/elements.qmd:939` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-28).
 
@@ -1649,14 +1644,21 @@ Correct the sign of the exit half-length shift to match the implemented symmetri
 $f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x + L/2)}} - 1$
 ```
 
-**Proposed wording / discussion addition**
+**Existing wording (unchanged; highlighted for discussion)**
 ```text
-$f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x - L/2)}} - 1$
+$f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x + L/2)}} - 1$
 ```
 
 Evidence: `src/AbsBeamline/EndFieldModel/Enge.h:functionDevice`.
 
-### UG-12-29 — Technical / units / links — Pending
+**User decision:** User chose the original version; proposed Enge correction rejected.
+
+**Rejected proposal (record only)**
+```text
+$f(x) = \frac{1}{1+e^{p(-x - L/2)}}+\frac{1}{1+e^{p(x - L/2)}} - 1$
+```
+
+### UG-12-29 — Technical / units / links — Rejected; original wording restored
 
 Location: `user-guide/elements.qmd:950` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-29).
 
@@ -1667,14 +1669,21 @@ The start and end descriptions are reversed.
 | `START_HALF_LENGTH` | m |   | Half length of the end of the field model $L_s$. |
 ```
 
-**Proposed wording / discussion addition**
+**Existing wording (unchanged; highlighted for discussion)**
 ```text
-| `START_HALF_LENGTH` | m |   | Entrance half-length offset $L_s$. |
+| `START_HALF_LENGTH` | m |   | Half length of the end of the field model $L_s$. |
 ```
 
 Evidence: `src/Elements/OpalAsymmetricEnge.cpp:18-35`.
 
-### UG-12-30 — Technical / units / links — Pending
+**User decision:** User chose the original version; proposed Enge correction rejected.
+
+**Rejected proposal (record only)**
+```text
+| `START_HALF_LENGTH` | m |   | Entrance half-length offset $L_s$. |
+```
+
+### UG-12-30 — Technical / units / links — Rejected; original wording restored
 
 Location: `user-guide/elements.qmd:953` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-30).
 
@@ -1685,14 +1694,21 @@ Correct the reversed end description.
 | `END_HALF_LENGTH` | m |   | Half length of the start of the field model $L_e$. |
 ```
 
-**Proposed wording / discussion addition**
+**Existing wording (unchanged; highlighted for discussion)**
 ```text
-| `END_HALF_LENGTH` | m |   | Exit half-length offset $L_e$. |
+| `END_HALF_LENGTH` | m |   | Half length of the start of the field model $L_e$. |
 ```
 
 Evidence: `src/Elements/OpalAsymmetricEnge.cpp:27-35`.
 
-### UG-12-31 — Technical / units / links — Pending
+**User decision:** User chose the original version; proposed Enge correction rejected.
+
+**Rejected proposal (record only)**
+```text
+| `END_HALF_LENGTH` | m |   | Exit half-length offset $L_e$. |
+```
+
+### UG-12-31 — Technical / units / links — Rejected; original wording restored
 
 Location: `user-guide/elements.qmd:959` in the baseline. [Rendered change](_site/user-guide/elements.html#ug-12-31).
 
@@ -1703,12 +1719,19 @@ Use the separately defined exit polynomial and the implemented exit offset sign.
 $f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p(x + L_e)}} - 1$
 ```
 
-**Proposed wording / discussion addition**
+**Existing wording (unchanged; highlighted for discussion)**
 ```text
-$f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p_e(x - L_e)}} - 1$
+$f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p(x + L_e)}} - 1$
 ```
 
 Evidence: `src/AbsBeamline/EndFieldModel/AsymmetricEnge.h:159-169`.
+
+**User decision:** User chose the original version; proposed Enge correction rejected.
+
+**Rejected proposal (record only)**
+```text
+$f(x) = \frac{1}{1+e^{p_s(-x - L_s)}}+\frac{1}{1+e^{p_e(x - L_e)}} - 1$
+```
 
 ### UG-12-32 — Feature coverage / availability — Removed from manual
 
@@ -1817,14 +1840,14 @@ Review question: it is uncertain whether the stated space-charge restriction is 
 Explicit `TURNS` stopping is not supported with space charge.
 ```
 
-**Existing wording (unchanged; highlighted for discussion)**
+**Proposed wording / discussion addition**
 ```text
-Explicit `TURNS` stopping is not supported with space charge.
+Explicit `TURNS` stopping is supported with space charge under the [documented restrictions](tracking.qmd#turns). The stopping plane is determined by the external-field reference particle.
 ```
 
 Evidence: `src/Track/TrackRun.cpp:677–724`; `src/Algorithms/ParallelTracker.cpp:419–445`; `src/Algorithms/ParallelTracker.cpp:669–689`; `src/Track/TrackRun.cpp:640–655`.
 
-**User decision:** User explicitly accepted the existing restriction wording. This is a documentation approval, not a new runtime validation.
+**User decision:** CONS-01 accepted: supersedes the earlier no-space-charge restriction; the stop follows the external-field reference particle.
 
 ### UG-13-02 — Feature coverage / availability — Accepted 2026-10-29
 

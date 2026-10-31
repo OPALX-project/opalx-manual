@@ -4,13 +4,13 @@ Status updated: 2026-10-30. Current manual: `72a3965`; original User Guide sourc
 
 | Scope | Unresolved work | Record |
 |---|---|---|
-| User Guide 6–24 | 4 existing numbered review decisions; 123 accepted, 20 removed, 1 rejected, 3 moved to issues, 3 retired from review | [Detailed audit](USER_GUIDE_6_24_AUDIT.md) / [local index](_site/user-guide-audit.html) |
-| Cross-chapter consistency | 2 additional wording follow-ups; existing approvals unchanged | Table below |
+| User Guide 6–24 | 0 existing numbered review decisions; 123 accepted, 20 removed, 5 rejected, 3 moved to issues, 3 retired from review | [Detailed audit](USER_GUIDE_6_24_AUDIT.md) / [local index](_site/user-guide-audit.html) |
+| Cross-chapter consistency | 0 pending consistency follow-ups | Table below |
 | Getting Started 2–5 | Chapters 2–4 change markings cleared on 2026-10-30; recorded execution limitation remains | [Audit](GETTING_STARTED_AUDIT.md) |
 | Source verification/implementation | 7 OPEN issues, tracked separately from manual review | Issue table below |
 | Publication | Accepted User Guide decisions authorized for commit/push on2026-10-30 | Verify the resulting Actions run and published pages |
 
-All 154 original User Guide finding IDs and statuses are retained. The chapter-local “Local review” boxes are removed; numbered orange/blue proposals remain visible. No new implementation work is inferred from a pending documentation decision.
+All 154 original User Guide finding IDs and statuses are retained. The chapter-local “Local review” boxes are removed; all numbered proposals are resolved. No new implementation work is inferred from a pending documentation decision.
 
 ## Pending decisions by finding
 
@@ -18,19 +18,15 @@ These proposals are already marked in the manual. Review the current wording; im
 
 | Finding | Topic | Decision remaining |
 |---|---|---|
-| [UG-12-28](_site/user-guide/elements.html#ug-12-28) | Symmetric Enge exit offset | Accept or revise the exit term using p(x-L/2), replacing the old p(x+L/2) shift. |
-| [UG-12-29](_site/user-guide/elements.html#ug-12-29) | Asymmetric Enge entrance half-length | Confirm START_HALF_LENGTH describes the entrance offset L_s. |
-| [UG-12-30](_site/user-guide/elements.html#ug-12-30) | Asymmetric Enge exit half-length | Confirm END_HALF_LENGTH describes the exit offset L_e. |
-| [UG-12-31](_site/user-guide/elements.html#ug-12-31) | Asymmetric Enge exit formula | Accept or revise use of the separate exit polynomial p_e and the exit shift x-L_e. |
 
 ## Cross-chapter consistency
 
-2 documentation follow-ups are separate from the original numbered audit decisions. Existing accepted text and all 154 historical IDs/statuses are preserved; these follow-ups are not implementation defects.
+2 documentation follow-ups are separate from the original numbered audit decisions. All 154 historical IDs/statuses are preserved. Resolution decisions are recorded below.
 
-| Follow-up | Discrepancy | Next manual decision | References |
+| Follow-up | Discrepancy | Resolution | References |
 |---|---|---|---|
-| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Agree one description of support and distinguish any validation policy from an enforced limitation. Keep both existing approvals until that wording decision. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
-| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Align the catalog and attribute-assignment example with supported BEAM attributes such as BCHARGE, allocation and source lists, consistent with the approved BEAM table. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
+| CONS-01 | Cyclotron says explicit TURNS stopping is unsupported with space charge; TRACK says space charge is allowed and can use TURNS. | Resolved 2026-10-30: user accepted space-charge support under the documented TURNS restrictions; corrected both Cyclotron restrictions while retaining the fixed-step example. | [UG-13-01](_site/user-guide/cyclotron.html#ug-13-01), [UG-19-09](_site/user-guide/tracking.html#ug-19-09), [UG-19-11](_site/user-guide/tracking.html#ug-19-11) |
+| CONS-02 | The BEAM catalog advertises current/frequency and the core-syntax example assigns BCURRENT, while the detailed BEAM table rejects BCURRENT/BFREQ and directs users to BCHARGE. | Resolved 2026-10-30: user accepted BCHARGE = 1e-9 in the attribute-assignment example and bunch charge in the BEAM catalog. | [BEAM catalog](_site/user-guide/input-language.html#simulation-definitions), [Attribute-assignment example](_site/user-guide/input-language.html#core-syntax), [UG-16-03](_site/user-guide/beam.html#ug-16-03) |
 
 ## Source issues — separate work
 

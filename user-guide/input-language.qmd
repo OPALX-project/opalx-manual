@@ -96,7 +96,7 @@ OPALX input, while string values and file paths retain their contents.
 | Typed value | `REAL length = 0.5;` | Define a scalar, string, Boolean, or vector value for later expressions. |
 | Immediate assignment | `length = 0.5;` | Evaluate the right-hand expression when the assignment is parsed. |
 | Expression assignment | `momentum := beta * gamma;` | Store an expression that can be reevaluated when its dependencies change. |
-| Attribute assignment | `Beam1->BCURRENT = 0.1;` | Update an existing object's attribute; `name->ATTR[n]` updates an array component. |
+| Attribute assignment | `Beam1->BCHARGE = 1e-9;` | Update an existing object's attribute; `name->ATTR[n]` updates an array component. |
 | Beamline | `L1: LINE=(D1, Q1, D2);` | Assemble named elements in traversal order. |
 | Tracking block | `TRACK, ...; RUN, ...; ENDTRACK;` | Enter the tracking parser, execute a run, and return to the main parser. |
 | Compound block | `{ statement; statement; }` | Group statements for `IF`, `WHILE`, or a macro body. |
@@ -144,7 +144,7 @@ run. Define dependencies before the object that refers to them.
 
 | Definition | Short explanation | Maintained guide |
 |---|---|---|
-| `BEAM` | Defines particle species, reference energy or momentum, current, frequency, allocation, source list, and global processes. | [Beam](beam.qmd) |
+| `BEAM` | Defines particle species, reference energy or momentum, bunch charge, allocation, source list, and global processes. | [Beam](beam.qmd) |
 | `DISTRIBUTION` | Defines how initial positions, momenta, or emission times are sampled or read from a file. | [Distribution](beam-distributions.qmd#distribution) |
 | `EMISSIONSOURCE` | Couples one distribution to offsets, timing, emission energy, and image-charge settings. | [Emission source](beam-distributions.qmd#emissionsource) |
 | `EMISSIONSOURCELIST` | Stores an ordered, non-empty list of named emission sources for `BEAM.SOURCES`. | [Emission-source list](beam-distributions.qmd#emissionsourcelist) |
@@ -162,7 +162,7 @@ user-guide section.
 |---|---|---|
 | `LINE` | Orders named elements into the lattice selected by `TRACK.LINE`. | [Beam Lines](beam-lines/index.qmd) |
 | `DRIFT` | Field-free propagation over a finite length. | [DRIFT](elements.qmd#drift) |
-| `BEAMBEAM` | [Available in OPALX V1.1.0.]{#ug-08-03} | [BEAMBEAM](elements.qmd#beambeam) |
+| `BEAMBEAM` | [Available soon.]{#ug-08-03} | [BEAMBEAM](elements.qmd#beambeam) |
 | `COLLIMATOR` | Deletes particles outside a transverse aperture; requires an explicit `APERTURE` and positive `L`. | [COLLIMATOR](elements.qmd#collimator) |
 | `BOX` | Solid block that deletes particles inside it; requires positive `WIDTH`, `HEIGHT`, and `L`. | [BOX](elements.qmd#box) |
 | `CONSTANTFOCUSING` | Applies linear three-dimensional focusing scaled from the initial space-charge field. | [CONSTANTFOCUSING](elements.qmd#constant-focusing) |
