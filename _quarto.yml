@@ -139,3 +139,5 @@ regression-tests-source-url: "https://github.com/OPALX-project/regression-tests-
 doxygen-url: "https://amas.pages.psi.ch/opal-live-doc/opalx-doxygen/index.html"
 legacy-opal-manual-url: "https://opalx-project.github.io/opal-manual"
 deployment-profile: "opalx"
+
+documents-media-base-url: "https://media.githubusercontent.com/media/OPALX-project/opalx-documents/main"

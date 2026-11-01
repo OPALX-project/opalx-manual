@@ -88,3 +88,53 @@ their pending-authorization statements.
 - Clarify representative bin means exclude the corrected one-bin OPEN path. Local Distribution.cpp confirms incoming cutoff semantics.
 - Next: validators, HTML render, diff review, and stage the three resolved paths. No push authorized.
 - Completed: all three conflict paths resolved and staged; no unmerged paths or conflict markers. Source validator, full HTML and report renders, 64-page rendered validator, 26 generator tests (339 assertions), ten browser tests, and staged whitespace check pass. Resolution diff reviewed against both parents. Merge remains ready for commit; nothing committed or pushed.
+
+## Featured news strip — 2026-11-01
+
+- Goal: add movie news below front-page contents, above automatic changes.
+- Found supplied 121 MB MP4 in manual root; preserve original, ignore it, copy canonical media to documents tutorials/2026/features with manifest SHA-256.
+- Add real movie thumbnail, accessible click-to-open dialog, native video controls and download. No autoplay or ticker movement with one item.
+- Post-render copies media from documents checkout to _site/media, including CI’s _external path.
+- Next: verify thumbnail, render, browser playback checks, source/docs validators. No commit/push authorized; documents and manual must be published together.
+- Completed: thumbnail extracted at 5 s (960×540, 126 KiB); movie duration 49.57 s. Original preserved at `_external/supplied-media/2026-10-30-mue4_analytical-trails.mp4`. Manual source and documents validators pass (56 chapters, nine assets); focused front-page HTML render and 63-page rendered validator pass. All 15 browser tests pass, including desktop/mobile movie playback, thumbnail loading, ordering, modal dismissal/pause, and overflow. Screenshots visually reviewed at 1440 and 390 px. Diff whitespace check passes. No commit/push.
+
+## News ticker relocation — 2026-11-01
+
+- Move News immediately after institution logos and before hero. Rotate every seven seconds: movie, exact supplied V 1.0.0 release text, repeat.
+- Stable slide height; previous/next/pause controls; pause on hover, focus, movie dialog, hidden tab; reduced-motion starts paused.
+- Update browser placement and add deterministic clock-based cycling/pause/navigation test. Next: render and browser checks.
+- Complete: focused HTML render, 63-page rendered validator, all 16 browser tests (including timed movie → release → movie cycle and manual controls), and whitespace checks pass. Local output `_site/index.html` refreshed. No commit/push.
+
+## News automatic rotation fix — 2026-11-01
+
+- User reports no automatic rotation. Hover/focus and reduced-motion startup could suppress it indefinitely.
+- Start rotation by default without motion effects; only explicit pause, open movie dialog or hidden browser tab stops it. Add regression exercising hover, retained navigation focus, reduced motion, pause/resume.
+- Next: rebuild and run browser checks.
+- Verified: front-page HTML rebuilt; all four news browser tests pass, including automatic rotation despite hover/navigation focus/reduced-motion preference, explicit pause/resume, and desktop/mobile playback. Source validator and whitespace check pass.
+
+## Front-page refinements — 2026-11-01
+
+- Halve institution image width/height limits and card height/padding. Release first, three-second ticker; move Latest Changes to the Manual directly below News; limit history to three commits. Update tests and README. Next: render and validate.
+- Complete: local HTML refreshed; source validator, 63-page rendered validator, 17 browser tests, 26 generator tests (339 assertions), and whitespace check pass. Release is first; ticker repeats every three seconds; three manual changes sit immediately after News. No commit/push.
+
+## Side-by-side news — 2026-11-01
+
+- User requests both news items together; remove ticker JS/controls, use two equal desktop columns stacking on mobile. Keep movie dialog/player.
+- Compact three-entry history to Date/Change only, remove introductory sentence and commit column; retain full-history link. Update README and browser/generator checks. Next: render and test.
+- Complete: local HTML rebuilt; 16 browser tests, 26 generator tests (343 assertions), 63-page rendered link validation, source validator and whitespace checks pass. Desktop/mobile screenshots reviewed. No commit/push.
+
+## Corrected two-column intent — 2026-11-01
+
+- Restore News as a release-first three-second ticker in the LEFT column; put compact three-entry Latest Changes to the Manual in the RIGHT column. Stack sections below 700 px.
+- Restore controls and automatic rotation, keep movie modal and pause while open. Update browser placement/playback/cycling checks. Next: render and verify.
+- Complete: source validation and local front-page render pass; all 17 browser tests pass, including desktop/mobile section layout, movie playback, three-second automatic rotation, pause/resume and three-row Date/Change table. Rendered validator checks 63 pages; whitespace clean. Screenshot reviewed. No commit/push.
+
+## Stable news/player size — 2026-11-01
+
+- Preserve hidden slide grid layout despite framework hidden display overrides, reserving the taller movie dimensions for both ticker items. Fix video aspect ratio before metadata loads to prevent player resizing. Add desktop/mobile rotation geometry regression. Next: render and browser validation.
+
+## Published movie links — 2026-11-01
+
+- User confirms movie published in opalx-documents/movies. Verified direct GitHub LFS media URL: HTTP 200, 127350971 bytes, byte-range support and matching ETag SHA-256.
+- Switch player/download to documents-media-base-url metadata + /movies/filename. Remove obsolete local-copy post-render hook/script. Update README; next render and verify playback from web.
+- Complete: generated HTML uses the public /movies URL for player and download. Focused HTML render, all five News browser tests including real remote playback at desktop/mobile widths, 63-page rendered validator and whitespace checks pass. Removed obsolete untracked copy script. No manual commit/push.

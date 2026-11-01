@@ -3,7 +3,7 @@ title: "OPALX Universe"
 description: "The unified entry point for OPALX users, physics researchers, and developers."
 audience: user
 status: current
-last-reviewed: "2026-10-26"
+last-reviewed: "2026-11-01"
 page-layout: full
 toc: false
 format:
@@ -46,6 +46,108 @@ Daniel Winklehner (MIT); Michail Zampetakis (PSI)
   <div><img src="logos/cscs.png" alt="Swiss National Supercomputing Centre (CSCS)"></div>
 </div>
 ```
+
+:::::: {.frontpage-updates}
+::::: {.frontpage-news}
+
+## News {#news .unnumbered}
+
+```{=html}
+<div class="news-ticker" role="region" aria-label="Latest news" aria-roledescription="carousel">
+<div class="news-slides">
+<article class="news-strip news-slide" aria-labelledby="news-release-title" aria-roledescription="slide" aria-label="1 of 2">
+  <div class="news-release-badge" aria-hidden="true"><span>OPALX</span><strong>V 1.0.0</strong></div>
+  <div class="news-copy">
+    <p class="news-kicker">Release news · <time datetime="2026-11-01">1 November 2026</time></p>
+    <h3 id="news-release-title">OPALX 1.0.0 released 1.11.2026</h3>
+  </div>
+</article>
+<article class="news-strip news-slide" aria-labelledby="news-mue4-title" aria-roledescription="slide" aria-label="2 of 2" hidden>
+  <button class="news-thumbnail" type="button" aria-label="Play MuE4 analytical trails" aria-haspopup="dialog" data-news-play>
+    <img src="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" alt="Preview frame from the MuE4 analytical-trails movie" width="960" height="540" loading="lazy">
+    <span class="news-play" aria-hidden="true">▶</span>
+  </button>
+  <div class="news-copy">
+    <p class="news-kicker">Featured movie · <time datetime="2026-10-30">30 October 2026</time></p>
+    <h3 id="news-mue4-title">MuE4 analytical trails</h3>
+    <p>Watch the MuE4 analytical-trails visualization.</p>
+    <button class="news-watch" type="button" data-news-play>Watch movie <span aria-hidden="true">↗</span></button>
+  </div>
+</article>
+</div>
+<div class="news-ticker-controls">
+  <button type="button" data-news-prev aria-label="Previous news item">←</button>
+  <span data-news-position aria-live="off">1 / 2</span>
+  <button type="button" data-news-next aria-label="Next news item">→</button>
+  <button type="button" data-news-pause aria-pressed="false">Pause news</button>
+</div>
+</div>
+<dialog id="news-movie" class="news-movie" aria-labelledby="news-movie-title">
+  <div class="news-movie-header">
+    <h3 id="news-movie-title">MuE4 analytical trails</h3>
+    <button type="button" data-news-close aria-label="Close movie">Close ✕</button>
+  </div>
+  <video controls playsinline preload="none" poster="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" aria-label="MuE4 analytical trails movie">
+    <source data-src="{{< meta documents-media-base-url >}}/movies/2026-10-30-mue4_analytical-trails.mp4" type="video/mp4">
+    Your browser does not support embedded video.
+  </video>
+  <p><a href="{{< meta documents-media-base-url >}}/movies/2026-10-30-mue4_analytical-trails.mp4" download>Download movie (MP4, 121 MB)</a></p>
+</dialog>
+<script>
+(() => {
+  const ticker = document.querySelector('.news-ticker');
+  const slides = [...ticker.querySelectorAll('.news-slide')];
+  const pause = ticker.querySelector('[data-news-pause]');
+  const position = ticker.querySelector('[data-news-position]');
+  const dialog = document.querySelector('#news-movie');
+  let current = 0;
+  let paused = false;
+  let timer;
+  const show = index => {
+    current = (index + slides.length) % slides.length;
+    slides.forEach((slide, i) => { slide.hidden = i !== current; });
+    position.textContent = `${current + 1} / ${slides.length}`;
+  };
+  const schedule = () => {
+    clearInterval(timer);
+    pause.textContent = paused ? 'Resume news' : 'Pause news';
+    pause.setAttribute('aria-pressed', String(paused));
+    if (paused || dialog.open || document.hidden) return;
+    timer = setInterval(() => show(current + 1), 3000);
+  };
+  ticker.querySelector('[data-news-prev]').addEventListener('click', () => { show(current - 1); schedule(); });
+  ticker.querySelector('[data-news-next]').addEventListener('click', () => { show(current + 1); schedule(); });
+  pause.addEventListener('click', () => { paused = !paused; schedule(); });
+  document.addEventListener('visibilitychange', schedule);
+  const video = dialog.querySelector('video');
+  const source = video.querySelector('source');
+  document.querySelectorAll('[data-news-play]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (!source.hasAttribute('src')) {
+        source.src = source.dataset.src;
+        video.load();
+      }
+      dialog.showModal();
+      schedule();
+    });
+  });
+  dialog.querySelector('[data-news-close]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => { video.pause(); schedule(); });
+  schedule();
+})();
+</script>
+```
+
+:::::
+::::: {.frontpage-history}
+
+## Latest Changes to the Manual {#latest-changes .unnumbered}
+
+::: {#latest-changes-list}
+:::
+
+:::::
+::::::
 
 :::: {.hero}
 # Simulate charged-particle accelerators across CPUs and GPUs {.unnumbered}
@@ -130,25 +232,11 @@ check known limitations.
 :::
 ::::
 
-## Latest Changes {#latest-changes .unnumbered}
-
-::: {#latest-changes-list}
-:::
-
 ::: {.resource-strip}
 **Live resources**
 [OPALX API documentation]({{< meta doxygen-url >}})
 [Regression-test dashboard]({{< meta regression-tests-url >}})
 [OPALX source]({{< meta source-code-url >}})
-:::
-
-## Documentation status
-
-::: {.status-strip}
-This redesign is an actively curated foundation. Pages marked **current** have
-been checked against the present OPALX source. **Experimental** pages describe
-implemented work whose interface may still change. **Planned** pages make
-documentation gaps visible instead of filling them with unverified OPAL text.
 :::
 
 ## Acknowledgments and citation

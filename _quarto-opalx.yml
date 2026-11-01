@@ -5,3 +5,5 @@ book:
 documents-base-url: "https://github.com/OPALX-project/opalx-documents/blob/main"
 manual-repository-url: "https://github.com/OPALX-project/opalx-manual"
 deployment-profile: "opalx"
+
+documents-media-base-url: "https://media.githubusercontent.com/media/OPALX-project/opalx-documents/main"
