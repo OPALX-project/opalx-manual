@@ -51,8 +51,8 @@ class LatestChangesTest < Minitest::Test
   def test_default_limit_newest_first_and_subject_only
     12.times { |number| commit("Update #{number}", body: "Private commit body #{number}") }
     result = entries
-    assert_equal 10, result.length
-    assert_equal (2...12).to_a.reverse.map { |i| "Update #{i}" }, result.map { |entry| entry[:subject] }
+    assert_equal 3, result.length
+    assert_equal (9...12).to_a.reverse.map { |i| "Update #{i}" }, result.map { |entry| entry[:subject] }
     assert result.all? { |entry| entry[:date] == "2026-10-08" }
     refute_includes LatestChanges.markdown(result), "Private commit body"
   end
@@ -96,10 +96,12 @@ class LatestChangesTest < Minitest::Test
     refute_includes rendered, '{{< include secret >}}'
   end
 
-  def test_commit_links_use_repository_metadata_and_full_hash
+  def test_compact_history_omits_commit_column_and_retains_history_link
     sha = commit("A manual improvement")
     rendered = LatestChanges.markdown(entries)
-    assert_includes rendered, "[`#{sha[0, 7]}`]({{< meta manual-repository-url >}}/commit/#{sha})"
+    refute_includes rendered, sha
+    refute_includes rendered, "| Commit |"
+    refute_includes rendered, "Recent manual updates"
     assert_includes rendered, "[View full commit history]({{< meta manual-repository-url >}}/commits)"
   end
 
@@ -224,7 +226,7 @@ class LatestChangesTest < Minitest::Test
     assert_includes html, '<div id="latest-changes-list">'
     assert_includes html, "<table>"
     assert_includes html, "Document a new element"
-    assert_includes html, "https://example.invalid/fork/manual/commit/#{sha}"
+    refute_includes html, "/commit/"
     assert_includes html, 'href="https://example.invalid/fork/manual/commits"'
     refute_includes html, "opalx-manual-history:"
     refute_includes html, "{{< meta"
@@ -248,9 +250,9 @@ class LatestChangesTest < Minitest::Test
     end
     visit.call(ast)
     assert_equal 1, nodes.count { |node| node["t"] == "Table" }
-    # Only the two generator-created links and the commit hash are markup.
-    assert_equal 2, nodes.count { |node| node["t"] == "Link" }
-    assert_equal 1, nodes.count { |node| node["t"] == "Code" }
+    # Only the full-history link is markup.
+    assert_equal 1, nodes.count { |node| node["t"] == "Link" }
+    assert_equal 0, nodes.count { |node| node["t"] == "Code" }
     %w[Emph Strong Math Cite].each do |type|
       assert_equal 0, nodes.count { |node| node["t"] == type }
     end
@@ -306,7 +308,7 @@ class LatestChangesTest < Minitest::Test
     sha = commit("Repository override")
     LatestChanges.generate(@repo, warnings: @warnings)
     html, = filter_page(repository: "https://example.invalid/team%25/manual(test)")
-    assert_includes html, "https://example.invalid/team%25/manual(test)/commit/#{sha}"
+    assert_includes html, "https://example.invalid/team%25/manual(test)/commits"
     refute_includes html, "opalx-manual-history:"
   end
 
@@ -344,7 +346,7 @@ class LatestChangesTest < Minitest::Test
 
       [Chapter](chapter.qmd)
 
-      ## Latest Changes {#latest-changes .unnumbered}
+      ## Latest Changes to the Manual {#latest-changes .unnumbered}
 
       ::: {#latest-changes-list}
       :::
@@ -364,7 +366,7 @@ class LatestChangesTest < Minitest::Test
     end
     first = render.call
     assert_includes first, "First clean-book change"
-    assert_includes first, "https://example.invalid/profile/commit/#{sha}"
+    assert_includes first, "https://example.invalid/profile/commits"
     assert_includes first, 'id="latest-changes-list"'
     refute_includes first, "{{< meta"
     commit("Second clean-book change")
@@ -378,13 +380,14 @@ class LatestChangesTest < Minitest::Test
     config = YAML.safe_load((ROOT / "_quarto.yml").read, aliases: false)
     assert_equal "ruby scripts/generate_latest_changes.rb", config.dig("project", "pre-render").first
     page = (ROOT / "index.qmd").read(encoding: "UTF-8")
-    overview_end = page.index("[Troubleshoot OPALX]")
-    heading = page.index("## Latest Changes {#latest-changes .unnumbered}")
+    news = page.index("## News {#news")
+    hero = page.index(":::: {.hero}")
+    heading = page.index("## Latest Changes to the Manual {#latest-changes .unnumbered}")
     inclusion = page.index("::: {#latest-changes-list}")
     refute_includes page, "{{< include includes/_latest-changes.md >}}"
     assert_includes config.fetch("filters"), "filters/latest-changes.lua"
     resources = page.index("::: {.resource-strip}")
-    assert overview_end < heading && heading < inclusion && inclusion < resources
+    assert news < heading && heading < inclusion && inclusion < hero && hero < resources
     assert_equal 1, page.scan("## Latest Changes").length
     assert_includes (ROOT / ".gitignore").read, "/#{LatestChanges::OUTPUT}"
     workflow = YAML.safe_load((ROOT / ".github/workflows/build.yml").read, aliases: false)

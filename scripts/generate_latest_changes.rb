@@ -7,7 +7,7 @@ require "pathname"
 
 # Build-time data only: the published page does not call the GitHub API.
 module LatestChanges
-  LIMIT = 10
+  LIMIT = 3
   OUTPUT = "includes/_latest-changes.md"
   REPOSITORY = "{{< meta manual-repository-url >}}"
   EMPTY_MESSAGE = "Commit history is unavailable in this source checkout."
@@ -71,15 +71,11 @@ module LatestChanges
       lines << EMPTY_MESSAGE
     else
       lines.concat [
-        "Recent manual updates from Git commit subjects (newest first; merge commits omitted).",
-        "",
-        "| Date | Change | Commit |",
-        "|:-----------|:------------------------------------------------------|:----------|"
+        "| Date | Change |",
+        "|:-----------|:------------------------------------------------------|"
       ]
       entries.each do |entry|
-        sha = entry.fetch(:sha)
-        lines << "| #{entry.fetch(:date)} | #{escape_markdown(entry.fetch(:subject))} | " \
-                 "[`#{sha[0, 7]}`](#{REPOSITORY}/commit/#{sha}) |"
+        lines << "| #{entry.fetch(:date)} | #{escape_markdown(entry.fetch(:subject))} |"
       end
     end
     lines.concat ["", "[View full commit history](#{REPOSITORY}/commits)", ""]

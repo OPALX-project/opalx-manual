@@ -29,11 +29,11 @@ quarto render --profile opalx --to html
 Binary documents and large datasets belong in `opalx-documents`. Pages refer
 to that repository only through the `documents-base-url` metadata value.
 
-## Latest Changes
+## Latest Changes to the Manual
 
-The front page shows the ten most recent non-merge commits reachable from the
-checked-out revision, directly below the "Find your path" contents overview.
-Each entry uses the commit subject, commit date, and a linked short hash.
+The front page shows the three most recent non-merge commits reachable from the
+checked-out revision, beside News and above the introductory hero (below News on narrow screens).
+Each entry shows just the commit date and subject; a full-history link follows.
 
 Quarto runs `ruby scripts/generate_latest_changes.rb` before rendering. Its
 output, `includes/_latest-changes.md`, is generated and must not be committed.
@@ -65,3 +65,17 @@ site and is linked through the `doxygen-url` metadata value.
 On the rendered website, Quarto persists the selected color scheme and the
 manual's small sidebar-state script persists expanded and collapsed sections
 between page navigations.
+
+## Featured news
+
+The front-page News ticker below the institution logos in `index.qmd` alternates
+between the release announcement (first) and movie every three seconds. It sits
+beside Latest Changes to the Manual, stacking above it on narrow screens.
+Pause and navigation controls are available; opening the movie pauses rotation.
+It contains curated announcements, separately
+from the Git-generated Latest Changes. Its movie thumbnail lives in
+`assets/images/news/`; the published MP4 lives in `opalx-documents/movies/`.
+The player and download link use `documents-media-base-url` metadata, pointing
+at GitHub’s LFS media endpoint. Movie playback needs internet access; rendering
+does not require a local movie checkout or copy media into the HTML output.
+The player opens on request and does not autoplay or preload the movie.
