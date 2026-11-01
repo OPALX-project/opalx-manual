@@ -56,6 +56,7 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 | ID | Recurring task | Trigger or cadence | Last recorded review | Next action |
 |---|---|---|---|---|
 | `DOC-CREDITS` | Synchronize developer credits with the current paper authors | When the paper author list changes or before a release | Active opalx-paper/main.tex authors compared with front-page credits after the paper pull on 2026-10-30; five missing authors added | Recheck after author-list changes; preserve existing developer credits |
+| `DOC-CONVERTER` | Maintain the frozen converter download and Chapter 4 instructions | Before a converter release and after supported-input or reporting changes | Frozen toOPALX 1.4.2 documented as Section 4.4 on 2026-11-01; website download and checksum verified; rerendered after user edits | Keep the snapshot unchanged; future changes need a new release version, explicit download update and download/hash/browser checks |
 | `DOC-OUTPUT` | Maintain the output inventory and file-format references | Before a release and after writer/control changes | Master-based output inventory added on 2026-10-30; RHODUMP marked unavailable | Complete the indicated statistics/HDF5/auxiliary schemas and recheck availability against master |
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
 | `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
@@ -1820,3 +1821,61 @@ Use this template for subsequent entries:
 ### 2026-10-30 — retain original Enge wording
 
 - User confirmed keeping original UG-12-28 through UG-12-31. Restore original formulas and START/END_HALF_LENGTH descriptions, remove pending annotations, retain stable anchors, and close all four proposals as rejected. No numbered User Guide decisions remain: 123 accepted, 5 rejected, 3 retired, 20 removed, 3 moved to issues. Preserve CONS-01/02 corrections and unrelated edits. No commit or push requested.
+
+
+### 2026-11-01 — DOC-CONVERTER: freeze 1.4.2 and add Section 4.4
+
+- OPALX revision observed: `fd6ba8dc5c952ce034869dc40e963ecabef7cfa8`;
+  manual baseline: `8938503b9e0d3d457ccf578ec776619f0f0ce2fb`.
+  Preserve unrelated OPALX working-tree changes. No synchronization, commit or
+  push was requested or performed.
+- At the user's request, introduce `toOPALX.py` in Chapter 4 and link to the new
+  Section 4.4, “Convert OPAL, ASTRA and Elegant inputs”. Document the single-file
+  requirements, source/dependency preparation, mode scope, commands, inspection,
+  reports, drift replacements, approximations and native limitations. Review
+  the complete pre-existing chapter against the maintained Drift example and
+  current launch interface before updating its review date; retain its
+  experimental status. Python commands here are the requested converter's
+  user interface, rather than incidental implementation narration.
+- Freeze release 1.4.2 in the OPALX tools tree and provide byte-identical manual
+  source/download copies under `getting-started/downloads/`. Script size:
+  419,852 bytes; SHA-256:
+  `b5cd2e3354f7be274f28c0b1ffe81d4f215cabf5a969f12fa731efc0265c1151`.
+  Add the adjacent checksum and download attributes. Quarto copies both linked
+  resources into the site without additional publication configuration.
+  Keep the frozen snapshot unchanged; future changes need a new release version
+  and an explicit manual download update.
+- Add three browser tests for the rendered 4.4 cross-reference, actual browser
+  download/hash/checksum, and desktop/mobile visibility with a saved legacy
+  preference. Fix single-variant display without changing the saved preference
+  and wrap the two new tables for horizontal scrolling within narrow screens.
+  Retain existing dual-variant controls. Visually inspect the section at 1440
+  and 390 pixels and verify no page-wide overflow.
+- Validation passes: 56-chapter source/asset policy, 26 maintenance tests with
+  343 assertions, full book and six-report HTML renders, 63-page rendered-link
+  checks, all 25 browser tests, whitespace, and four-way script byte comparison
+  (development, frozen, manual source, rendered download). The converter's
+  unified suite passes all 139 tests, including three new frozen-release tests;
+  its deterministic build check passes. No converter rule, native code, source
+  dataset, reference or tolerance changed; no tracking jobs were needed.
+- The separate documents-repository validator remains unsuccessful because of
+  the pre-existing uncatalogued `movies/2026-10-30-mue4_analytical-trails.mp4`.
+  Leave that unrelated movie and catalogue untouched. The converter download and
+  all manual checks above pass independently.
+- Next trigger: a converter release or change to supported inputs, reports or
+  dependencies. Recheck source scope and publish only the chosen frozen bytes.
+
+
+### 2026-11-01 — DOC-CONVERTER: rerender after user edits
+
+- At the user's request, rerender the full manual and six reports in the
+  existing `_site` after their prose changes. Preserve the edited chapter;
+  no content corrections or publication requested.
+- Revisions remain OPALX `fd6ba8dc5c952ce034869dc40e963ecabef7cfa8` and manual
+  `8938503b9e0d3d457ccf578ec776619f0f0ce2fb`, with existing local changes.
+- Both renders pass, as do the 56-chapter source validator and 63-page
+  rendered-link validator. The chapter source is unchanged by rendering;
+  the rendered download still matches frozen toOPALX 1.4.2 byte for byte.
+  No converter tests or simulations were needed for this rendering-only task.
+  The whitespace check flags trailing whitespace in the user-edited chapter
+  at line 100; leave the prose untouched for this rendering-only request.
