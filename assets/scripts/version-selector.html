@@ -69,7 +69,13 @@
   const createSelector = () => {
     const opalxBlocks = document.querySelectorAll(".feature-opalx");
     const opalBlocks = document.querySelectorAll(".feature-opal");
-    if (!opalxBlocks.length || !opalBlocks.length) return;
+    if (!opalxBlocks.length || !opalBlocks.length) {
+      // A page with one documented variant has no selector. Show its content
+      // without replacing the reader's preference for pages offering both.
+      if (opalxBlocks.length) setMode("opalx", false);
+      else if (opalBlocks.length) setMode("opal", false);
+      return;
+    }
 
     root.classList.add("has-opal-version-selector");
     opalxBlocks.forEach((block) => {

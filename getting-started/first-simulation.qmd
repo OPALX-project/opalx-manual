@@ -1,15 +1,23 @@
 ---
 title: "Run a First Simulation"
-description: "Launch OPALX with an existing input file and identify the first outputs."
+description: "Run a first OPALX input, convert supported OPAL, ASTRA or Elegant models, and review the outputs."
 audience: user
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-11-01"
 ---
 
 
 Start with an input file from the maintained OPALX regression suite. Those
 inputs are executable specifications and are checked continuously against the
 current parser and physics implementation.
+
+::: {.feature-opalx}
+
+If you already have an OPAL, ASTRA or Elegant model, `toOPALX.py` can prepare
+an OPALX input file. See @sec-toopalx for the download, supported inputs,
+conversion commands and model-review requirements.
+
+:::
 
 ## Run a small regression input {#regression-smoke-test}
 
@@ -65,3 +73,165 @@ inputs currently pass. Input-file compatibility is still being cataloged, so a
 regression input is safer than copying an example from the historical OPAL
 manual. Continue with the three complete [Worked Input Files](worked-inputs.qmd)
 for progressively more detailed starting points.
+
+:::: {.feature-opalx}
+
+## Convert OPAL, ASTRA and Elegant inputs {#sec-toopalx}
+
+`toOPALX.py` converts supported OPAL, ASTRA and Elegant input files into
+OPALX inputs. It prepares the input and its companion files,
+but does not run a simulation.
+
+
+::: {.callout-important}
+
+The purpose is **to help** in converting
+and not to prepare a bullet-proved input file.
+
+:::
+
+### Download and requirements
+
+[Download toOPALX.py, version 1.4.2](downloads/toOPALX.py){download="toOPALX.py"}
+([SHA-256 checksum](downloads/toOPALX.py.sha256){download="toOPALX.py.sha256"}).
+This is the frozen release of 1 November 2026.
+
+The single script requires **Python 3.9 or newer** and uses only the Python
+standard library. 
+
+### Prepare the source model
+
+Keep the source entry file, included lattice files, particle data and field
+maps in one case directory. References must be literal relative filenames
+inside that directory; computed filenames, absolute or escaping references
+and symbolic links are rejected. The converter preserves the source files
+and copies the dependencies needed by the candidate.
+
+Choose the source format explicitly with `--mode`:
+
+::: {.table-responsive}
+
+| Mode | Required inputs | Main supported scope |
+|---|---|---|
+| `opal` | An entry `.in` file and its recursive `CALL` includes, particle files and maps | Recognized legacy syntax, beam/distribution/source attachments, supported elements and guarded PSI ring/RF placement rules. Unknown commands and explicitly blocked settings stop conversion. |
+| `astra` | An ASTRA input, an injected equal-weight electron snapshot with a common clock, and referenced maps | Straight RF/solenoid/quadrupole models with circular apertures, plus restricted single-plane dipole-only beamlines. Cathode emission and arbitrary mixed lattices are outside this release. |
+| `elegant` | A supported `.ele` command file, a literal `.lte` lattice and one counted SDDS1 ASCII particle page | One injected electron bunch and one pass through supported drifts, aligned quadrupoles, markers, zero-gap/zero-edge sector bends and restricted standing-wave RFCA models. Binary or multipage SDDS, RPN and general Elegant workflows are unsupported. |
+
+:::
+
+::: {.callout-important}
+ASTRA and Elegant conversions always write `FIELDSOLVER, TYPE=NONE`, even
+when the source enables space charge. OPAL conversions retain the source
+solver settings. Review the solver and boundary conditions before using a
+converted input for a space-charge study.
+:::
+
+The element list and its restrictions are available directly from the frozen
+script. For example:
+
+```bash
+python3 toOPALX.py --help --more --mode opal
+python3 toOPALX.py --help --more --mode astra
+python3 toOPALX.py --help --more --mode elegant
+```
+
+### Convert an input
+
+Save the downloaded script beside your case directories. Create a separate
+output directory, then use the command for your source format:
+
+```bash
+mkdir -p converted
+
+python3 toOPALX.py --mode opal \
+  --infile opal-case/lattice.in --outfile converted/opal.in
+
+python3 toOPALX.py --mode astra \
+  --infile astra-case/model.in --outfile converted/astra.in
+
+python3 toOPALX.py --mode elegant \
+  --infile elegant-case/run.ele --outfile converted/elegant.in
+```
+
+Replace the example filenames with your own. The output parent directory
+must exist. The output entry file, companion directory and report must all be
+new; existing destinations are never overwritten. Use a new output name or
+directory for each attempt.
+
+To inspect an OPAL case without writing files:
+
+```bash
+python3 toOPALX.py --mode opal --infile opal-case/lattice.in --inspect
+```
+
+Inspection prints diagnostic JSON and returns a nonzero status for an
+unsupported case. Normal conversion prints a short status and the output and
+report filenames. Add `--json` to a conversion command when a script needs
+the full report on stdout. Unsupported input or invalid arguments return
+status `2`; a completed conversion returns `0`, including cases that require
+review. No candidate is published after a refused conversion.
+
+### Output files and the conversion report
+
+For `--outfile converted/opal.in`, keep these outputs together in `converted/`:
+
+::: {.table-responsive}
+
+| Output | Contents |
+|---|---|
+| `opal.in` | Candidate OPALX entry file. |
+| `opal.in.assets/` | Copied maps, particle files, included inputs and companion metadata. Relative references in the candidate point here. |
+| `opal.in.report.json` | Complete conversion report, source locations, changes, review notes, approximations, dependency relocation and output fingerprints. |
+
+:::
+
+The full JSON report is saved even when terminal JSON is suppressed. The
+asterisk-framed terminal summary highlights drift replacements, model
+approximations, particle-file changes and cyclotron placement warnings.
+Check the report's `status`, `unavailable_elements`, `model_approximations`,
+`asset_migrations`, `placement_warnings` and backend review notes.
+
+### Model changes and current limits
+
+Conversion can change the model. In particular:
+
+- Some element types outside the verified converter scope become drifts when
+  their length and placement can be retained. Their fields, kicks or other
+  interactions are omitted; every replacement is reported. A drift
+  replacement is not an implementation of the original element.
+- Legacy `SELECT` and particle-matter declarations/attachments are removed.
+  Their interaction physics is not retained. Gas stripping and `UNDULATOR`
+  remain unsupported.
+- A legacy `BINOMIAL` distribution becomes `GAUSS` with a reported
+  approximation. Its binomial shape exponents are removed, while other width
+  and correlation expressions are retained without rescaling. Tails and
+  higher moments are not preserved.
+- SBEND `DESIGNENERGY` and nonzero or unproved `E1/E2` remain rejected.
+  Provably zero faces can be omitted. Newer RBEND features do not provide a
+  general replacement for these sector-bend settings.
+- PSI cyclotron sector expansion and RF-gap placement require review of the
+  common centre, map orientation, seams and RF poses. Legacy initial
+  conditions and RF timing still need migration; retained report metadata
+  does not configure those settings in OPALX. Native single-gap tracking is
+  currently limited to one unpolarized positive proton in one container on
+  one MPI rank, with `FIELDSOLVER, TYPE=NONE` and no restart. See the
+  [cyclotron gap model](../user-guide/cyclotron.qmd#accelerated-beam).
+
+A `review-required` result therefore needs checking before tracking. Compare
+particle species, charge, population, units and source coordinates; then
+check field strengths, map orientation, geometry, RF phase/timing and solver
+settings. Retain the original code's results or another trusted reference
+for a numerical comparison. A successful conversion alone is not a regression
+test pass, and references or tolerances should not be changed merely to make
+the comparison pass.
+
+After that review, launch OPALX from the output directory so its relative
+asset references resolve. For the OPAL example, using the executable set in
+[the regression smoke test](#regression-smoke-test):
+
+```bash
+cd converted
+"$OPALX_EXE" opal.in --info 2
+```
+
+::::
