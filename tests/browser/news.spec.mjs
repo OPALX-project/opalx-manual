@@ -22,7 +22,7 @@ for (const width of [1440, 390]) {
     await expect.poll(() => strip.locator('img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
     const video = page.locator('#news-movie video');
     await expect(video.locator('source')).not.toHaveAttribute('src');
-    await page.getByRole('button', { name: 'Play MuE4 analytical trails', exact: true }).click();
+    await page.getByRole('button', { name: 'Play PSI MuE4', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await video.evaluate(async element => { await element.play(); });
     await expect.poll(() => video.evaluate(element => element.currentTime)).toBeGreaterThan(0);
