@@ -138,3 +138,10 @@ their pending-authorization statements.
 - User confirms movie published in opalx-documents/movies. Verified direct GitHub LFS media URL: HTTP 200, 127350971 bytes, byte-range support and matching ETag SHA-256.
 - Switch player/download to documents-media-base-url metadata + /movies/filename. Remove obsolete local-copy post-render hook/script. Update README; next render and verify playback from web.
 - Complete: generated HTML uses the public /movies URL for player and download. Focused HTML render, all five News browser tests including real remote playback at desktop/mobile widths, 63-page rendered validator and whitespace checks pass. Removed obsolete untracked copy script. No manual commit/push.
+
+## Approved design refinements — 2026-11-01
+
+- User accepts design recommendations. Preserve branding, section order, ticker timing/release first, history columns/count, movie web URLs, hidden contributor comments and 1.5× hero heading relationship.
+- Compact mobile authors via native details (desktop expanded), two-column mobile logos, horizontal compact stable ticker, reduced hero padding/shadow, consistent cards/radius, full-card native links, 44px controls/focus treatment, reduced-motion hover handling. Keep real commit subjects unchanged.
+- Next: render, source/browser/link checks; inspect desktop/mobile/dark screenshots, fix observed issues. No publication authorized.
+- Complete: focused HTML rebuilt; source validator (56 chapters), rendered validator (63 pages), all 22 browser tests and whitespace checks pass. Reviewed 390/768/1440px light/dark screenshots. Fixed generated section-wrapper link selector and dark primary-button contrast; native destination tab behavior respected. Added responsive design tests and README layout notes. No commit/push; no known unresolved design verification failures.

@@ -79,3 +79,11 @@ The player and download link use `documents-media-base-url` metadata, pointing
 at GitHub’s LFS media endpoint. Movie playback needs internet access; rendering
 does not require a local movie checkout or copy media into the HTML output.
 The player opens on request and does not autoplay or preload the movie.
+
+### Homepage layout
+
+Developer details start expanded on desktop and collapsed on phones; institution
+logos retain two columns on phones. News keeps a stable compact horizontal layout
+beside the three-row manual history on desktop. Controls have 44 px touch targets,
+documentation cards use native full-card links, and the hero heading remains
+1.5 times the News heading size at each breakpoint.

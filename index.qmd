@@ -24,7 +24,10 @@ title-block-style: none
 \vspace*{0.5cm}
 ```
 
-### Main Developers & Institutions {.unnumbered}
+```{=html}
+<details class="developers" open>
+<summary>Main Developers &amp; Institutions</summary>
+```
 
 Andreas Adelmann (PSI); Ryan Ammann (PSI/ETH); Yuanjie Bi (Sun Yat-sen University);
 John Biddiscombe (CSCS/ETH); Pedro Calvo (CIEMAT); <!-- Achim Gsell (PSI); -->
@@ -34,6 +37,16 @@ Mohsen Sadr (PSI/MIT); Jochem Snuverink (PSI); Jonathan Thompson (RAL);
 Daniel Winklehner (MIT); Michail Zampetakis (PSI)
 
 ```{=html}
+</details>
+<script>
+(() => {
+  const developers = document.querySelector('.developers');
+  const narrow = window.matchMedia('(max-width: 640px)');
+  const adapt = () => { developers.open = !narrow.matches; };
+  adapt();
+  narrow.addEventListener('change', adapt);
+})();
+</script>
 <div class="institution-grid" aria-label="Contributing institutions">
   <div><img src="logos/psi_logo.svg" alt="Paul Scherrer Institute (PSI)"></div>
   <div><img src="logos/eth_logo.svg" alt="ETH Zurich"></div>
@@ -63,14 +76,14 @@ Daniel Winklehner (MIT); Michail Zampetakis (PSI)
   </div>
 </article>
 <article class="news-strip news-slide" aria-labelledby="news-mue4-title" aria-roledescription="slide" aria-label="2 of 2" hidden>
-  <button class="news-thumbnail" type="button" aria-label="Play MuE4 analytical trails" aria-haspopup="dialog" data-news-play>
-    <img src="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" alt="Preview frame from the MuE4 analytical-trails movie" width="960" height="540" loading="lazy">
+  <button class="news-thumbnail" type="button" aria-label="Play PSI MuE4" aria-haspopup="dialog" data-news-play>
+    <img src="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" alt="Preview frame from the PSI MuE4 movie" width="960" height="540" loading="lazy">
     <span class="news-play" aria-hidden="true">▶</span>
   </button>
   <div class="news-copy">
     <p class="news-kicker">Featured movie · <time datetime="2026-10-30">30 October 2026</time></p>
-    <h3 id="news-mue4-title">MuE4 analytical trails</h3>
-    <p>Watch the MuE4 analytical-trails visualization.</p>
+    <h3 id="news-mue4-title">PSI MuE4</h3>
+    <p>Watch the PSI MuE4 visualization.</p>
     <button class="news-watch" type="button" data-news-play>Watch movie <span aria-hidden="true">↗</span></button>
   </div>
 </article>
@@ -84,10 +97,10 @@ Daniel Winklehner (MIT); Michail Zampetakis (PSI)
 </div>
 <dialog id="news-movie" class="news-movie" aria-labelledby="news-movie-title">
   <div class="news-movie-header">
-    <h3 id="news-movie-title">MuE4 analytical trails</h3>
+    <h3 id="news-movie-title">PSI MuE4</h3>
     <button type="button" data-news-close aria-label="Close movie">Close ✕</button>
   </div>
-  <video controls playsinline preload="none" poster="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" aria-label="MuE4 analytical trails movie">
+  <video controls playsinline preload="none" poster="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" aria-label="PSI MuE4 movie">
     <source data-src="{{< meta documents-media-base-url >}}/movies/2026-10-30-mue4_analytical-trails.mp4" type="video/mp4">
     Your browser does not support embedded video.
   </video>
@@ -152,10 +165,9 @@ Daniel Winklehner (MIT); Michail Zampetakis (PSI)
 :::: {.hero}
 # Simulate charged-particle accelerators across CPUs and GPUs {.unnumbered}
 
-OPALX is the performance-portable accelerator simulation framework for
-high-statistics, three-dimensional beam dynamics. This manual brings the user
-guide, physics models, command reference, and developer handbook into one
-searchable source.
+OPALX brings high-statistics, three-dimensional beam dynamics to CPUs and GPUs.
+Find the user guide, physics models, command reference, and developer handbook
+in one searchable manual.
 
 ::: {.hero-actions}
 [Install OPALX](getting-started/index.qmd)
