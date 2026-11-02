@@ -3,7 +3,7 @@ title: "Install and Build OPALX"
 description: "Run OPALX with Docker or build a serial, OpenMP, CUDA, or HIP executable from source."
 audience: user
 status: current
-last-reviewed: "2026-10-31"
+last-reviewed: "2026-11-02"
 ---
 
 
@@ -122,6 +122,19 @@ source-build instructions below. Run `docker pull` again to obtain an update.
 Record the image digest printed by `docker pull` for reproducible runs, and
 use `ghcr.io/opalx-project/opalx@sha256:<digest>` in place of the tagged image
 to select that exact image. Replace `<digest>` with the recorded hash.
+
+Images published by the updated Docker build workflow set
+`org.opencontainers.image.version` to the OPALX version instead of inheriting
+Ubuntu's `24.04`. Older images retain their existing labels. A development
+image and a release image can both report `1.0.0`; the version label alone
+does not identify a release. Use the tag and revision to distinguish them,
+and the digest to select an exact image.
+
+Check the executable's version and Git revision with:
+
+```bash
+docker run --rm ghcr.io/opalx-project/opalx:cpu --version-full --info 5
+```
 
 The [Docker README]({{< meta source-code-url >}}/blob/master/docker/README.md)
 describes commit and release tags, local image builds, and the development
