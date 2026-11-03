@@ -397,7 +397,7 @@ html[data-opal-documentation-version="both"] .feature-opalx::before {
 .news-play { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; color: white; background: rgb(16 35 61 / 85%); border: 2px solid white; font-size: 1.4rem; }
 .news-kicker { color: var(--opalx-teal); font-size: .85rem; margin: 0 0 .4rem; }
 .news-copy h3 { margin: 0 0 .5rem; border: 0; }
-.news-watch { min-height: 44px; border: 0; padding: .55rem .9rem; border-radius: 6px; color: white; background: #0f6d80; cursor: pointer; }
+.news-watch { display: inline-flex; align-items: center; text-decoration: none; min-height: 44px; border: 0; padding: .55rem .9rem; border-radius: 6px; color: white; background: #0f6d80; cursor: pointer; }
 .news-movie { width: min(1000px, 94vw); max-height: 94vh; padding: 1rem; border: 1px solid var(--opalx-line); border-radius: 14px; color: var(--opalx-ink); background: var(--opalx-surface); }
 .news-movie::backdrop { background: rgb(0 0 0 / 75%); }
 .news-movie-header { display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
@@ -460,3 +460,5 @@ html[data-opal-documentation-version="both"] .feature-opalx::before {
 }
 
 .doc-card > section { display: flex; flex-direction: column; flex: 1; }
+
+a.news-watch:hover { color: white; background: #0b5665; }

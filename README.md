@@ -68,8 +68,9 @@ between page navigations.
 
 ## Featured news
 
-The front-page News ticker below the institution logos in `index.qmd` alternates
-between the release announcement (first) and movie every three seconds. It sits
+The front-page News ticker below the institution logos in `index.qmd` cycles
+through the release announcement (first), movie, and arXiv paper every three
+seconds. It sits
 beside Latest Changes to the Manual, stacking above it on narrow screens.
 Pause and navigation controls are available; opening the movie pauses rotation.
 It contains curated announcements, separately

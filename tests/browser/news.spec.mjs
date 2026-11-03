@@ -72,6 +72,11 @@ test('release-first ticker repeats every three seconds, supports pause and keeps
   await expect(slides.nth(0)).not.toBeVisible();
   await expect(page.locator('#latest-changes-list')).toBeVisible();
   await page.clock.fastForward(3100);
+  await expect(slides.nth(2)).toBeVisible();
+  await expect(slides.nth(2)).toContainText('The OPALX paper is on arXiv');
+  await expect(slides.nth(2).getByRole('link', { name: 'Read the paper' })).toHaveAttribute('href', 'https://arxiv.org/abs/2611.00124');
+  await expect(page.locator('[data-news-position]')).toHaveText('3 / 3');
+  await page.clock.fastForward(3100);
   await expect(slides.nth(0)).toBeVisible();
   await page.getByRole('button', { name: 'Pause news', exact: true }).click();
   await page.clock.fastForward(10000);
