@@ -3,7 +3,7 @@ title: "Build, Test, and CI"
 description: "Developer builds, unit tests, regression tests, and pull-request checks."
 audience: developer
 status: current
-last-reviewed: "2026-09-06"
+last-reviewed: "2026-11-09"
 ---
 
 Use a debug build with unit tests for local development:
@@ -36,8 +36,10 @@ Repeat relevant tests with `OPENMP` and the target accelerator backend. A test
 that passes only on the serial backend is not sufficient for a
 performance-portable change.
 
-Pull-request CI includes serial, OpenMP, CUDA, and HIP compilation, with SYCL
-coverage where the runner supports it. Compile workflows run on labeled,
-non-draft pull requests to `master`; use the `compile-ci` label when the change
-is ready for those checks. Fast regression cases are executed, and their results are compared to
-maintained / trusted results.
+Pull-request CI runs only on non-draft pull requests to `master` and only for
+the newest commit. The clang-format check and the serial debug build with unit
+tests run on every such pull request; the serial build is the only required
+check. The OpenMP build with unit tests, the CUDA, HIP, and SYCL compilation,
+and the serial smoke tests run only with the `smoke-compile-checks` label; add
+it when the change is ready for those checks. The smoke tests run fast
+regression cases and compare their results to maintained, trusted references.
