@@ -7,6 +7,7 @@ last-reviewed: "2026-10-30"
 toc-depth: 3
 ---
 
+{{< include ../../includes/fft2d5-review.qmd >}}
 
 
 This chapter is the physics-level counterpart to the
@@ -86,7 +87,7 @@ momenta, and electromagnetic fields are rotated back to the tracking frame.
 ## FFT2D5 longitudinal fields {#physics-fft2d5-longitudinal}
 
 
-::: {#d2d5-06}
+::: {#d2d5-06 .review-change .d2d5-review}
 FFT2D5 uses local transverse coordinates and arc length along a planar reference
 path. This geometric transformation is not a Lorentz boost: deposition uses
 laboratory line charge, so the transverse Poisson field is already the laboratory
@@ -648,12 +649,12 @@ when the last ones leave the cathode, and $\Delta p_z/\gamma_f$ is of order one.
 
 [For the three-dimensional Cartesian backends, the monolithic mode (`BINS=NONE`)
 solves Poisson's equation in the laboratory frame, with $\gamma_f=1$ and no
-magnetic self-field.]{#d2d5-05} For a relativistic bunch it
+magnetic self-field.]{#d2d5-05 .review-change .d2d5-review} For a relativistic bunch it
 overestimates the transverse self-force by up to $\gamma^2$, because the
 magnetic force that nearly cancels the electric one is missing.
 
-FFT2D5 instead uses the slice model described above, including its magnetic
-field.
+[FFT2D5 instead uses the slice model described above, including its magnetic
+field.]{.review-change .d2d5-review}
 
 ### Energy-binned decomposition {#physics-binned-decomposition}
 

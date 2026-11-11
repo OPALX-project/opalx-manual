@@ -1,0 +1,18 @@
+```{=html}
+<style>
+/* Highlight only the current FFT2D5 review additions. */
+.d2d5-review, .d2d5-review * {color:#b00020 !important;}
+.quarto-dark .d2d5-review, .quarto-dark .d2d5-review * {color:#ff6b6b !important;}
+#d2d5-04 .d2d5-review .nodeLabel, #d2d5-04 .d2d5-review .nodeLabel * {color:#b00020 !important;}
+.quarto-dark #d2d5-04 .d2d5-review .nodeLabel,
+.quarto-dark #d2d5-04 .d2d5-review .nodeLabel * {color:#ff6b6b !important;}
+.d2d5-review pre, .d2d5-review pre code {white-space:pre-wrap; overflow-wrap:anywhere;}
+/* The revised workspace relation is the final relation in this diagram. */
+#d2d5-03 [data-id^="id_FFT2D5FieldStorage_Slice_"] *,
+#d2d5-03 .edgeLabels > .edgeTerminals:last-child * {color:#b00020 !important;}
+#d2d5-03 path[id^="id_FFT2D5FieldStorage_Slice_"] {stroke:#b00020 !important;}
+.quarto-dark #d2d5-03 [data-id^="id_FFT2D5FieldStorage_Slice_"] *,
+.quarto-dark #d2d5-03 .edgeLabels > .edgeTerminals:last-child * {color:#ff6b6b !important;}
+.quarto-dark #d2d5-03 path[id^="id_FFT2D5FieldStorage_Slice_"] {stroke:#ff6b6b !important;}
+</style>
+```
