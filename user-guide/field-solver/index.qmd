@@ -353,6 +353,7 @@ solver types other than `FFT2D5`.
 | `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | [Green-function discretization for `TYPE=OPEN`; otherwise ineffective.]{#ug-18-10} |
 | `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
 | `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
+| `PERIODICBOX` | `0` | non-negative length | Edge length in metres of a [fixed periodic cube](#periodic-box). `0` lets the periodic domain follow the particles. Needs all `BCFFT*=PERIODIC` and `BINS=NONE`. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
 | `PIPEMODE` | `OPEN` | `OPEN`, `CIRCULAR`, `PLATES`, `NONE` | Local longitudinal-field model for `TYPE=FFT2D5`; transverse slices remain open. |
 | `BEAMR` | `1.0` | positive length | Beam radius in metres used by the current longitudinal closure; `TYPE=FFT2D5` only. |
@@ -447,6 +448,33 @@ The three axes must use the same boundary value. The boundary attributes set
 mesh periodicity, but they do not change `FFT` into an open solver or `OPEN`
 into a periodic solver. `P3M` explicitly supports either uniformly open or
 uniformly periodic boundaries.
+
+### Fixed periodic box {#periodic-box}
+
+With all three `BCFFT*` values `PERIODIC`, the period is the extent of the
+mesh. By default that extent is recomputed from the particle bounds at every
+solve, so the period changes with the particle distribution, and a homogeneous
+plasma cannot keep its density. `PERIODICBOX=L` fixes the period to a cube of
+edge length $L$ in metres:
+
+```opal
+FSBox: FIELDSOLVER, TYPE=P3M,
+    NX=32, NY=32, NZ=32,
+    PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+    BCFFTX=PERIODIC, BCFFTY=PERIODIC, BCFFTZ=PERIODIC,
+    PERIODICBOX=4.0e-7, RCUT=1.6e-7;
+```
+
+- The cube spans $-L/2\le x,y,z\le L/2$ in the
+  [space-charge solve frame](../../physics/overview/index.qmd#sec.opalt.space-charge-coordinate-system).
+  Each axis has $N_i$ cells of width $L/N_i$, so the period is exactly $L$
+  along all three axes. `BBOXINCR` has no effect.
+- Particles that leave the cube re-enter through the opposite face, and only
+  positions modulo $L$ enter the self-field. Place the initial particles
+  inside the cube.
+- Use it with `TYPE=FFT` or `TYPE=P3M`. OPALX rejects a negative value, any
+  `BCFFT*` value other than `PERIODIC`, and a named `BINS`.
+- ORB load balancing (`OPTION, REPARTFREQ`) remains available.
 
 ### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}
 
