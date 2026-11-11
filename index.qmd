@@ -110,10 +110,10 @@ Daniel Winklehner (MIT); Michail Zampetakis (PSI)
     <button type="button" data-news-close aria-label="Close movie">Close ✕</button>
   </div>
   <video controls playsinline preload="none" poster="assets/images/news/2026-10-30-mue4-analytical-trails.jpg" aria-label="PSI MuE4 movie">
-    <source data-src="{{< meta documents-media-base-url >}}/movies/2026-10-30-mue4_analytical-trails.mp4" type="video/mp4">
+    <source data-src="{{< meta documents-media-base-url >}}/tutorials/2026/features/2026-10-30-mue4_analytical-trails.mp4" type="video/mp4">
     Your browser does not support embedded video.
   </video>
-  <p><a href="{{< meta documents-media-base-url >}}/movies/2026-10-30-mue4_analytical-trails.mp4" download>Download movie (MP4, 121 MB)</a></p>
+  <p><a href="{{< meta documents-media-base-url >}}/tutorials/2026/features/2026-10-30-mue4_analytical-trails.mp4" download>Download movie (MP4, 121 MB)</a></p>
 </dialog>
 <script>
 (() => {
