@@ -101,7 +101,8 @@ FSPeriodic: FIELDSOLVER, TYPE=FFT,
 ```
 
 This solver represents an infinite periodic repetition of the simulation box;
-it is not an approximation to an isolated bunch.
+it is not an approximation to an isolated bunch. Set
+[`PERIODICBOX`](#periodic-box) to keep the box size constant during tracking.
 
 ### `OPEN` {#solver-open}
 
@@ -420,7 +421,8 @@ flowchart LR
     CORR --> PIC
 ```
 
-The mesh follows the particle bounds. `BBOXINCR=p` expands both the lower and
+The mesh follows the particle bounds unless [`PERIODICBOX`](#periodic-box)
+fixes it. `BBOXINCR=p` expands both the lower and
 upper bound by $p$ percent of the unpadded span, so the total width grows by
 $2p$ percent. A degenerate span is clamped to $1\,\mu\mathrm m$. If load
 balancing repartitions the field layout, OPALX updates fields and particles
