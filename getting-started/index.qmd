@@ -6,6 +6,8 @@ status: current
 last-reviewed: "2026-11-02"
 ---
 
+{{< include ../includes/feature-example-wrapping.qmd >}}
+
 
 Run the ready-made CPU image with Docker, or follow the source-build
 instructions below for a custom CPU or GPU build.
@@ -139,6 +141,44 @@ docker run --rm ghcr.io/opalx-project/opalx:cpu --version-full --info 5
 The [Docker README]({{< meta source-code-url >}}/blob/master/docker/README.md)
 describes commit and release tags, local image builds, and the development
 container.
+
+
+### Docker development environment {#docker-development-environment}
+
+The development image supplies GCC, gfortran, Open MPI and CMake. Build it
+from a current source checkout containing `docker/`:
+
+```bash
+git clone --branch master https://github.com/OPALX-project/OPALX.git opalx-development
+cd opalx-development
+docker build -f docker/Dockerfile --target dev -t opalx-dev .
+docker/dev-shell.sh
+```
+
+The source stays on the host and is mounted at `/work`. Inside the container:
+
+```bash
+cmake -S /work -B /work/build_openmp \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPLATFORMS=OPENMP \
+  -DOPALX_ENABLE_UNIT_TESTS=ON
+cmake --build /work/build_openmp -j 4
+ctest --test-dir /work/build_openmp --output-on-failure
+```
+
+Run CMake inside the container so cached paths refer to its filesystem.
+Dependency downloads during configuration require network access. Source and
+build files persist in the mounted directory. The shell uses the host user
+and group IDs.
+
+`OPALX_WORK` selects a different host directory to mount at `/work`; adjust
+source/build paths if mounting a parent directory. `OPALX_DEV_IMAGE` selects
+a different development-image name. The locally built development image
+initially contains the toolchain; the published `cpu` image contains the
+ready-to-run executable. The release-tag checkout in the source-build section
+below predates `docker/`; use the separate current checkout above.
+
+
 :::
 
 ## Source-build prerequisites

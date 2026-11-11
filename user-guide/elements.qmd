@@ -9,6 +9,8 @@ body-classes: "opalx-sidebar-page-toc"
 
 {{< include ../includes/user-guide-audit.qmd >}}
 
+{{< include ../includes/feature-example-wrapping.qmd >}}
+
 
 Elements are named objects placed in three dimensions and assembled into a
 `LINE`. Shared concepts are described once; select OPALX or OPAL above for
@@ -776,9 +778,10 @@ IP: MARKER;
 
 ## `PROBE` {#probe}
 
-`PROBE` records crossings of a finite cyclotron detector segment without removing
-particles or changing their integration steps. Include it in the tracked `LINE`
-or `RING` together with the `CYCLOTRONSECTOR` elements.
+`PROBE` records crossings of a finite detector segment without removing
+particles or changing their integration steps. It supports cyclotron-sector
+tracking and `RING` particle tracking, including scaling FFAs.
+
 
 ```opal
 P1: PROBE, XSTART=1900, XEND=4700, YSTART=0, YEND=0,
@@ -789,7 +792,7 @@ P1: PROBE, XSTART=1900, XEND=4700, YSTART=0, YEND=0,
 |---|---:|---|
 | `XSTART`, `XEND` | mm | Segment endpoint laboratory **X** coordinates. |
 | `YSTART`, `YEND` | mm | Segment endpoint laboratory **Z** coordinates (legacy cyclotron names). |
-| `STEP` | mm | Positive finite radial histogram bin width; default `1`. |
+| `STEP` | mm | Positive finite width; default `1`. Used for cyclotron radial histograms only. |
 | `WIDTH` | — | Legacy attribute, unused. |
 | `OUTFN` | path | Output basename; defaults to the element name. A supplied extension is removed. |
 
@@ -797,7 +800,7 @@ The OPALX cyclotron machine plane is laboratory X–Z; laboratory Y is vertical
 and is unrestricted by the probe. Endpoints are global laboratory coordinates,
 independent of the containing sequence's pose. `L`, `ELEMEDGE` and the common
 placement attributes do not position the probe. Endpoints must be finite and
-distinct. Histograms are limited to 10 million bins per probe.
+distinct. Cyclotron radial histograms are limited to 10 million bins per probe.
 
 Both crossing directions are recorded; segment endpoints are included. A
 particle initially on the detector is not recorded until it leaves and returns.
@@ -806,15 +809,17 @@ near-plane jitter. Crossings are interpolated between accepted particle states.
 Choose `DT` small enough to resolve each crossing and keep the probe away from
 RF kick planes; see [crossing accuracy](../physics/overview/index.qmd#cyclotron-probe-diagnostics).
 
-For basename `radial-probe`, the outputs are:
+For basename `radial-probe`, crossing output is available for both cyclotron
+and other supported ring tracking. The radial summaries below are produced
+only when the lattice contains cyclotron sectors:
 
 - `radial-probe.h5`, or `radial-probe.loss` with `OPTION, ASCIIDUMP=TRUE`:
   particle ID, laboratory position [m], mechanical momentum normalized by
   $mc$, crossing time [s], zero-based reference turn and container (`bunchNumber`).
   HDF5 also stores particle charge [C] and mass [GeV/$c^2$].
-- `radial-probe.hist`: counts in radial bins, with bounds and bin width in mm.
+- `radial-probe.hist` (cyclotrons only): counts in radial bins, with bounds and bin width in mm.
   Radius is measured from the laboratory origin in the X–Z plane.
-- `radial-probe.peaks`: mean crossing radius [mm] for each reference turn with
+- `radial-probe.peaks` (cyclotrons only): mean crossing radius [mm] for each reference turn with
   hits, in increasing turn order. These are radial means, not fitted histogram
   peak locations. Hits from multiple containers with the same turn are pooled.
 
@@ -825,16 +830,35 @@ previously accepted crossings before aborting; the failed step is not recorded.
 A hard process termination can still lose the unflushed batch. Periodic flushing
 does not enable checkpoint restart.
 
-A run without hits writes a zero histogram and header-only `.peaks`, and no
-phase-space file. Probe output basenames must be unique within a run; existing probe output files
-are rejected, so use a fresh basename for each run. Recording
-supports particle sorting and MPI migration, including empty ranks. It does not
-relax existing restrictions of the SINGLEGAP cyclotron transport model.
- An independent fresh `TRACK` run starts a new recording and
-requires fresh output basenames. Legacy FFA/RingElement probe placement remains a separate feature. `COF`
-currently requires a field-only lattice without `PROBE`; use a separate `RING`
-for the orbit solve. A newly emitted particle begins its crossing history at its
-first accepted endpoint; no crossing is inferred across an unobserved interval.
+
+A cyclotron run without hits writes a zero histogram and header-only `.peaks`,
+and no crossing phase-space file. Other rings write crossing `.h5` or `.loss`
+records only, and create no crossing file when there are no hits.
+Probe output basenames must be unique and existing probe files are rejected.
+
+Use fresh particle tracking; restart and continuation are unsupported because
+probe histories and output rewind are not checkpointed. Spectral-tune trial
+tracking cannot contain `PROBE`. Independent fresh runs need fresh output
+basenames. `COF` skips probes without opening probe output files, so the same `RING` may
+be used for the orbit solve and subsequent particle tracking.
+
+For example use [four-sector FFA example](tracking.qmd#scaling-ffa-ring-tracking),
+and replace its `FFA_RING` with:
+
+```opal
+OPTION, ASCIIDUMP=TRUE;
+PFFA: PROBE, XSTART=-4420, XEND=-4420,
+      YSTART=4000, YEND=4800, STEP=1, OUTFN="ffa-station";
+FFA_RING: RING=(M0,M1,M2,M3,PFFA);
+```
+
+Use this same `FFA_RING` for both `COF` and `TRACK`.
+Endpoints are global X–Z values
+in millimetres; ring poses do not replicate or reposition the station. The
+laboratory Y coordinate remains unrestricted. `ASCIIDUMP=TRUE` selects
+`ffa-station.loss` for the example, which disables HDF5. HDF5 probe output
+requires `ENABLEHDF5=TRUE`. No `.hist` or `.peaks` is produced for this FFA ring.
+
 
 ## `RBEND` and `SBEND` {#bends}
 
@@ -884,6 +908,15 @@ field model.
 ## `SCALINGFFAMAGNET` {#scalingffamagnet}
 
 `SCALINGFFAMAGNET` defines a horizontal fixed-field alternating-gradient magnet.
+
+::: {.feature-opalx}
+`SCALINGFFAMAGNET` is supported in `RING` particle tracking, including the
+[`TURNS`](tracking.qmd#turns) stopping condition, and in static closed-orbit
+calculations with [`COF`](tracking.qmd#opalx-cof-command). Use
+`TRACK, INITIALORBIT=...` to launch a generated bunch around the solved orbit.
+See the [complete ring example](tracking.qmd#scaling-ffa-ring-tracking) for
+placement, source definition and orbit handover.
+:::
 
 | Parameter | Unit | Default | Meaning |
 |---|---:|---:|---|

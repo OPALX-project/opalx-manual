@@ -5,6 +5,8 @@ audience: physics
 status: current
 last-reviewed: "2026-10-23"
 ---
+
+
 ## Introduction {#sec.opalt.introduction}
 
 OPALX tracks relativistic particles in three dimensions using time as the
@@ -908,13 +910,16 @@ as the field vanishes. It is not an implemented variable-radius `MULTIPOLET` mod
 
 ### Cyclotron segment diagnostics {#cyclotron-probe-diagnostics}
 
-::: {.callout-note title="Work in progress"}
-Cyclotron `PROBE` support is work in progress. The following describes the
-intended diagnostic model; implementation details and output conventions may
-change.
-:::
 
-The intended cyclotron [PROBE](../../user-guide/elements.qmd#probe) model uses
+Native [PROBE](../../user-guide/elements.qmd#probe) recording is available in
+cyclotron and supported `RING` particle tracking, including scaling FFAs.
+It is passive and works with or without space charge. All supported rings
+produce crossing records; radial histograms and per-turn radial means are
+cyclotron-only. Use fresh runs: diagnostic histories/output rewind do not
+support restart or continuation.
+
+
+The [PROBE](../../user-guide/elements.qmd#probe) model uses
 the accepted-endpoint interpolation above in both directions. Its legacy endpoint names
 $(XSTART,YSTART)$ represent laboratory $(x,z)$; the laboratory $y$ coordinate is
 vertical. Let $\mathbf a=(x_a,0,z_a)$ and $\mathbf b=(x_b,0,z_b)$ be the
@@ -933,7 +938,7 @@ migration. Only crossing records are transferred from the device for output.
 The diagnostic never changes physical particle state, fields, reference
 advancement, or accepted integration intervals.
 
-Radial histograms use $r_c=\sqrt{x_c^2+z_c^2}$ and bin index
+In cyclotron tracking only, radial histograms use $r_c=\sqrt{x_c^2+z_c^2}$ and bin index
 $\lfloor(r_c-r_{\min})/\Delta r\rfloor$, where $r_{\min}$ is the minimum
 radius on the finite segment and $\Delta r=STEP$ after conversion to metres.
 With $r_{\max}$ the maximum endpoint radius, the number of bins is

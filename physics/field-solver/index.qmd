@@ -7,6 +7,8 @@ last-reviewed: "2026-10-30"
 toc-depth: 3
 ---
 
+
+
 This chapter is the physics-level counterpart to the
 [Field Solver user guide](../../user-guide/field-solver/index.qmd). The user
 guide documents input choices and current runtime behavior; this chapter will
@@ -14,6 +16,7 @@ derive the model, state its approximations, and collect numerical validation.
 
 ::: {.callout-note title="Documentation skeleton"}
 The headings below define the intended scope. The sections on
+[FFT2D5 longitudinal fields](#physics-fft2d5-longitudinal),
 [P3M](#physics-p3m), [cathode image fields](#physics-dirichlet-boundaries), and
 [binned rest-frame space charge](#physics-binned-space-charge) are written.
 The remaining headings contain only short writing prompts so that equations
@@ -79,6 +82,213 @@ and the field transformation. Because $Q$ is orthogonal,
 $|\mathbf p'_i|=|\mathbf p_i|$ and
 $\gamma_i=\sqrt{1+|\mathbf p_i|^2}$ is unchanged. After gathering, positions,
 momenta, and electromagnetic fields are rotated back to the tracking frame.
+
+## FFT2D5 longitudinal fields {#physics-fft2d5-longitudinal}
+
+
+::: {#d2d5-06}
+FFT2D5 uses local transverse coordinates and arc length along a planar reference
+path. This geometric transformation is not a Lorentz boost: deposition uses
+laboratory line charge, so the transverse Poisson field is already the laboratory
+electric field. In the locally parallel common-velocity approximation,
+$\mathbf B_\perp=(\beta/c)\hat{\mathbf t}\times\mathbf E_\perp$; for a straight beam,
+$\mathbf F_\perp=q\mathbf E_\perp/\gamma^2$. The cell-averaged logarithmic Green
+function includes a finite self term, and centered boundary gradients use the
+exterior convolution potential. Curved-path projection does not add a nonlocal
+curvature correction.
+:::
+
+The current `ORIGINAL` model solves independent open transverse Poisson slices
+with a cell-integrated logarithmic Green function and doubled-grid FFT
+convolution. It estimates the longitudinal field from laboratory line charge
+$\lambda(s)$ along the reference path. Here $\gamma$ is formed from the
+mean longitudinal normalized momentum of the active bunch:
+
+$$
+E_s=-\frac{g}{4\pi\varepsilon_0\gamma^2}\frac{d\lambda}{ds}.
+$$
+
+Let $a=\mathtt{BEAMR}$ and
+$b=\min(\mathtt{PIPESIZEX},\mathtt{PIPESIZEY})$. The scalar factors are
+
+$$
+\begin{aligned}
+g_{\rm OPEN}&=6.36,\\
+g_{\rm CIRCULAR}&=0.67+2\ln(b/a),\\
+g_{\rm PLATES}&=0.67+2\ln(4b/(\pi a)).
+\end{aligned}
+$$
+
+`NONE` sets the longitudinal field to zero. Here $b$ follows the implementation's
+use of the full numerical mesh widths; there is no independent `PIPERADIUS`
+attribute in this model. This is a local longitudinal closure, not a nonlocal
+finite-source three-dimensional Poisson solve.
+
+MPI divides the reference-path mesh into longitudinal slabs. Every rank solves
+complete transverse planes with its FFT plans. Particle migration and density/
+field halo exchange connect neighbouring slabs; the longitudinal line-density
+profile is reduced separately for the derivative. Transverse MPI decomposition
+is unsupported. Choose enough slices per rank for halo exchange and longitudinal
+resolution; one-plane local slabs are not supported by the current full exchange.
+
+
+
+Optional batching groups independent transverse transforms into local workspaces
+on CPUs and CUDA GPUs. It changes execution and workspace use while retaining
+the same slice model; it adds no longitudinal FFT. See the
+[distributed and batched input controls](../../user-guide/field-solver/index.qmd#fft2d5-mpi).
+
+
+<details id="physics-fft2d5-development">
+<summary>Development model notes — unavailable in the current version</summary>
+
+
+The derivations below are retained development notes for a finite-source `OPEN`
+operator and a pointwise round-beam model. Those models and their additional
+attributes are unavailable in the current `ORIGINAL` implementation.
+
+
+`PIPEMODE="OPEN"` uses a finite-source Coulomb potential on a straight or
+constant-curvature reference path. Let $u$ point along the local radial basis,
+$y$ be vertical, $s$ be arc length, and $\kappa=1/R$ be signed curvature, so
+$\partial_s\mathbf t=-\kappa\mathbf b$ and the metric is $J=1+\kappa u$.
+Particle deposition gives coordinate density $\rho_c=dq/(du\,dy\,ds)$;
+it already includes the physical source Jacobian. No second factor $J$ is
+applied to the charge.
+
+For source coordinate $u'$ and separation $\tau=s-s'$, define
+
+$$
+\xi=\frac{2\sin(\kappa\tau/2)}{\kappa},\quad
+D=(u-u')^2+(y-y')^2+\xi^2,\quad
+G=D^{-1/2},\quad H=\xi^2D^{-3/2},\quad F=(u-u')H.
+$$
+
+The straight limit is $\xi=\tau$. Expanding the exact circular Coulomb
+kernel only in transverse $\kappa u$ and $\kappa u'$, while retaining the
+full angular separation, gives
+
+$$
+\Phi\simeq\frac{1}{4\pi\varepsilon_0}
+ \left[G*\rho_c-\kappa u(H*\rho_c)+\frac{\kappa}{2}(F*\rho_c)\right].
+$$
+
+The omitted kernel terms are second order in transverse size/R. Here $*$
+denotes convolution over $(u,y,s)$. All three fields derive from
+this same potential:
+
+$$
+E_u=-\partial_u\Phi,\qquad E_y=-\partial_y\Phi,\qquad
+E_s=-\frac{1}{1+\kappa u}\partial_s\Phi.
+$$
+
+The implementation integrates the singular source-cell kernels, uses padded
+three-dimensional FFTs on the thin reference-path mesh, and differentiates
+the potential with fourth-order centred differences in physical cells.
+It does not create a Cartesian field mesh covering the orbit. Unlike a local
+$\lambda'$ closure, this operator includes fields from distant slices and
+finite ends, including where $\lambda'=0$.
+
+The fitted path must be straight or a horizontal circular arc shorter than
+one turn; arbitrary curvature and closed rings are rejected. The mesh and
+field halo must satisfy $|\kappa u|\le0.01$. This is a thin-tube expansion,
+not an expansion in total bend angle. On a straight path, the source
+longitudinal coordinate is stretched by the common mean $\gamma$, the
+transverse rest-frame field is multiplied by $\gamma$, and the longitudinal
+field is retained when returning to the laboratory. Curved paths use
+instantaneous electrostatics, reject $\beta>0.1$, and have no validated
+relativistic tracking interpretation. The local magnetic-field approximation
+is not a nonlocal Biot--Savart solve.
+
+The remaining modes retain open transverse Poisson slices and a local
+longitudinal model. Let $r$ be distance from a straight reference path and
+$\lambda(s)$ be laboratory line charge; $\gamma$ is the mean longitudinal
+Lorentz factor.
+
+`PIPEMODE="CIRCULAR_UNIFORM"` assumes a uniform circular beam of constant
+radius $a=\mathtt{BEAMR}$ centred in a coaxial grounded circular pipe of
+physical radius $b=\mathtt{PIPERADIUS}\ge a$. Gauss's law gives the local
+laboratory radial field
+
+$$
+E_r(r,s)=\frac{\lambda(s)}{2\pi\varepsilon_0}
+\begin{cases}
+r/a^2,&0\le r\le a,\\
+1/r,&a<r\le b.
+\end{cases}
+$$
+
+Integrating from $r$ to the grounded wall gives the transverse potential
+
+$$
+\Phi(r,s)=\int_r^b E_r(r',s)\,dr'
+=\frac{\lambda(s)}{4\pi\varepsilon_0}g(r),\qquad
+g(r)=\begin{cases}
+1+2\ln(b/a)-r^2/a^2,&0\le r\le a,\\
+2\ln(b/r),&a<r\le b.
+\end{cases}
+$$
+
+For a uniformly moving, quasi-static bunch, the longitudinal laboratory
+field in this long-beam approximation is
+
+$$
+E_s(r,s)=-\frac{1}{\gamma^2}\frac{\partial\Phi}{\partial s}
+=-\frac{\lambda'(s)}{4\pi\varepsilon_0\gamma^2}g(r).
+$$
+
+The two expressions for $g$ agree at $r=a$, and $E_s(b,s)=0$ at the grounded
+wall. The on-axis value is $g(0)=1+2\ln(b/a)$; the uniform-disk average is
+$\overline g=1/2+2\ln(b/a)$. The distinction between on-axis and averaged
+fields is discussed by
+[Baartman](https://arxiv.org/abs/1508.00153).
+The implementation rejects particles with $r>b$; this is a coverage check,
+not a transverse conducting-wall solve or a material-loss model.
+
+The transverse mesh widths `PIPESIZEX` and `PIPESIZEY` do not enter $g(r)$ in
+this mode. The physical radius must remain fixed during numerical-domain
+checks. The open transverse solve gives the same local radial field as the
+centred round-pipe model for an axisymmetric source, because the conductor
+changes its potential reference rather than its interior radial field.
+This equivalence does not extend to offset or arbitrary transverse profiles.
+
+The model neglects the longitudinal second-derivative term in Poisson's
+equation. Its longitudinal variation scale in the bunch frame must be large
+compared with the pipe radius. A triangular-bunch benchmark therefore compares
+the linear branches away from the cusp and ends. The formula does not supply
+the nonlocal fringe field at a sharp end. It is derived for a straight,
+coaxial beam; transforming particles to a curved reference path does not add
+a curvature correction. The input radius is fixed and is not inferred from
+the evolving transverse distribution.
+
+The retained `CIRCULAR` mode instead uses the scalar coefficient
+
+$$
+g_{\mathrm{moment}}=0.67+2\ln(b/a)
+$$
+
+for every particle at a given $s$. The constant $0.67$ comes from the
+equivalent parabolic/ellipsoidal moment model described by
+[Oeftiger and Hegglin](https://proceedings.jacow.org/hb2016/papers/mopr025.pdf).
+It is neither the pointwise uniform-disk value nor its disk average.
+`PIPERADIUS` explicitly sets $b$ for this mode. Without that attribute,
+`CIRCULAR` retains its historical use of the smaller full numerical width
+as the length in the logarithm. `PLATES` retains its scalar model. Neither
+`OPEN` nor `PLATES` accepts `PIPERADIUS`.
+
+In PyORBIT's slice-by-slice model, transverse and enabled longitudinal kicks
+come from the same sliced potential; a conducting boundary fixes the
+potential reference between slices. The current model disables that
+longitudinal kick without a boundary. OPALX's round-beam formula is separate
+from its numerical transverse potential and assumes the prescribed circular
+profile. It is closer longitudinally to PyORBIT's Baartman variant, which
+uses a line-density derivative with radial dependence, although that variant
+estimates its equivalent radius from transverse second moments and uses one
+projected transverse distribution. Neither reduced method is a full 3D
+Poisson solve. See the [PyORBIT source](https://github.com/PyORBIT-Collaboration/PyORBIT3)
+and the [OPALX input guide](../../user-guide/field-solver/index.qmd#fft2d5-development-input).
+
+</details>
 
 ## Boundary conditions and Green functions {#physics-boundary-conditions}
 
@@ -436,10 +646,14 @@ $$
 During photoemission this fails: the first electrons are already relativistic
 when the last ones leave the cathode, and $\Delta p_z/\gamma_f$ is of order one.
 
-The monolithic mode (`BINS=NONE`) solves Poisson's equation in the laboratory
-frame, $\gamma_f=1$, and omits $\mathbf B$. For a relativistic bunch it
+[For the three-dimensional Cartesian backends, the monolithic mode (`BINS=NONE`)
+solves Poisson's equation in the laboratory frame, with $\gamma_f=1$ and no
+magnetic self-field.]{#d2d5-05} For a relativistic bunch it
 overestimates the transverse self-force by up to $\gamma^2$, because the
 magnetic force that nearly cancels the electric one is missing.
+
+FFT2D5 instead uses the slice model described above, including its magnetic
+field.
 
 ### Energy-binned decomposition {#physics-binned-decomposition}
 

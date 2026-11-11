@@ -6,6 +6,8 @@ status: experimental
 last-reviewed: "2026-09-09"
 ---
 
+{{< include ../includes/feature-example-wrapping.qmd >}}
+
 {{< include ../includes/user-guide-audit.qmd >}}
 
 
@@ -102,9 +104,10 @@ See [Field Solvers](field-solver/index.qmd) and
 
 ## Accelerated Beam
 
-An accelerated cyclotron model adds `RFCAVITY, TYPE="SINGLEGAP"` elements to the
-same `RING`. This model applies a radial voltage-profile kick when the reference
-particle crosses the gap plane in the positive local-z direction.
+Cyclotron with acceleration includes `RFCAVITY, TYPE="SINGLEGAP"` elements
+in the tracked `RING` together with its magnetic sectors. Each particle receives
+a radial voltage-profile kick at its own positive local-z crossing of the gap
+plane. The separately tracked reference determines an `EKINSTOP` event.
 
 ```opal
 GAP0: RFCAVITY, TYPE="SINGLEGAP", FMAPFN="gap-profile.dat",
@@ -137,6 +140,69 @@ endpoint includes a small floating-point allowance, described in
 [energy-target semantics](../physics/cyclotron.qmd#energy-target-semantics-and-long-run-comparison).
 The current energy-stop mode requires a non-restarted `RING`, one positive `DT`
 segment, no explicit `RUN,TURNS`, and a single cyclotron particle container.
+
+
+### Accelerating bunch with space charge {#accelerated-space-charge}
+
+Define the magnetic sectors and RF gaps in the same `RING`,
+then attach the solver on `RUN`. For accelerating runs, use the tracking
+schedule or `EKINSTOP`; omit explicit `RUN,TURNS`.
+
+The configuration below extends the complete
+[accelerating cyclotron input]({{< meta regression-tests-source-url >}}/RegressionTests/Cyclotron-RF-Stop/Cyclotron-RF-Stop.in).
+Retain its sector and gap definitions, poses, RF settings, and the three map
+files `bfield.dat`, `rffield1.dat`, and `rffield2.dat`. Replace its distribution,
+source, beam, field-solver and tracking definitions with the following block.
+Provide `cyclotron-bunch.dat`
+[`FROMFILE` distribution](beam-distributions.qmd#fromfile) in the same launch
+coordinate frame; the map and distribution files are required inputs.
+
+```opal
+DistSC: DISTRIBUTION, TYPE=FROMFILE,
+        FNAME="cyclotron-bunch.dat", NPARTDIST=64;
+SourceSC: EMISSIONSOURCE, DISTRIBUTION=DistSC, T0=0;
+SourcesSC: EMISSIONSOURCELIST=(SourceSC);
+
+SCBin: BINNING, MAXBINS=1, PARAMETER=GAMMAZ,
+       ADAPTIVEBINNING=FALSE;
+FSOpen: FIELDSOLVER, TYPE=OPEN, BINS=SCBin,
+        NX=16, NY=16, NZ=16,
+        PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+        BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+        GREENSF=STANDARD, BBOXINCR=2;
+
+BeamSC: BEAM, PARTICLE=PROTON, CHARGE=1,
+        NALLOC=64, BCHARGE=1e-12, SOURCES=SourcesSC;
+
+TRACK, LINE=MYCYCL, BEAM=BeamSC,
+       DT=4.113195129976966e-11,
+       MAXSTEPS=20000, ZSTOP=1e6, EKINSTOP=0.073;
+  RUN, METHOD="PARALLEL", FIELDSOLVER=FSOpen,
+       SCFIELDUPDATE="MIDPOINT";
+ENDTRACK;
+```
+
+`BCHARGE` is in coulombs and `NALLOC` must
+match the intended charge. This coarse mesh and small sample
+illustrate the configuration; converge the mesh, particle count and timestep
+for the observables of interest.
+
+The current accelerating-bunch implementation requires:
+
+- One positive-proton beam/container, with the default proton mass and no
+  `POLARIZATION` attribute.
+- Magnetic `CYCLOTRONSECTOR` elements and at most 64 `SINGLEGAP` cavities.
+- A nonzero bunch charge for an active solver. Self fields are evaluated only
+  when the particle count exceeds `MINBINEMITTED`, whose default is `10`.
+- For `EKINSTOP`, a `RING`, one positive timestep segment, no explicit `TURNS`,
+  and a target above the reference's launch kinetic energy.
+
+`MIDPOINT` samples self fields at predicted
+half-step positions; `PRESTEP` samples them at the step start.
+The reference is advanced in the applied fields and receives no
+space-charge kick. See the [collective split and RF model](../physics/cyclotron.qmd#experimental-discrete-rf-tracking)
+and [energy-target semantics](../physics/cyclotron.qmd#energy-target-semantics-and-long-run-comparison).
+
 
 ## Closed Orbit Finder {#cyclotron-closed-orbit-finder}
 

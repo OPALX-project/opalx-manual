@@ -11,6 +11,9 @@ aliases:
 
 {{< include ../../includes/user-guide-audit.qmd >}}
 
+{{< include ../../includes/feature-example-wrapping.qmd >}}
+
+
 
 ## Shared particle-mesh model {.unnumbered .unlisted}
 
@@ -167,23 +170,72 @@ in the [physics manual](../../physics/field-solver/index.qmd#physics-p3m).
 
 ### `FFT2D5` {#solver-2d5}
 
-[`FFT2D5` uses IPPL's Hockney free-space 2D FFT solver for the transverse fields.
-The doubled-grid convolution removes the periodic wraparound of an ordinary FFT
-solve. The longitudinal field is calculated from the derivative of the local
-line-charge density:]{#ug-18-05}
+[The current `FFT2D5MODEL=ORIGINAL` uses independent open transverse Poisson
+slices on a doubled mesh with a cell-integrated logarithmic Green function.
+IPPL/heFFTe supplies the FFT infrastructure. Its longitudinal field is
+calculated from the local line-density derivative:]{#ug-18-05}
+
 
 $$
-E_z(z)=-\frac{g}{4\pi\varepsilon_0 \gamma^2}\frac{d}{dz}\lambda(z)
+E_s(s)=-\frac{g}{4\pi\varepsilon_0\gamma^2}\frac{d\lambda}{ds}(s).
 $$
 
-[where $g$ is selected by `PIPEMODE`. This geometry model changes only the
-longitudinal field; the transverse Poisson solves retain open boundaries.
-`PIPEMODE=NONE` disables the longitudinal field.]{#ug-18-06}
 
-The longitudinal density derivative is evaluated at slice centers. It is
-interpolated to each particle with the same longitudinal shape as charge
-deposition: linear interpolation when `SCATTERLONGITUDINALLY=TRUE`, or the
-containing cell otherwise. Closed-ring interpolation wraps at the path boundary.
+[`PIPEMODE` selects `OPEN`, `CIRCULAR`, `PLATES` or `NONE`; `NONE` disables
+this longitudinal field. Transverse slices remain open. `FFT2D5MODEL=ORIGINAL`
+is the default and only current model.]{#ug-18-06}
+
+::: {#d2d5-01}
+Particles are projected onto the reference path and their fields are expressed
+in its local coordinates. The current solver supports the planar curved
+reference paths used for bends and rings. This coordinate transformation does
+not add a three-dimensional curvature-correction operator.
+:::
+
+
+#### Distributed FFT2D5 {#fft2d5-mpi}
+
+Parallel decomposition is along the reference-path coordinate only. Set
+`PARFFTX=FALSE`, `PARFFTY=FALSE`, `PARFFTZ=TRUE`. Every rank owns complete
+transverse planes. `NZ` must be at least the rank count; avoid one-plane local
+slabs and choose multiple slices per rank for the current halo exchange and
+numerical resolution. The example below has ample slices for two ranks.
+
+```opal
+FS2D5: FIELDSOLVER, TYPE=FFT2D5, FFT2D5MODEL=ORIGINAL,
+    NX=64, NY=64, NZ=128, BINS=NONE,
+    PARFFTX=FALSE, PARFFTY=FALSE, PARFFTZ=TRUE,
+    BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+    PIPEMODE=NONE, BEAMR=0.005,
+    PIPESIZEX=0.04, PIPESIZEY=0.04,
+    CLOSEDRING=FALSE, REFPATHFNAME="reference.dat";
+```
+
+Attach `FS2D5` to the existing beam/tracking setup using `RUN,FIELDSOLVER=FS2D5`.
+The reference file must cover the full bunch throughout tracking as described
+below. For an input named `case.in`:
+
+```bash
+mpiexec -n 2 opalx case.in
+```
+
+
+
+#### Batched transverse solves {#fft2d5-batching}
+
+`--2D5BatchSize n` groups up to `n` occupied local slices per batch on CPUs
+and GPUs; capacity is capped by the local slab size. Supply a positive integer; explicit zero is invalid.
+With one rank, omitting the option retains serial slice solves. With multiple
+ranks, the default local batch size is one.
+
+```bash
+mpiexec -n 2 opalx case.in --2D5BatchSize 8
+```
+
+A final partial batch is handled automatically. Batching retains the slice
+model and transforms transverse coordinates only. Workspace memory grows with
+batch size and transverse mesh area; compare runtime and memory use for the
+intended mesh and machine. A larger batch does not guarantee a faster run.
 
 
 ::: {.callout-warning title="Validation status"}
@@ -193,17 +245,104 @@ validated against independent physics benchmarks. Treat tracking results as
 provisional until this validation is complete.
 :::
 
-[`FFT2D5` is available only with one MPI rank, `BINS=NONE`, and
-`PARFFTX=FALSE`, `PARFFTY=FALSE`, `PARFFTZ=FALSE`. Keep all three `BCFFT*`
-values `OPEN`; select longitudinal periodicity with `CLOSEDRING=TRUE`.
-Cathode-plane corrections, a fixed Cartesian domain, and distributed execution
-are unavailable for this solver.]{#ug-18-07}
+[Keep `BINS=NONE` and all three `BCFFT*` values `OPEN`. `CLOSEDRING=TRUE`
+selects longitudinal periodicity. Cathode-plane corrections and fixed Cartesian
+domains are unavailable; transverse decomposition is rejected.]{#ug-18-07}
+
+<details id="fft2d5-development-input">
+<summary>Development model notes — unavailable in the current version</summary>
+
+
+The retained notes below describe separate development models. Their
+`CIRCULAR_UNIFORM`, `PIPERADIUS` and finite-source `OPEN` settings are unavailable
+in the current `ORIGINAL` model and are not current input syntax.
+
+
+[`FFT2D5` uses a mesh along its reference path. `PIPEMODE="OPEN"`
+calculates the finite-source free-space potential and all three electric-field
+components with a nonlocal convolution on that thin mesh. It includes the
+finite bunch ends and the leading transverse curvature terms; it has no
+fitted geometry factor.]{#ug-18-05-development}
+
+`OPEN` accepts a straight path or a horizontal circular arc shorter than one
+turn. The path is fitted exactly and used consistently for deposition and
+field gathering; unsupported paths cause an error. It requires
+`CLOSEDRING=FALSE`, a half-cell deposition margin around every particle, and
+$|u/R|\le0.01$ across the numerical mesh and its field halo. Increase the
+transverse widths or extend the path when a particle leaves that margin.
+`BEAMR` does not prescribe the free-space source profile.
+
+For a curved path the calculation is instantaneous electrostatics. The current
+implementation rejects particles with $\beta>0.1$; this cutoff does not
+certify a tracking accuracy. The frozen-field benchmark uses $\beta=0.001$.
+A straight path uses the usual common-velocity rest-frame scaling; all active
+containers must have the same mean Lorentz factor.
+
+The nonlocal operator uses three-dimensional FFTs on the thin reference-path
+mesh, rather than a Cartesian mesh covering the whole orbit. Its workspace is
+larger than that of the slice models. Converge `NZ` near sharp bunch ends as
+well as the transverse mesh sizes.
+
+[The other `PIPEMODE` values retain separate open transverse Poisson slices.
+`NONE` disables their longitudinal field. `CIRCULAR`, `CIRCULAR_UNIFORM` and
+`PLATES` use the local model]{#ug-18-06-development}
+
+$$
+E_s(r,s)=-\frac{g(r)}{4\pi\varepsilon_0 \gamma^2}\frac{d\lambda}{ds}(s).
+$$
+
+Here $s$ is distance along the reference path, $r$ is transverse distance from
+it, and $\lambda$ is the laboratory line charge. The slice-centred density
+derivative uses the same longitudinal interpolation as deposition. These
+local modes can wrap their interpolation with `CLOSEDRING=TRUE`.
+
+`PIPEMODE="CIRCULAR_UNIFORM"` selects a pointwise field for a uniform circular
+beam of fixed radius `BEAMR`, centred on the reference path, in a coaxial
+grounded circular pipe. Set the physical pipe radius with `PIPERADIUS` in
+metres; it is required and must be at least `BEAMR`. The model includes the
+radial dependence of the longitudinal field and its vacuum annulus, and rejects
+particles beyond the physical pipe radius. It does not impose a transverse
+conducting boundary. The formula and limits are given in the
+[physics chapter](../../physics/field-solver/index.qmd#physics-fft2d5-development).
+
+`PIPESIZEX` and `PIPESIZEY` are full numerical transverse widths, independent
+of `PIPERADIUS`. Keep the physical radius fixed when changing these widths
+for a numerical-domain check. For example:
+
+```opal
+FS2D5: FIELDSOLVER, TYPE="FFT2D5",
+    NX=128, NY=128, NZ=128,
+    PARFFTX=FALSE, PARFFTY=FALSE, PARFFTZ=FALSE,
+    PIPEMODE="CIRCULAR_UNIFORM", BEAMR=0.005, PIPERADIUS=0.020,
+    PIPESIZEX=0.040, PIPESIZEY=0.040,
+    REFPATHFNAME="straight-reference.dat";
+```
+
+The retained `CIRCULAR` mode uses a scalar equivalent-moment model rather than
+the pointwise uniform-round-beam field. It accepts `PIPERADIUS`; when that
+attribute is absent, it retains the historical use of
+`min(PIPESIZEX,PIPESIZEY)` in its geometry factor. `PLATES` retains its scalar
+model. `PIPERADIUS` is rejected for `OPEN`, `PLATES`, `NONE`, and
+solver types other than `FFT2D5`.
+
+
+| Development parameter | Default | Values / unit | Development meaning |
+|---|---:|---|---|
+| `PIPEMODE` | `OPEN` | `OPEN`, `CIRCULAR`, `CIRCULAR_UNIFORM`, `PLATES`, `NONE` | `OPEN`: nonlocal finite-source fields. Other values: open transverse slices and selected local longitudinal model. `TYPE=FFT2D5` only. |
+| `BEAMR` | `1.0` | positive length | Beam radius in metres; fixed uniform-round radius for `CIRCULAR_UNIFORM`. `TYPE=FFT2D5` only. |
+| `PIPERADIUS` | unset | positive length, at least `BEAMR` | Physical circular-pipe radius in metres. Required for `CIRCULAR_UNIFORM`, optional for `CIRCULAR`, rejected otherwise. Independent of the numerical mesh widths. |
+| `CLOSEDRING` | `FALSE` | Boolean | Longitudinal periodicity for local slice modes. Must be `FALSE` for `PIPEMODE=OPEN`.|
+| `PIPESIZEX` | `1.0` | positive length | Full horizontal numerical mesh width in metres. Legacy scalar geometry factors also use these widths unless `CIRCULAR` has an explicit `PIPERADIUS`. `TYPE=FFT2D5` only. |
+| `PIPESIZEY` | `1.0` | [positive length]{#ug-18-11-development} | Full vertical numerical mesh width in metres, with the same legacy geometry-factor convention as `PIPESIZEX`. `TYPE=FFT2D5` only. |
+
+</details>
 
 ## `FIELDSOLVER` parameters {#fieldsolver-parameters}
 
 | Parameter | Default | Accepted values / unit | Current effect |
 |---|---:|---|---|
 | `TYPE` | required | [`NONE`, `FFT`, `P3M`, `OPEN`, `FFT2D5`]{#ug-18-08} | Selects the backend described above. |
+| `FFT2D5MODEL` | `ORIGINAL` | `ORIGINAL` | Current 2.5D slice model; an explicit setting requires `TYPE=FFT2D5`. |
 | `BINS` | `NONE` | `NONE` or a `BINNING` name | Selects monolithic or per-bin rest-frame space charge. |
 | `NX`, `NY`, `NZ` | none | positive integer cell counts | [Number of mesh cells in $x$, $y$, and $z$. Each value must be a finite positive integer that fits a 32-bit signed integer.]{#ug-18-09} |
 | `PARFFTX` | `FALSE` | Boolean | Split the $x$ mesh axis over MPI ranks. |
@@ -214,12 +353,12 @@ are unavailable for this solver.]{#ug-18-07}
 | `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
 | `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
-| `PIPEMODE` | `OPEN` | 'OPEN', 'CIRCULAR', 'PLATES', 'NONE' | Longitudinal field geometry model, transverse boundary conditions always OPEN. 'TYPE=FFT2D5' only. |
-| `BEAMR` | `1.0` | positive length | Beam radius in metres.  'TYPE=FFT2D5' only. |
-| `CLOSEDRING` | `FALSE` | Boolean | For a ring that is longitudinally closed, set to 'TRUE'. 'TYPE=FFT2D5' only.|
-| `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | Scatters charge cloud longitudinally across slices if set to 'TRUE'. 'TYPE=FFT2D5' only.|
-| `PIPESIZEX` | `1.0` | positive length | Beam pipe horizontal size in metres. 'TYPE=FFT2D5' only. |
-| `PIPESIZEY` | `1.0` | [positive length]{#ug-18-11} | Beam pipe vertical size in metres. 'TYPE=FFT2D5' only. |
+| `PIPEMODE` | `OPEN` | `OPEN`, `CIRCULAR`, `PLATES`, `NONE` | Local longitudinal-field model for `TYPE=FFT2D5`; transverse slices remain open. |
+| `BEAMR` | `1.0` | positive length | Beam radius in metres used by the current longitudinal closure; `TYPE=FFT2D5` only. |
+| `CLOSEDRING` | `FALSE` | Boolean | Wrap longitudinal interpolation around the reference path for `TYPE=FFT2D5`. |
+| `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | [`TRUE` uses linear cloud-in-cell deposition across adjacent longitudinal slices; `FALSE` deposits into one longitudinal slice. Field gathering uses the matching longitudinal shape. `TYPE=FFT2D5` only.]{#d2d5-02} |
+| `PIPESIZEX` | `1.0` | positive length | Full horizontal numerical mesh width in metres for `FFT2D5`. |
+| `PIPESIZEY` | `1.0` | [positive length]{#ug-18-11} | Full vertical numerical mesh width in metres for `FFT2D5`. |
 | [`REFPATHFNAME`]{#ug-18-12} | `""` | string | [Reference-path filename for `TYPE=FFT2D5`. If empty, uses `<input-basename>_DesignPath.dat` in the auxiliary output directory.]{#ug-18-13} |
 
 : {tbl-colwidths="[16, 15, 24, 45]"}
@@ -243,8 +382,8 @@ For comoving paraxial particles, the resulting transverse Lorentz force is
 $\mathbf F_\perp=q\mathbf E_\perp/\gamma^2$.
 
 
-`PARFFTX`, `PARFFTY`, and `PARFFTZ` select the mesh axes that are split over
-MPI ranks; the defaults split only $z$. With more than one rank, at least one
+For the three-dimensional backends, `PARFFTX`, `PARFFTY`, and `PARFFTZ` select
+the mesh axes split over ranks; the defaults split only $z$. With more than one rank, at least one
 flag must be `TRUE`, and the product of the split mesh sizes must be at least
 the number of ranks. ORB load balancing (`OPTION, REPARTFREQ`) moves rank
 boundaries only along the split axes. It needs a power-of-two rank count and
@@ -252,12 +391,15 @@ keeps the current decomposition when a region has fewer than four mesh points
 along the axis it would cut. [Mixed boundary conditions, such as periodic $x,y$
 with open $z$, are rejected.]{#ug-18-15}
 
+FFT2D5 owns fixed reference-path slabs and its particle migration; the
+Cartesian ORB settings above do not repartition those slabs.
+
 ## Mesh and particle-in-cell cycle {#mesh-pic-cycle}
 
 [The three-dimensional backends share one distributed field layout containing
 charge density, electric field, potential, and scratch fields. Each active
 three-dimensional space-charge evaluation performs the following cycle.
-`FFT2D5` instead uses transverse slices along its reference path.]{#ug-18-16}
+`FFT2D5` instead uses a thin mesh along its reference path.]{#ug-18-16}
 
 ```{mermaid}
 flowchart LR
@@ -320,7 +462,7 @@ Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
 [For the three-dimensional backends, `TYPE` chooses a backend and `BINS`
 chooses between a lab-frame electrostatic solve and binned rest-frame solves.
 An emission source can additionally request one cathode-plane correction.
-`FFT2D5` uses its own slice algorithm and does not support these binning or
+`FFT2D5` uses its own reference-path algorithm and does not support these binning or
 cathode-plane modes.]{#ug-18-17}
 
 ### Monolithic electrostatic mode {#monolithic-mode}

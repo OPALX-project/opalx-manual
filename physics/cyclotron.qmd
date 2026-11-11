@@ -6,6 +6,8 @@ status: experimental
 last-reviewed: "2026-10-23"
 ---
 
+
+
 The first cyclotron implementation preserves the OPAL 2022.1 PSI Ring map model.
 Input radii are converted from millimetres to metres and map strengths from
 kilogauss to tesla. The host reader computes first derivatives with the legacy
@@ -70,8 +72,8 @@ from 335 to 76 to 36 micrometres as OPALX's timestep is halved twice.
 Compare trajectories at common physical times; a completed directed turn can take
 more steps than old OPAL's fixed `STEPSPERTURN` setting. A negative excursion of more than $10^{-9}$ m from the launch plane, initiates the next crossing,
 excluding the launch point and opposite-direction crossing. Earlier turns are
-counted at timestep endpoints. The final requested return is localized for static
-magnetic single-container tracking without collective fields or ongoing emission.
+counted at timestep endpoints. The final requested return is localized for static magnetic single-container
+tracking with completed emission, including runs with space charge.
 The threader's reference return remains a separate calculation.
 
 For coasting `RING` tracking, particle field candidates are selected from the
@@ -118,21 +120,26 @@ retains momentum-norm conservation to roundoff; event-dependent time selection
 is not a claim of global symplecticity. Accumulated transverse orbit error remains
 independent of the final plane residual.
 
-Space-charge coupling, multiple-container completion, ongoing emission and RF
-event ordering require further validation and are excluded from this first
-implementation. See [TURNS restrictions](../user-guide/tracking.qmd#turns).
+With space charge, the self-field calculation and particle advance use the
+accepted common duration. Multiple-container completion, ongoing emission and
+`SINGLEGAP` RF remain excluded from explicit `TURNS` stopping; see the
+[TURNS restrictions](../user-guide/tracking.qmd#turns).
 
 ## Experimental discrete RF tracking
 
-The experimental `CyclotronRFProfile` / `CyclotronRFKick` components implement
-the radial-voltage model for one forward, unpolarized median-plane proton
-in one container on one MPI rank. The beamline may contain only cyclotron
-sectors and discrete gaps, and the field solver must be `TYPE=NONE`. Restart
-is not supported. The gap-event tracker copies the particle state to the host,
-performs magnetic transport and gap localization there, then copies the
-updated state back. The standalone kick formula is callable on host and device;
-that does not make the complete RF event tracker a distributed Kokkos kernel.
-`TRACK,EKINSTOP` adds a reference kinetic-energy target as described below.
+
+The experimental radial-voltage model supports an unpolarized positive-proton
+bunch in one container, including MPI tracking with an active space-charge
+solver. Use the default proton rest mass and omit `POLARIZATION`; restart
+is unsupported. The bunch transport requires magnetic sectors and at most
+64 discrete `SINGLEGAP` cavities.
+
+Magnetic transport, gap localization and particle kicks run in Kokkos kernels
+for a bunch. The scalar reference is tracked on the host. A bare single-particle
+run on one MPI rank retains a host implementation without the 64-gap bunch
+limit. `TRACK,EKINSTOP` adds the reference kinetic-energy target described below.
+
+
 
 Profiles contain normalized coordinate $u$, voltage multiplier $f(u)$, and
 $df/du$ at each support point. Cubic Hermite interpolation uses the supplied
@@ -159,23 +166,28 @@ $$
 \begin{pmatrix}p_x\\p_z\end{pmatrix},
 $$
 
+
 where $\ell$ is the profile's physical length and momentum is in units of
-$m_pc$. The implemented kick requires $p_y=0$. It uses
+$m_pc$. The kick uses the total incoming momentum and preserves vertical momentum:
+
 $$
-|\mathbf p|=\sqrt{p_x^2+p_z^2},\qquad
-p_{z,f}=+\sqrt{\gamma_f^2-1-p_x^2}
+|\mathbf p|=\sqrt{p_x^2+p_y^2+p_z^2},\qquad
+p_{z,f}=+\sqrt{\gamma_f^2-1-p_x^2-p_y^2}.
 $$
-before the radial/longitudinal rotation. Nonzero vertical momentum is rejected;
-a general three-dimensional extension is not implemented. The extra $2\pi$ and the absence of a transit factor in the focusing
+
+The radial/longitudinal rotation leaves $p_y$ unchanged. The transit factor uses
+the total speed; the model includes neither vertical RF focusing nor vertical
+variation of the voltage profile.
+
+ The extra $2\pi$ and the absence of a transit factor in the focusing
 term reproduce OPAL 2022.1's convention deliberately. This is a compatibility
 model, not a newly derived general RF focusing law. Unsupported backward states, and kicks without a physical outgoing momentum, are rejected
 without modifying momentum. Zero voltage leaves momentum exactly unchanged.
 
-The standalone kick evaluator shares its formulas between host and device
-and performs no MPI communication. The current event tracker uses host
-magnetic field evaluation and local/laboratory coordinate transforms.
-Particle and reference trajectories are advanced independently, using their
-own localized arrival times for the RF phase.
+Host and device share the kick formulas and gap-event ordering. Each particle
+and the reference use their own localized arrival times for the RF phase.
+The accepted step duration is common to the bunch; particle and reference
+positions are not projected onto one another.
 
 With space charge, `SCFIELDUPDATE="MIDPOINT"` first predicts positions with a
 ballistic half drift, gathers the existing PIC self fields there, then restores
@@ -225,27 +237,45 @@ $$
 K=(\sqrt{1+|\mathbf p|^2}-1)M\ \geq\ 10^9\,\mathrm{EKINSTOP}.
 $$
 
-The criterion is checked immediately after each complete RF kick, including a
-decelerating harmonic kick. The tracker never applies a fractional RF kick.
-It first advances a trial reference over the requested step and retains its
-state and terminal-gap duration. It then advances the single physical particle
-independently over the requested duration. That particle may stop at its own
-first gap satisfying the same energy criterion; its returned duration is not
-used to set the clock. If the reference reached the target, the tracker sets
-the bunch timestep to the reference duration and later publishes its pending
-state through the ordinary frame update.
 
-The current single-rank implementation does not broadcast a common accepted
-reference state or guarantee that an offset particle finishes at the same
-physical time. Coincident-particle regression agreement does not establish
-that stronger endpoint contract.
+The reference criterion is checked immediately after each complete RF kick,
+including a decelerating harmonic kick. The tracker never applies a fractional
+RF kick or clamps the energy to the target. Rank zero first advances the
+reference over the requested step, localizes a terminal target event, and
+broadcasts the accepted duration, outgoing reference state and terminal decision
+before PIC prediction and gathering.
 
-A common-duration bunch advance and a terminal-plane allowance
-$\delta=64N\epsilon_{\mathrm{double}}L$ would be extensions. The current
-gap loop uses strict crossing tests and forty bisections; it contains no
-such terminal allowance. Those extensions require implementation and
-validation before their endpoint or error-budget semantics can be documented
-as supported behavior.
+Every physical particle advances through that same accepted duration, using
+its own localized RF arrivals. Reaching the target earlier does not stop an
+individual particle. The common output clock and reference-frame update use
+the accepted duration; the reference receives no self-field kick.
+
+At the terminal RF endpoint only, a floating-point allowance handles a particle
+whose independent transport or frame transformation leaves it just short of the
+plane:
+
+$$
+\delta=64N\epsilon_{\mathrm{double}}L,\qquad
+L=\max\!\left(1\,\mathrm m,\max_d|r_{a,d}|,\max_d|r_{b,d}|\right).
+$$
+
+Here $N\ge1$ counts accepted tracking steps including the final step. The
+positions $\mathbf r_a$ and $\mathbf r_b$ are the start and trial endpoint of
+the current magnetic interval, in laboratory metres; this can be the remaining
+part of a step after an earlier gap. An upstream, approaching particle whose
+trial endpoint is within $\delta$ short
+of the plane receives the complete endpoint kick at the common final time.
+Its starting distance may already be inside that allowance. An arrival within
+this band is numerically unresolved, so the convention can include a physically
+later particle within the band. More distant arrivals are excluded.
+
+Ordinary steps retain strict crossing signs, and genuinely bracketed roots use
+forty bisections. The terminal convention adds no position projection, extra
+drift or fractional kick. The allowance describes floating-point endpoint
+resolution and grows with the number of accepted steps; it is not a bound on
+magnetic, PIC or timestep discretization error.
+
+
 
 Old OPAL's orbit dump instead records the endpoint after the remainder drift.
 Compare energies after the same kick, but compare positions and momenta using a

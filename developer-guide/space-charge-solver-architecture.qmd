@@ -7,6 +7,7 @@ last-reviewed: "2026-10-22"
 toc-depth: 2
 ---
 
+
 This chapter is a compact map of the space-charge implementation. It describes
 software responsibilities and data flow, not the numerical derivation of the
 solvers. User-facing configuration is documented under
@@ -46,6 +47,7 @@ triangles show inheritance.
 [Download the full-size class diagram PDF]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-class-diagram.pdf)
 
 ::: {.content-visible when-format="html"}
+:::: {#d2d5-03}
 ```{mermaid}
 %%| label: fig-space-charge-class-architecture
 %%| fig-cap: "Space-charge setup, runtime ownership, algorithms, and Poisson adapters."
@@ -276,7 +278,7 @@ classDiagram
     FFT2D5Algorithm --> ParticleContainer : borrows all, solves active
     FFT2D5Algorithm *-- "0..1" ReferencePath : lazy initialization
     FFT2D5Algorithm *-- "0..1" FFT2D5FieldStorage : lazy initialization
-    FFT2D5FieldStorage *-- "NZ" Slice
+    FFT2D5FieldStorage *-- "1" Slice : reusable workspace
 
     %% Colours follow the draw.io section palette.
     classDef setup fill:#F8FAFC,stroke:#63758B,color:#33475E
@@ -287,6 +289,7 @@ classDiagram
     classDef fft fill:#FAF8FC,stroke:#8A759F,color:#61447D
 
 ```
+::::
 :::
 
 ## Per-call solver flow {#space-charge-solver-flow}
@@ -304,6 +307,7 @@ tracker coordinates. Both return work counts to the stable solver interface.
 [Download the full-size solver-flow PDF]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-solver-flow.pdf)
 
 ::: {.content-visible when-format="html"}
+:::: {#d2d5-04}
 ```{mermaid}
 %%| label: fig-space-charge-solver-flow
 %%| fig-cap: "Per-call dispatch and execution flow for CartesianPIC3D and FFT2D5."
@@ -426,9 +430,9 @@ flowchart TB
     end
 
     subgraph FFT2D5["FFT2D5Algorithm · all tracking-active containers"]
-        Start25("Require one MPI rank and serial decomposition<br/>No BINS, Dirichlet plane or fixed domain")
-        Init25("First call: load ReferencePath<br/>Allocate persistent fields and<br/>NZ native 2D OPEN solvers")
-        Frame25("Clear active E/B; enter solve axes<br/>Convert to Frenet-Serret coordinates<br/>and boost for deposit")
+        Start25("Require PARFFTX=FALSE and PARFFTY=FALSE<br/>Multiple MPI ranks require PARFFTZ=TRUE<br/>No BINS, Dirichlet plane or fixed domain")
+        Init25("First call: load ReferencePath<br/>Allocate persistent staging fields<br/>One reusable native transverse workspace per rank<br/>Local slice batches when configured or distributed")
+        Frame25("Clear active E/B<br/>Map particles and the laboratory reference path<br/>into common solve axes<br/>Project laboratory positions into local path coordinates")
         Scatter25{"SCATTERLONGITUDINALLY"}
         Trilinear("Trilinear CIC<br/>Across adjacent slices")
         Bilinear("Bilinear CIC<br/>Into a single slice")
@@ -439,7 +443,7 @@ flowchart TB
         Open25("Line-density gradient<br/>Open longitudinal model")
         Circular25("Line-density gradient<br/>Cylindrical-pipe longitudinal model")
         Plates25("Line-density gradient<br/>Parallel-plates longitudinal model")
-        Gather25("Gather transverse E; unboost to E/B<br/>Apply longitudinal model<br/>Undo Frenet-Serret transform")
+        Gather25("Gather transverse laboratory E<br/>Construct B from the mean longitudinal velocity<br/>Apply the longitudinal closure<br/>Rotate fields out of the local path basis")
         Finish25("Restore active R/P and tracker-axis E/B<br/>Refresh active-container moments")
 
         Start25 --> Init25
@@ -484,6 +488,7 @@ flowchart TB
     class Start25,Init25,Frame25,Trilinear,Bilinear,Solve25,Ghost25,None25,Open25,Circular25,Plates25,Gather25,Finish25 fft;
     class Scatter25,Mode25 fftDecision;
 
+
     style Runtime fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
     style PIC fill:#F5FAF8,stroke:#9CBFB3,color:#205C4A,stroke-dasharray:5 4;
     style WholeBunch fill:#F5FAF8,stroke:#C3D9D0,color:#205C4A;
@@ -491,4 +496,5 @@ flowchart TB
     style FFT2D5 fill:#FAF8FC,stroke:#BCAED0,color:#61447D,stroke-dasharray:5 4;
     linkStyle default stroke:#526277,stroke-width:1.2px;
 ```
+::::
 :::

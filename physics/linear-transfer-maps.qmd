@@ -618,8 +618,10 @@ Classification uses a configurable unit-modulus band (default $10^{-8}$):
   This is a linear spectral classification, not a nonlinear stability proof.
 
 Each positive-imaginary eigenvalue gives a representative phase
-$q=\arg(\lambda)/(2\pi)$ and its conjugate branch $1-q$. The report explicitly
-leaves the integer tune and oriented branch undetermined. For example, the
+$q=\arg(\lambda)/(2\pi)$ and its conjugate branch $1-q$.
+This eigenanalysis report leaves the integer tune and oriented branch
+undetermined; the separate [full-tune calculation](#full-ring-tunes) resolves
+them for eligible uncoupled planar optics. For example, the
 same pair can represent fractional tune 0.11 or 0.89. Modes are sorted by this
 representative phase, not labelled radial/vertical or horizontal/vertical;
 coupled modes can exchange order in a parameter scan. No mode-continuation
@@ -634,6 +636,47 @@ and require separate timestep/finite-difference studies for a real machine.
 Tests cover stable rotations, coupled/scaled similarities, real reciprocal and
 complex unstable pairs, near-integer modes, repeated/defective spectra, and an
 analytic closed-orbit-solver-to-eigenanalysis workflow.
+
+### Full ring tunes {#full-ring-tunes}
+
+For a converged closed orbit with numerically stable one-turn eigenanalysis,
+OPALX can recover full horizontal/radial and vertical tunes from the continuous
+phase of finite-difference shadow rays. The reference must remain in the
+section's horizontal plane, and both the return map and transport around the
+orbit must have negligible transverse coupling.
+
+Positive and negative perturbations in each of $(x,p_x,y,p_y)$ generate eight
+shadow rays using the configured `FDSTEP`. Their transverse displacements are
+measured relative to the moving reference: horizontally along the normal to its
+velocity, and vertically along the section's fixed vertical axis. These central
+differences define the phase advance around the orbit.
+
+For each plane $j\in\{h,v\}$, let $\mu_j\in(-\pi,\pi)$ be the oriented
+principal phase of its two-by-two one-turn matrix, and let $\Delta\phi_j$ be
+the continuously unwrapped phase accumulated along the orbit. Then
+
+$$
+Q_j=N_j+\frac{\mu_j}{2\pi},\qquad
+N_j=\operatorname{round}\!\left(\frac{\Delta\phi_j-\mu_j}{2\pi}\right).
+$$
+
+The integer $N_j$ counts windings relative to the signed principal phase.
+The endpoint matrix supplies the signed fractional phase, while the tracked
+phase fixes the winding. Together they resolve the integer and conjugate-branch
+ambiguity of the eigenvalue report. The tunes $Q_j$ are
+dimensionless oscillations per turn.
+
+The phase-sampling checks require increments smaller than $\pi/2$ and agreement
+with the endpoint matrix phase. The calculation may try coarser traversals and
+refine them down to the configured `DT`. A coupled, non-planar, resonant or
+inaccurate map, or unresolved phase sampling, can leave full tunes unavailable.
+An unavailable full-tune result leaves the converged orbit and its existing
+fractional-mode diagnostics available. Check `DT` and `FDSTEP` convergence separately;
+the phase guards do not establish general tracking accuracy.
+
+See [COF usage](../user-guide/tracking.qmd#cof-full-ring-tunes) and the
+[JSON fields](../reference/file-formats.qmd#cof-result-json) for the reported
+values and unavailable-result diagnostics.
 
 ### Closed-orbit launch handover {#closed-orbit-launch-handover}
 

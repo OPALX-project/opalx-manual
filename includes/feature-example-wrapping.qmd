@@ -1,0 +1,14 @@
+```{=html}
+<style>
+/* Keep documented examples readable on narrow screens. */
+#probe pre, #probe pre code,
+#accelerated-space-charge pre, #accelerated-space-charge pre code,
+#lattice-visualization pre, #lattice-visualization pre code,
+#fft2d5-mpi pre, #fft2d5-mpi pre code,
+#fft2d5-batching pre, #fft2d5-batching pre code,
+#docker-development-environment pre, #docker-development-environment pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+</style>
+```

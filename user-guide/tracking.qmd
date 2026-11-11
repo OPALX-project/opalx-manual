@@ -8,6 +8,10 @@ last-reviewed: "2026-09-10"
 
 {{< include ../includes/user-guide-audit.qmd >}}
 
+{{< include ../includes/scaling-ffa-example.qmd >}}
+
+
+
 
 A tracking block selects a lattice and beam, defines its step schedule, starts
 the tracker, and returns to normal input processing:
@@ -182,7 +186,8 @@ See the [numerical method](../physics/overview/index.qmd#ring-boris-pic).
 Boundary refinement currently requires:
 
 - Static drifts, markers, monitors, dipoles, quadrupoles, analytic SBEND/RBEND
-  models, and [`VARIABLE_RF_CAVITY`](elements.qmd#variable-rf-cavity) elements
+  models, `SCALINGFFAMAGNET` elements, and
+  [`VARIABLE_RF_CAVITY`](elements.qmd#variable-rf-cavity) elements
   with finite positive dimensions; no misalignments or higher multipole
   components. RF fields use the ordinary device kernel at each substep's
   physical midpoint; their explicit time-model phase is retained.
@@ -268,7 +273,8 @@ Explicit turn-count tracking currently has the following restrictions:
   add a spin restriction.
 - Emission must already be complete when tracking starts.
 - The lattice may contain static drifts, markers, monitors, multipoles, SBENDs,
-  RBENDs, solenoids, cyclotron sectors, and `VARIABLE_RF_CAVITY` elements.
+  RBENDs, solenoids, cyclotron sectors, `SCALINGFFAMAGNET`, and
+  `VARIABLE_RF_CAVITY` elements.
   General field-map RF cavities and other time-dependent element types are
   not supported for localized `TURNS`, and neither is `FIELDMAP`. This
   eligibility is separate from the narrower conditions for
@@ -392,8 +398,9 @@ for self-intersecting trajectories.
 :::
 
 Currently supported field elements are `DRIFT`, `MARKER`, static `MULTIPOLE`
-(including its quadrupole/sextupole definitions), native `SBEND`, `RBEND`, and
-`CYCLOTRONSECTOR`. Passive monitors are skipped without initialising their output
+(including its quadrupole/sextupole definitions), native `SBEND`, `RBEND`,
+`CYCLOTRONSECTOR`, and `SCALINGFFAMAGNET`.
+Passive monitors and `PROBE` are skipped without initialising their output
 files. Other types, including RF even at zero voltage, are rejected. Native
 element aperture-loss predicates are checked at accepted substep start, midpoint
 and end; timestep convergence is still necessary to resolve narrow interceptions.
@@ -405,6 +412,10 @@ sector bends use circular design arcs, while straight and rectangular-bend bodie
 use their straight axes. This assumes a local orbit neighbourhood with an
 unambiguous nearby design path, not intersecting beam-pipe solids. Cyclotron
 sectors retain their native domain predicates. Field selection is unchanged.
+
+Scaling FFA magnets apply their radial and vertical aperture limits within each
+magnet's spiral angular window. Fields from overlapping magnets, including their
+fringes, are added.
 
 
 ### Results and parallel behavior
@@ -422,6 +433,37 @@ The solve runs on rank zero. The launch state, diagnostics and failure status ar
 broadcast before returning. Only rank zero writes an explicit result file.
 See the [COF architecture](../developer-guide/architecture.qmd#closed-orbit-finder)
 for implementation details.
+
+### Full ring tunes {#cof-full-ring-tunes}
+
+After a converged `COF` solve, OPALX automatically attempts a full-tune
+calculation when the one-turn eigenanalysis is numerically stable. No additional
+input attribute is required. The result gives horizontal/radial and vertical
+linear tunes in oscillations per turn, including the integer branch.
+
+Full tunes require a planar reference orbit in the selected section's horizontal
+plane and negligible transverse coupling throughout the turn. The calculation
+combines the one-turn matrix with phase winding along the orbit to resolve the
+integer and oriented branch. The existing `fractional_modes` remain unlabelled
+eigenvalue-based branches. For example, the
+[Scaling FFA ring](#scaling-ffa-ring-tracking) gives full tunes of approximately
+`0.707107` in both planes; its representative eigenvalue phases are approximately
+`0.292893`, with the complementary branch `0.707107`.
+
+The console prints `Full tunes (uncoupled planar)` and the two tunes when
+available, or `Full tunes unavailable` with a diagnostic. Both cases include
+phase-sampling data.
+With `OUTPUT` set, the [COF JSON result](../reference/file-formats.qmd#cof-result-json)
+contains `full_tunes`, `full_tunes_diagnostic`, `phase_samples` and
+`maximum_phase_step_rad`. When full tunes are unavailable, `full_tunes` is `null`;
+the converged orbit and its fractional-mode diagnostics remain available.
+
+Coupled or non-planar transport, unstable or resonant plane maps, and unresolved
+phase sampling can prevent a full-tune result. Inspect the diagnostic and check
+convergence with `DT` and `FDSTEP`. These are fixed-energy single-particle tunes;
+`RUN, SPECTRALTUNES=TRUE` is a separate diagnostic. The
+[phase-winding method](../physics/linear-transfer-maps.qmd#full-ring-tunes)
+describes the calculation and its limits.
 
 ### Initialise TRACK from a named orbit {#opalx-initial-orbit}
 
@@ -471,6 +513,83 @@ are unlabelled and do not determine an integer or conjugate branch. In particula
 the cyclotron radial modulus sensitivity remains under investigation; the command
 does not suppress this warning or relax the unit-circle tolerance. See the
 [return-map and solver physics](../physics/linear-transfer-maps.qmd#fixed-section-return-map-service-experimental).
+
+### Scaling FFA ring example {#scaling-ffa-ring-tracking}
+
+The following self-contained example defines a four-sector scaling ring, finds
+its closed orbit, and tracks a generated bunch for one directed turn. The four
+identical radial sectors with `FIELD_INDEX=-0.5` form a symmetric weak-focusing
+model that illustrates the input sequence.
+
+Each sector has nominal arc length $\pi R_{\mathrm{ref}}/2$. The explicit
+entrance positions are in metres and the orientation angles are in radians.
+Positive `R0` bends the nominal geometry towards negative $x$, so the four
+entrance poses join about the centre $(-R_{\mathrm{ref}},0,0)$. `RING` lists
+each occurrence explicitly; it does not place or close them automatically.
+See [ring geometry](beam-lines/index.qmd#ring-geometry-fringes).
+
+```opal
+OPTION, ECHO=FALSE, ENABLEHDF5=FALSE,
+        ENABLELINEARTRANSFERMAPS=FALSE, PSDUMPFREQ=0,
+        STATDUMPFREQ=100, REPARTFREQ=0, CHECKPOINTFREQ=0;
+
+REAL RREF = 4.42;
+REAL LCELL = PI*RREF/2;
+
+M0: SCALINGFFAMAGNET, L=LCELL, R0=RREF, B0=0.1,
+    FIELD_INDEX=-0.5, TAN_DELTA=0, MAX_Y_POWER=4,
+    FRINGE_LENGTH=0.02,
+    RADIAL_NEG_EXTENT=0.8, RADIAL_POS_EXTENT=1.2, HEIGHT=1,
+    X=0, Y=0, Z=0, THETA=0, PHI=0, PSI=0;
+M1: M0, X=-RREF,   Z= RREF, THETA=-PI/2;
+M2: M0, X=-2*RREF, Z=0,     THETA=-PI;
+M3: M0, X=-RREF,   Z=-RREF, THETA=-3*PI/2;
+
+FFA_RING: RING=(M0,M1,M2,M3);
+
+D0: DISTRIBUTION, TYPE=GAUSS, NPARTDIST=8,
+    SIGMAX=0, SIGMAY=0, SIGMAZ=0,
+    SIGMAPX=0, SIGMAPY=0, SIGMAPZ=0;
+S0: EMISSIONSOURCE, DISTRIBUTION=D0, T0=0;
+SL0: EMISSIONSOURCELIST=(S0);
+B1: BEAM, PARTICLE=PROTON, PC=0.132508266436,
+    NALLOC=8, BCHARGE=1e-15, SOURCES=SL0;
+
+FFA_ORBIT: COF, LINE=FFA_RING, BEAM=B1,
+    DT=1e-9, TIMEINTEGRATOR="DOP853",
+    MAXSTEPS=5000, MAXPATH=40,
+    X=0.001, PX=1e-5, Y=0.001, PY=1e-5,
+    FDSTEP={1e-5,1e-6,1e-5,1e-6},
+    XTOL=1e-10, PTOL=1e-10, OUTPUT="ffa-orbit.json";
+
+FS0: FIELDSOLVER, TYPE=NONE, NX=8, NY=8, NZ=8;
+TRACK, LINE=FFA_RING, BEAM=B1, INITIALORBIT=FFA_ORBIT,
+       DT=1e-10, MAXSTEPS=20000;
+    RUN, METHOD="PARALLEL", FIELDSOLVER=FS0, TURNS=1;
+ENDTRACK;
+STOP;
+```
+
+`PC` is in GeV/$c$ and sets the fixed momentum magnitude for the orbit solve.
+`R0` specifies the nominal geometry and radial field scale; the solved orbit
+follows the chosen field and beam momentum and need not coincide with that
+nominal circle. `X`, `Y`, `PX` and `PY` on `COF` are a section-frame starting
+guess, with momenta normalized by $mc$.
+
+The zero-width Gaussian gives all eight particles the same initial state.
+`INITIALORBIT=FFA_ORBIT` places them in the solved orbit's local frame. `COF` does not include self-fields or match the bunch;
+the example uses `TYPE=NONE` to track in the applied magnetic field. The `COF`
+and `TRACK` timesteps are independent and must each be checked for convergence.
+Run in a fresh directory: `OUTPUT="ffa-orbit.json"` is rejected if that file
+already exists.
+
+For a lattice with nominal gaps between magnets, include those gaps in the
+ordered geometry so that the final exit meets the first entrance. A
+`SCALINGFFAMAGNET` with `B0=0` can supply a circular gap arc without adding a
+magnetic field. Its nominal arc does not force a particle to follow that circle.
+With a named `END_FIELD_MODEL`, the model's centre length
+sets the nominal arc length in place of `L`; use that length when checking
+geometric closure.
 
 ## Current OPALX step sequence {#opalx-step-sequence}
 
