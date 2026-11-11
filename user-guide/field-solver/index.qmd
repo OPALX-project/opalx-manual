@@ -451,6 +451,16 @@ mesh periodicity, but they do not change `FFT` into an open solver or `OPEN`
 into a periodic solver. `P3M` explicitly supports either uniformly open or
 uniformly periodic boundaries.
 
+### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}
+
+Generic all-face `DIRICHLET` boundaries are not a supported tracking mode.
+Use the open or periodic boundary combinations above.
+
+Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
+`TYPE=P3M` for the shifted-Green correction, and all three `BCFFT*` values
+`OPEN`, then select one correction on
+[`EMISSIONSOURCE`](../beam-distributions.qmd#emissionsource).
+
 ### Fixed periodic box {#periodic-box}
 
 With all three `BCFFT*` values `PERIODIC`, the period is the extent of the
@@ -477,16 +487,6 @@ FSBox: FIELDSOLVER, TYPE=P3M,
 - Use it with `TYPE=FFT` or `TYPE=P3M`. OPALX rejects a negative value, any
   `BCFFT*` value other than `PERIODIC`, and a named `BINS`.
 - ORB load balancing (`OPTION, REPARTFREQ`) remains available.
-
-### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}
-
-Generic all-face `DIRICHLET` boundaries are not a supported tracking mode.
-Use the open or periodic boundary combinations above.
-
-Cathode-plane Dirichlet corrections are different: keep `TYPE=OPEN`, or
-`TYPE=P3M` for the shifted-Green correction, and all three `BCFFT*` values
-`OPEN`, then select one correction on
-[`EMISSIONSOURCE`](../beam-distributions.qmd#emissionsource).
 
 ## Space-charge modes {#space-charge-modes}
 
