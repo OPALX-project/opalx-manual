@@ -188,6 +188,54 @@ Both are conventionally quoted in $\mathrm{m\,rad}$, with radians
 dimensionless; the `.stat` header labels `emit_*` with unit `m`. Multiply a
 value in metres by $10^6$ to express it in $\mathrm{mm\,mrad}$.
 
+### Rest-frame temperatures {#rest-frame-temperatures}
+
+The temperature columns are the only `.stat` quantities evaluated in the rest
+frame of the bunch. OPALX Lorentz-boosts every macroparticle momentum into the
+centre-of-momentum frame of the container, in which the mean momentum vanishes:
+
+$$
+\boldsymbol\beta_c=\frac{\langle\widetilde{\mathbf p}\rangle}{\langle\gamma\rangle},
+\qquad
+\gamma_c=\frac{1}{\sqrt{1-|\boldsymbol\beta_c|^2}},
+$$
+
+$$
+\widetilde{\mathbf p}'_k=\Delta\widetilde{\mathbf p}_k
++\left[\frac{\gamma_c^2}{\gamma_c+1}\,\boldsymbol\beta_c\cdot\Delta\widetilde{\mathbf p}_k
+-\gamma_c\,\Delta\gamma_k\right]\boldsymbol\beta_c,
+\qquad
+\gamma'_k=\sqrt{1+|\widetilde{\mathbf p}'_k|^2},
+$$
+
+with $\Delta\gamma_k=\gamma_k-\langle\gamma\rangle$. This is the exact
+transformation, not an expansion in the momentum spread. The temperature along
+each axis is
+
+$$
+k_BT_i=mc^2\left\langle\frac{\widetilde p_{k,i}'^{\,2}}{\gamma'_k}\right\rangle,
+\qquad i=x,y,z,
+$$
+
+written in kelvin as `temperature_x`, `temperature_y`, and `temperature_s`. The
+mass $m$ is the rest mass of the container's particle species, not the
+macroparticle mass, and the axes are the reference axes described above.
+
+$k_BT_i$ is the diagonal of the kinetic pressure tensor per particle in the rest
+frame. For a relativistic Maxwell-Jüttner distribution it equals $k_BT$ along
+every axis, and for a non-relativistic bunch it reduces to
+$mc^2\sigma_{\widetilde p_i}^2$. The exact transformation matters for
+relativistic beams: at equal $\widetilde p_z$, a particle with a larger
+transverse momentum has a smaller longitudinal velocity. For a beam with a
+large transverse spread, this term dominates $T_z$, and
+$mc^2(\sigma_{\widetilde p_z}/\gamma_c)^2$ underestimates it by orders of
+magnitude.
+
+All particles are taken at the same laboratory time, which in the rest frame
+is not a single time. This differs from a rest-frame snapshot only through the
+forces acting during the corresponding time offset. The `DebyeLength`,
+`plasmaParameter`, and `rmsDensity` columns are currently written as zero.
+
 ### Statistics columns
 
 The main statistics file is SDDS ASCII. A single container uses
@@ -202,6 +250,7 @@ header. The following subset maps the moments above to the output:
 | `rms_px`, `rms_py`, `rms_ps` | $\sigma_{\widetilde p_x}$, $\sigma_{\widetilde p_y}$, $\sigma_{\widetilde p_z}$ | dimensionless |
 | `xpx`, `ypy`, `zpz` | $\rho_x$, $\rho_y$, $\rho_z$ | dimensionless |
 | `emit_x`, `emit_y`, `emit_s` | $\varepsilon_{n,x}$, $\varepsilon_{n,y}$, $\varepsilon_{n,z}$ | m |
+| `temperature_x`, `temperature_y`, `temperature_s` | [Rest-frame](#rest-frame-temperatures) $T_x$, $T_y$, $T_z$ | K |
 
 These definitions concern the bunch snapshot at an output time. Sampling and
 frames for `MONITOR` and `PROBE` records must be considered separately.

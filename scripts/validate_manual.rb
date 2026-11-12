@@ -137,6 +137,7 @@ field_solver_sections = [
   ["### Open and periodic boundaries {#open-periodic-boundaries}", "open-periodic-boundaries"],
   ["### Generic all-face Dirichlet boundaries {#generic-dirichlet-boundaries}",
    "generic-dirichlet-boundaries"],
+  ["### Fixed periodic box {#periodic-box}", "periodic-box"],
   ["## Space-charge modes {#space-charge-modes}", "space-charge-modes"],
   ["### Monolithic electrostatic mode {#monolithic-mode}", "monolithic-mode"],
   ["### Binned rest-frame mode {#binned-mode}", "binned-mode"],
