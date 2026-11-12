@@ -13,7 +13,6 @@ aliases:
 
 {{< include ../../includes/feature-example-wrapping.qmd >}}
 
-{{< include ../../includes/fft2d5-review.qmd >}}
 
 
 ## Shared particle-mesh model {.unnumbered .unlisted}
@@ -186,7 +185,7 @@ $$
 this longitudinal field. Transverse slices remain open. `FFT2D5MODEL=ORIGINAL`
 is the default and only current model.]{#ug-18-06}
 
-::: {#d2d5-01 .review-change .d2d5-review}
+::: {#d2d5-01}
 Particles are projected onto the reference path and their fields are expressed
 in its local coordinates. The current solver supports the planar curved
 reference paths used for bends and rings. This coordinate transformation does
@@ -357,7 +356,7 @@ solver types other than `FFT2D5`.
 | `PIPEMODE` | `OPEN` | `OPEN`, `CIRCULAR`, `PLATES`, `NONE` | Local longitudinal-field model for `TYPE=FFT2D5`; transverse slices remain open. |
 | `BEAMR` | `1.0` | positive length | Beam radius in metres used by the current longitudinal closure; `TYPE=FFT2D5` only. |
 | `CLOSEDRING` | `FALSE` | Boolean | Wrap longitudinal interpolation around the reference path for `TYPE=FFT2D5`. |
-| `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | [`TRUE` uses linear cloud-in-cell deposition across adjacent longitudinal slices; `FALSE` deposits into one longitudinal slice. Field gathering uses the matching longitudinal shape. `TYPE=FFT2D5` only.]{#d2d5-02 .review-change .d2d5-review} |
+| `SCATTERLONGITUDINALLY` | `TRUE` | Boolean | [`TRUE` uses linear cloud-in-cell deposition across adjacent longitudinal slices; `FALSE` deposits into one longitudinal slice. Field gathering uses the matching longitudinal shape. `TYPE=FFT2D5` only.]{#d2d5-02} |
 | `PIPESIZEX` | `1.0` | positive length | Full horizontal numerical mesh width in metres for `FFT2D5`. |
 | `PIPESIZEY` | `1.0` | [positive length]{#ug-18-11} | Full vertical numerical mesh width in metres for `FFT2D5`. |
 | [`REFPATHFNAME`]{#ug-18-12} | `""` | string | [Reference-path filename for `TYPE=FFT2D5`. If empty, uses `<input-basename>_DesignPath.dat` in the auxiliary output directory.]{#ug-18-13} |

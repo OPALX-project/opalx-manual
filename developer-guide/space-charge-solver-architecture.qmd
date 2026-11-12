@@ -7,7 +7,6 @@ last-reviewed: "2026-10-22"
 toc-depth: 2
 ---
 
-{{< include ../includes/fft2d5-review.qmd >}}
 
 This chapter is a compact map of the space-charge implementation. It describes
 software responsibilities and data flow, not the numerical derivation of the
@@ -279,7 +278,6 @@ classDiagram
     FFT2D5Algorithm --> ParticleContainer : borrows all, solves active
     FFT2D5Algorithm *-- "0..1" ReferencePath : lazy initialization
     FFT2D5Algorithm *-- "0..1" FFT2D5FieldStorage : lazy initialization
-    %% D2D5-03: red review target is the FFT2D5FieldStorage -> Slice ownership relation.
     FFT2D5FieldStorage *-- "1" Slice : reusable workspace
 
     %% Colours follow the draw.io section palette.
@@ -490,9 +488,6 @@ flowchart TB
     class Start25,Init25,Frame25,Trilinear,Bilinear,Solve25,Ghost25,None25,Open25,Circular25,Plates25,Gather25,Finish25 fft;
     class Scatter25,Mode25 fftDecision;
 
-    %% D2D5-03/04: only the revised FFT2D5 nodes carry review colouring.
-    classDef d2d5-review color:#b00020;
-    class Start25,Init25,Frame25,Gather25 d2d5-review;
 
     style Runtime fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
     style PIC fill:#F5FAF8,stroke:#9CBFB3,color:#205C4A,stroke-dasharray:5 4;

@@ -57,14 +57,14 @@ Apply these rules to new text and during the recurring `DOC-LANGUAGE` sweep:
 |---|---|---|---|---|
 | `DOC-CREDITS` | Synchronize developer credits with the current paper authors | When the paper author list changes or before a release | Active opalx-paper/main.tex authors compared with front-page credits after the paper pull on 2026-10-30; five missing authors added | Recheck after author-list changes; preserve existing developer credits |
 | `DOC-CONVERTER` | Maintain the frozen converter download and Chapter 4 instructions | Before a converter release and after supported-input or reporting changes | Frozen toOPALX 1.4.2 documented as Section 4.4 on 2026-11-01; website download and checksum verified; rerendered after user edits | Keep the snapshot unchanged; future changes need a new release version, explicit download update and download/hash/browser checks |
-| `DOC-OUTPUT` | Maintain the output inventory and file-format references | Before a release and after writer/control changes | Master-based output inventory added on 2026-10-30; RHODUMP marked unavailable | Complete the indicated statistics/HDF5/auxiliary schemas and recheck availability against master |
+| `DOC-OUTPUT` | Maintain the output inventory and file-format references | Before a release and after writer/control changes | Master-based output inventory added on 2026-10-30; RHODUMP marked unavailable; Native FFA PROBE output catalogue and FFA/probe geometry exports drafted in red on 2026-11-11; NEW-04/05 output and geometry documentation accepted and unmarked on 2026-11-11; Accepted FFA/native PROBE and geometry export documentation published in daa83ca on 2026-11-11 | Complete the indicated statistics/HDF5/auxiliary schemas and recheck availability against master |
 | `DOC-API` | Audit and update the generated API documentation | Monthly, before a release, and after public C++ interface changes | Baseline not yet recorded | Establish the first complete API baseline |
-| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | User Guide audit refreshed after origin pull on 2026-10-29; all 19 chapter review boxes removed | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
-| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Chapters 28–35 reviewed on 2026-10-30; accepted/custom decisions applied | Rejected wording retained. Restore the single-bin centre-of-momentum text if OPALX issue 636 merges. Preserve prior CAIN/source-frame follow-ups. |
+| `DOC-USER` | Synchronize the User Guide and reference | Monthly, before a release, and after parser or runtime interface changes | Scoped FFT2D5 finite-source `OPEN` and `CIRCULAR_UNIFORM` / `PIPERADIUS` feature updates on 2026-11-02; prior User Guide audit refreshed after origin pull on 2026-10-29, with all 19 chapter review boxes removed; eleven features merged since OPALX 1.0.0 checked on 2026-11-10: one documented, five partial, five missing or outdated; Scaling FFA NEW-01 red review draft added and rendered on 2026-11-10; NEW-01 accepted and unmarked, NEW-02 full ring tunes drafted in red and rendered on 2026-11-10; NEW-02 accepted/unmarked and NEW-03 cyclotron RF/PIC red draft rendered on 2026-11-10; NEW-04/05/06/07/11 current-master documentation drafted in red and locally rendered on 2026-11-11; NEW-08/09 excluded unchanged; NEW-01/02 remain accepted and NEW-03 remains pending; User accepts NEW-03–07 and NEW-11 on 2026-11-11; red markup removed and local chapters rerendered; NEW-08/09 remain excluded; Scoped FFT2D5 consistency check completed on 2026-11-11; D2D5-01–06 recorded for review, with chapter text unchanged; D2D5-01–06 applied locally in red on 2026-11-11 and rendered/checked; Accepted NEW-01–07/11 documentation and FFT2D5 follow-ups pushed to main as daa83ca on 2026-11-11 after a clean pull; red removed; D2D5-01–06 red review markings restored and published in a4935c4 on 2026-11-11; wording retained and findings pending review; full CI/deploy plus12 live colour checks pass | Review 20 original User Guide decisions and two consistency follow-ups; Getting Started change markings cleared on 2026-10-30; source issues #648–#654 are separate; audit cleanup and records published on 2026-10-30 |
+| `DOC-PHYS` | Update the Physics Manual | Monthly and after physics, algorithm, or numerical changes | Scoped FFT2D5 finite-source free-space kernel and round-beam derivations and limits added on 2026-11-02; Chapters 28–35 reviewed on 2026-10-30, with accepted/custom decisions applied; NEW-02 full-tune phase-winding explanation drafted in red on 2026-11-10; NEW-02 accepted; cyclotron RF/PIC, vertical momentum and common-endpoint corrections drafted in red on 2026-11-10; Current ORIGINAL FFT2D5 longitudinal model/MPI/batching and native PROBE availability drafted in red on 2026-11-11; pre-existing finite-source/round-beam proposals preserved in labelled development notes; NEW-03/04/06/07 physics documentation accepted and unmarked on 2026-11-11; text/equations retained; Scoped FFT2D5 consistency check completed on 2026-11-11; D2D5-01–06 recorded for review, with chapter text unchanged; D2D5-01–06 applied locally in red on 2026-11-11 and rendered/checked; Accepted full tunes, cyclotron PIC and current FFT2D5 explanations published in daa83ca on 2026-11-11; unavailable development models remain labelled; D2D5-01–06 red review markings restored and published in a4935c4 on 2026-11-11; wording retained and findings pending review; full CI/deploy plus12 live colour checks pass | Rejected wording retained. Restore the single-bin centre-of-momentum text if OPALX issue 636 merges. Preserve prior CAIN/source-frame follow-ups. |
 | `DOC-SANDBOX` | Review validated sandbox results for promotion | Monthly and when a sandbox study reaches a conclusion | Experiments 1–4 source-only download bundle verified on 2026-10-06 | Merge documents bundle before manual publication; retain production birth-timing follow-up |
-| `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10 | Recheck the remaining diagrams against current class ownership and call sequences |
+| `DOC-ARCH` | Synchronize architecture text and diagrams | After structural changes and during each monthly review | Incremental COF/initial-orbit review on 2026-09-10; Scoped FFT2D5 consistency check completed on 2026-11-11; D2D5-01–06 recorded for review, with chapter text unchanged; D2D5-01–06 applied locally in red on 2026-11-11 and rendered/checked; FFT2D5 workspace ownership, MPI and coordinate/field-flow diagram corrections published in daa83ca on 2026-11-11; D2D5-01–06 red review markings restored and published in a4935c4 on 2026-11-11; wording retained and findings pending review; full CI/deploy plus12 live colour checks pass | Recheck the remaining diagrams against current class ownership and call sequences |
 | `DOC-LANGUAGE` | Enforce the manual language rules | Every documentation edit and during each monthly review | English-only reviews of Chapters 41–45 and 46–56 completed on 2026-10-30; six accepted revisions applied and rendered, including the author’s custom REF-48-01 wording | Continue other chapters only when requested; preserve separate pending User Guide and physics decisions; use “Available soon” for the three BEAMBEAM availability notices |
-| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Audit refresh on 2026-10-29: full manual and six reports; source, 64-page links, marker/status and source-preservation checks pass | Keep audit action tables and the release overview synchronized with user decisions; verify published changes after an authorized push; PDF remains paused |
+| `DOC-HEALTH` | Check links, metadata, HTML, and interactive controls; PDF when enabled | Every manual change and at least weekly | Audit refresh on 2026-10-29: full manual and six reports; source, 64-page links, marker/status and source-preservation checks pass; Seven focused chapter renders and standalone review index, source policy, 63-page links plus 13 review-index links, exact preservation, desktop/mobile themes/math and wrapped code checked on 2026-11-11; Acceptance pass on 2026-11-11: ten focused chapters and review index rendered; source, 64-page links, whitespace, content preservation and desktop/mobile unmarked rendering pass; Publication checks on 2026-11-11: source/links/renders, 26 tests (343 assertions), staged preservation and desktop/mobile diagrams pass; remote commit daa83ca verified; GitHub deployment pending; Movie source/download URLs repaired in 134d1fa on 2026-11-11; full build/deploy and live desktop/mobile playback plus six manual pages verified; D2D5-01–06 red review markings restored and published in a4935c4 on 2026-11-11; wording retained and findings pending review; full CI/deploy plus12 live colour checks pass | Keep audit action tables and the release overview synchronized with user decisions; verify published changes after an authorized push; PDF remains paused |
 
 The dates above record incremental work, not a claim that the corresponding
 area has received a complete audit. Replace that wording only after completing
@@ -1879,3 +1879,376 @@ Use this template for subsequent entries:
   No converter tests or simulations were needed for this rendering-only task.
   The whitespace check flags trailing whitespace in the user-edited chapter
   at line 100; leave the prose untouched for this rendering-only request.
+
+### 2026-11-02 — DOC-USER / DOC-PHYS: pointwise round-beam longitudinal model
+
+- Document the new FFT2D5 `CIRCULAR_UNIFORM` model and required independent
+  `PIPERADIUS` input in the Field Solvers user chapter. Clarify full numerical
+  mesh widths, optional explicit radius for legacy `CIRCULAR`, and rejected
+  radius inputs for other modes/types. Preserve the tracking-validation notice.
+- Add the uniform-disk/annulus Gauss-law potential derivation to the physics
+  chapter, with the laboratory longitudinal factor, on-axis versus disk-average
+  geometry factors, fixed/coaxial-profile assumption, long-beam limits and
+  distinction from PyORBIT's sliced-potential and Baartman models. No numerical
+  benchmark results or tracking qualification were inferred from this edit.
+- Source baseline: OPALX `fd6ba8dc5c952ce034869dc40e963ecabef7cfa8` plus the
+  current uncommitted model/API implementation; manual baseline
+  `1d4ec3d6329e7dd0af838624f1f3829dc96c6a23`. Source/interface and new equations
+  were checked directly. This is a scoped feature update, not a complete
+  chapter re-audit; retain the existing `last-reviewed` dates.
+- Validation passes: 56-chapter source/asset policy, both affected chapter HTML
+  renders into the existing `_site`, 63-page rendered internal-link/anchor
+  validation, and whitespace checks. Initial sandbox renders could not open
+  Quarto's standard macOS Sass cache; routine escalated renders succeeded.
+  Preserve unrelated local `HANDOFF.md` edits. No commit or push.
+
+
+### 2026-11-02 — DOC-USER / DOC-PHYS: finite-source FFT2D5 OPEN
+
+- Document the replacement of OPEN's local fixed-g closure with the finite-arc
+  Coulomb convolution on the thin reference-path mesh. State the first-order
+  transverse expansion, exact full-angle chord, cell integration, common
+  potential/metric derivatives and deposited coordinate-density convention.
+- State supported straight/circular geometry, open-path and half-cell coverage
+  requirements, thin-tube bound, electrostatic curved-beam scope and beta cutoff.
+  Distinguish the 3D FFT workspace from a global Cartesian orbit mesh and retain
+  the tracking-validation notice. Local pipe modes retain their stated limits.
+- Source baseline remains fd6ba8dc5c952ce034869dc40e963ecabef7cfa8 plus local
+  implementation; final executable SHA-256 begins 70383ff72345d869. This is a
+  scoped feature update, not a complete chapter audit; prior last-reviewed
+  dates are retained. Preserve unrelated manual changes and HANDOFF.md.
+- Source/asset validator (56 chapters), both affected HTML renders, rendered
+  internal-link validator (63 pages) and whitespace checks pass. Quarto's Sass
+  cache required an escalated render after sandboxed attempts failed to open
+  its database. No commit or push.
+
+
+### 2026-11-10 — DOC-USER: coverage of features added since 1.0.0
+
+- Compare the eleven feature groups previously identified between the OPALX
+  `OPALX-1.0.0` tag (`393f71e77`) and current master (`d8acf40f3`) with manual
+  main `e1430143`. The working checkout remains at `1b20a029`; the incoming
+  manual commit changes only CI documentation and does not affect these topics.
+- Coverage: one documented (CPU Docker images), five partial (FFA rings,
+  accelerating cyclotron PIC, probes, geometry exports, development container),
+  and five missing or outdated (full ring tunes, distributed and batched
+  FFT2D5, file-distribution reference momentum, G4beamline map symmetry).
+  Current availability restrictions conflict with several newly merged features.
+- Review the relevant User Guide, Physics and Reference sections, distinguish
+  retained OPAL material, and verify twelve freshly fetched published pages.
+  Store numbered findings NEW-01–NEW-11, source locations and publication
+  evidence in `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/manual-coverage/`.
+- Preserve all existing local edits, including unpublished solver-model drafts;
+  those drafts do not document MPI decomposition or batching. No manual prose,
+  audit decisions, checkmarks or assignments changed. No render or simulations
+  were needed for this coverage-only review. No commit or push requested.
+- Next: apply only the documentation updates selected by the user; keep these
+  coverage findings separate from code fixes and numerical qualification.
+
+
+### 2026-11-10 — DOC-USER: NEW-01 Scaling FFA ring review draft
+
+- At the user's request, add missing Scaling FFA RING and static COF coverage
+  in red for discussion. Manual base `e1430143`; source master `d8acf40f3`.
+  Add the support statement/link in Elements; update boundary-refinement,
+  TURNS and COF element lists in Tracking; describe aperture ownership and
+  overlapping fields. Add one complete four-sector, weak-focusing scaling-ring
+  example with explicit entrance poses, generated source, named COF result,
+  INITIALORBIT handover, and one directed tracking turn. Explain units, nominal
+  versus solved geometry, zero-spread launch, gap arcs and named end-field lengths.
+- The exact displayed input converges and completes one turn with the existing
+  OpenMP executable on one and two MPI ranks. Identical COF maximum position
+  residual is below 6.2e-15 m. This confirms a runnable input, not a tracking
+  accuracy or collective-matching benchmark. Keep the independent COF/TRACK
+  timestep-convergence guidance.
+- Add the narrowly scoped `includes/scaling-ffa-review.qmd` style so new/revised
+  prose, links, formulae and the complete code example are red, with a dark-theme
+  equivalent and wrapped code on narrow screens. No review notice box added.
+  Preserve metadata dates because this is a section update, plus existing UG
+  anchors, legacy text, HANDOFF and both unrelated solver drafts.
+- Validation passes: both page renders into the established `_site`, 56-chapter
+  source policy, 63-page rendered links, whitespace, exact source replacement
+  and unrelated-file preservation; independent example/source/diff review.
+  Chrome checks at 1440 and 390 pixels confirm red heading/prose/code, dark
+  colours, OPALX/OPAL/Both behavior and the link to the new example. Screenshots
+  visually inspected. Existing mobile page overflow and omitted COF margin-TOC
+  entries predate this change; the new example does not increase page width.
+- Canonical NEW-01 status remains pending review, applied locally and unpublished.
+  Existing published-coverage totals remain historical baseline facts. Evidence:
+  `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/scaling-ffa-review/`.
+  No full-tune, probe, visualization or solver documentation changes; no commit
+  or push. Next: user review of the red draft before acceptance or publication.
+
+
+### 2026-11-10 — DOC-USER / DOC-PHYS: accept NEW-01; draft NEW-02 full ring tunes
+
+- User accepts Scaling FFA NEW-01 and requests removing its red markings.
+  Retain the exact accepted prose, input, OPALX scope and anchors. Remove its
+  temporary review style; retain narrow-screen code wrapping in the permanent
+  `includes/scaling-ffa-example.qmd`. No wording or numerical example change.
+- User requests NEW-02 additions in red for review. Add automatic COF full-tune
+  usage, stable uncoupled planar applicability, plane labels, available/unavailable
+  console behavior, independent spectral-mode distinction and DT/FDSTEP guidance.
+  Add phase-winding physics with the signed endpoint phase and integer recovery;
+  qualify the existing matrix-only ambiguity without altering benchmark history.
+  Add the four JSON fields, units, counts and null/zero interpretations. Temporary
+  `includes/full-ring-tunes-review.qmd` marks all new/revised prose, formulae and
+  table cells red in light and dark themes.
+- Source master refreshed and remains `d8acf40f3`; manual base `e1430143`.
+  Two independent source/scope reviews pass. Existing unchanged NEW-01 outputs
+  on one and two ranks confirm the rounded tune example and JSON metadata;
+  no additional solver runs or tests were needed for this documentation edit.
+- Four focused HTML renders complete in the required `_site`. Source validator
+  (56 chapters), rendered-link validator (63 pages), whitespace, metadata,
+  existing JSON field/order, exact replacement and unrelated-file preservation
+  checks pass. Chrome at 1440 and 390 pixels confirms accepted text is unmarked,
+  new usage/physics/JSON cells are red, formulae render without errors, dark
+  colours and variant controls work. Screenshots visually inspected after fonts
+  loaded. Preserve the pre-existing HANDOFF and both solver-chapter drafts.
+- Canonical NEW-01 is accepted, applied and unpublished; NEW-02 is pending user
+  review, applied in red and unpublished. Baseline published-coverage totals
+  remain unchanged. Records and review links:
+  `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/full-ring-tunes-review/`.
+  No commit or push. Next: user review of NEW-02 before accepting/removing red.
+
+
+### 2026-11-10 — DOC-USER / DOC-PHYS: accept NEW-02; draft NEW-03 cyclotron space charge
+
+- User accepts full ring tune NEW-02 and requests removal of red. Retain all
+  accepted usage, phase-winding equations, JSON rows, links and anchors; remove
+  the temporary style. Align the Known Limitations tune sentence with those
+  accepted conditions rather than retaining its obsolete blanket exclusion.
+- Add NEW-03 red coverage to the cyclotron guide and physics chapter: individual
+  RF arrivals, active PIC/MPI bunch tracking, positive-proton/no-spin/no-restart
+  restrictions, 64-gap bunch limit, particle threshold, configuration example,
+  vertical-momentum preservation, and common reference stopping duration. Correct
+  related coasting-TURNS self-field exclusions in physics and Known Limitations.
+  Keep COF/spectral restrictions and historical benchmark numbers unchanged.
+- Explain the terminal-only whole-kick allowance with interval-specific scale
+  L from the current magnetic-trial endpoints and accepted-step count N; retain
+  strict ordinary crossings, forty bisections and the numerical-resolution scope.
+  The existing MIDPOINT/PRESTEP split paragraph already matches source and is
+  retained. Source master refreshed at `d8acf40f3`; manual base `e1430143`.
+- The example reuses the maintained accelerating RF-Stop lattice and maps, with
+  a deterministic finite 64-particle sample, nonzero charge, OPEN 16-cubed mesh
+  and one fixed bin. It exceeds default MINBINEMITTED=10. Both one- and two-rank
+  checks reach EKINSTOP, and FFT/scatter/gather timings confirm active PIC.
+  This is a configuration smoke, not a convergence or accuracy benchmark. Keep
+  the required input files and refinement guidance explicit in the manual.
+- Three independent reviews of source/physics, manual/scope and exact recipe
+  pass. Six focused pages render in the established `_site`; source policy
+  (56 chapters), rendered links (63 pages), whitespace, exact changes, metadata,
+  historical comparison/spectral-section and unrelated-file preservation pass.
+  Desktop/mobile Chrome checks confirm accepted tune prose is unmarked, NEW-03
+  prose/code/formulae are red, dark colours work, no math/JS errors and no added
+  example width. Screenshots visually inspected.
+- Preserve pre-existing HANDOFF, both solver drafts, accepted NEW-01 and older
+  audit records. NEW-02 is accepted/applied/unpublished; NEW-03 is applied in red
+  and pending user review. No code/test changes, commit or push. Records:
+  `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/cyclotron-space-charge-review/`.
+  Next: review NEW-03 before acceptance/removal of its red markings.
+
+
+### 2026-11-11 — remaining post-1.0.0 documentation, excluding NEW-08/09
+
+- User confirms excluding file-distribution reference momentum (NEW-08) and
+  G4beamline map symmetry (NEW-09). Their three chapter files remain byte-identical.
+  Keep accepted NEW-01/02 unmarked and NEW-03 pending in red. No commit/push.
+- Against source master `d8acf40f3` and manual main `e1430143`, draft native
+  cyclotron/FFA PROBE coverage, passive COF behavior and output availability;
+  FFA/probe geometry exports; current ORIGINAL FFT2D5 physics, longitudinal MPI
+  decomposition and CPU/CUDA batching; and the Docker development build/test
+  instructions. Existing runtime CPU-image coverage (NEW-10) is unchanged.
+- Preserve both unpublished finite-source/round-beam solver proposals and all
+  six development table rows in labelled closed development notes, clearly
+  unavailable in the current ORIGINAL model. Keep current parser controls
+  separate. Preserve historical audit records, metadata dates and shared edits.
+- Scope red additions with `includes/post-1-0-review.qmd`. Add the editor reading
+  copy `POST_1_0_FEATURE_REVIEW.md`, linked editable QMD originals, and unlisted
+  local browser index `post-1-0-feature-review.qmd`. The standalone index uses
+  embedded assets and is installed in the mandated primary `_site`.
+- Source policy (56 chapters), seven focused chapter renders, 63-page internal
+  links, all 13 review-index links, content IDs and whitespace checks pass.
+  Desktop/mobile Chrome verifies red additions, accepted/unmarked sections,
+  pending NEW-03, dark colours, wrapped code, closed/open development notes and
+  rendered mathematics, without JavaScript errors. Screenshots inspected.
+  All seven sources reconstruct from recorded exact replacements; independent
+  preservation and source reviews pass.
+- The documented FFA probe example completes on one and two MPI ranks and
+  writes crossing records without cyclotron histogram files. VTK and HTML
+  geometry exports succeed. Full FFA projected outlines exceed the 30-second
+  smoke limit; that command remains source-checked, without a performance claim.
+  Docker instructions match Dockerfile/wrapper; no new image was built. These
+  checks do not establish numerical convergence or physics accuracy.
+- NEW-01/02 accepted; NEW-03/04/05/06/07/11 pending, applied locally in red;
+  NEW-08/09 deferred; NEW-10 already documented. Publication remains false.
+  Canonical local progress and evidence are under
+  `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/`.
+  Next: user review in editor/browser before acceptance or publication.
+
+
+### 2026-11-11 — accept remaining post-1.0.0 documentation
+
+- User confirms the documentation has been checked and requests removing its
+  red markings. Mark NEW-03/04/05/06/07/11 accepted; NEW-01/02 stay accepted,
+  NEW-08/09 remain excluded unchanged, and NEW-10 was already documented.
+- Remove temporary review spans, classes, paired div fences and both colour
+  stylesheets from ten affected chapters. Retain all current user-edited text,
+  equations, tables, examples, links, metadata dates, stable IDs and availability
+  notes. Keep code wrapping in permanent `includes/feature-example-wrapping.qmd`.
+  Update editor/browser acceptance states and canonical local audit records.
+- Ten chapter renders and the local review index complete in the primary _site.
+  Source policy (56 chapters), rendered links (64 pages), 13 index links,
+  whitespace, exact reconstruction, excluded/unrelated preservation and an
+  independent normalized Markdown-AST comparison pass. Desktop/mobile Chrome
+  confirms normal colours, preserved code wrapping and no math/JavaScript errors;
+  screenshots inspected. Prior HTML predates user source edits, so current QMD
+  snapshots are the content authority. No new numerical or Docker checks needed.
+- Manual base `e1430143`; this acceptance pass retains the previously audited
+  source revision `d8acf40f3` and changes no technical claims. All included
+  documentation is accepted locally and unpublished. No commit or push.
+  Evidence: `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/accept-remaining-review/`.
+
+### 2026-11-11 — DOC-USER / DOC-PHYS / DOC-ARCH: FFT2D5 capability consistency check
+
+- Check the four discussed capabilities against upstream OPALX master
+  `d8acf40f332257e313eaa63959b658dd660a319e`, verified against the remote.
+  Manual base is `e1430143` with existing user changes. Read the complete
+  User Guide and Physics field-solver chapters and developer solver architecture.
+- All four capabilities are implemented. Existing current PIPEMODE/ORIGINAL,
+  periodicity, lab-density normalization and labelled unavailable development
+  notes are correct. Preserve accepted NEW-06/07 decisions and the tracking
+  accuracy qualification; availability and physical validation are separate.
+- Record D2D5-01–06: explicitly explain planar curved coordinates and both
+  longitudinal scatter/gather choices; correct obsolete serial/NZ-workspace
+  and boost labels in developer diagrams; scope the no-magnetic-field
+  BINS=NONE statement to Cartesian backends; explain the current transverse
+  field normalization, self term and boundary potential in the Physics chapter.
+  These are review proposals, not applied or published changes.
+- Exact originals, proposed text, code evidence and pending decisions are in
+  `/Users/adelmann/git/opalx/output/fft2d5-manual-audit-2026-11-11/`.
+  Source/asset validation (56 chapters) and whitespace checks pass. Hashes
+  confirm all 96 QMD sources unchanged. No render, simulation, source-code
+  change, HPC action, commit or push was needed for this documentation check.
+
+### 2026-11-11 — DOC-USER / DOC-PHYS / DOC-ARCH: FFT2D5 red review edits
+
+- Apply D2D5-01–06 in red per explicit user instruction. Add supported planar
+  curved coordinates and both scatter/gather choices; correct obsolete serial
+  and workspace ownership labels and boost/unboost descriptions; scope the
+  BINS=NONE electrostatic statement to Cartesian backends; explain the current
+  FFT2D5 transverse normalization, finite self term and boundary potential.
+- Preserve accepted NEW-06/07 content, development notes, metadata and all
+  unrelated text. Three QMD files plus one scoped styling include changed;
+  exact before snapshots and reversible changes preserve the other 93 QMDs.
+- Focused HTML renders, source policy (56 chapters), links (64 rendered pages),
+  whitespace, source preservation and 12 desktop/mobile/light/dark browser
+  checks pass. Diagram labels, ownership multiplicity and all changed prose
+  are red; unaffected Cartesian labels retain their ordinary colors.
+- Audit records and evidence remain in
+  `/Users/adelmann/git/opalx/output/fft2d5-manual-audit-2026-11-11/apply-red/`.
+  Applied locally for review; highlighting remains. No code change, numerical
+  run, commit or push. The separate preliminary LUMI tune analysis does not
+  change or qualify the manual's existing tracking-validation precaution.
+
+
+### 2026-11-11 — publish accepted post-1.0.0 and FFT2D5 documentation
+
+- User requests pull first, then commit/push accepted documentation to
+  opalx-manual/main, and explicitly adds the FFT2D5 edits. Pull is already up
+  to date, without conflicts. Commit `daa83ca644e2af90113d53a0a667b1ce38fa97fc`
+  is pushed and verified on origin/main.
+- Fourteen files include NEW-01–07 and NEW-11 plus D2D5-01–06: FFA rings,
+  full ring tunes/JSON, cyclotron PIC, native probes/geometry exports, MPI/batched
+  FFT2D5, Docker development and corrected solver diagrams/physics. Remove
+  review colours while retaining IDs, labels, examples and current user wording.
+  Keep finite-source/round-beam development notes explicitly unavailable.
+- NEW-08/09 remain excluded and unchanged. Preserve all untracked files,
+  unused temporary FFT2D5 styling, local editor/browser indexes and HANDOFF.
+  REMEMBER and all generated previews remain uncommitted. All fourteen source
+  blobs match the approved publication copies; independent staged review passes.
+- Validate source, document/internal links, local accepted/current renders and
+  whitespace. All 26 maintenance tests pass (343 assertions); desktop/mobile
+  checks confirm ordinary colours, updated Mermaid labels and reusable workspace
+  ownership. Existing configuration smokes and their numerical-validation limits
+  remain as previously recorded; no new simulation or Docker build is claimed.
+- Canonical NEW/D2D5 decisions and publication records updated. GitHub run
+  https://github.com/OPALX-project/opalx-manual/actions/runs/42986410355 is running;
+  deployment verification pending. Evidence and durable task state:
+  `/Users/adelmann/git/opalx/output/features-since-1.0.0-2026-11-10/publish-accepted/`.
+
+
+### 2026-11-11 — documentation deployment check
+
+- Requested pull/commit/push is complete in `daa83ca` on origin/main.
+  GitHub run 42986410355 rendered the HTML and passed source/document checks
+  and 23 browser tests. Two unchanged homepage movie-playback tests timed out
+  at tests/browser/news.spec.mjs:27 (initial run and retry). The configured MP4
+  URL and its repository-contents endpoint currently return HTTP404.
+- Re-run the failed GitHub job once (attempt 2, running). Site deployment is
+  not complete or verified. Do not weaken the browser tests or alter unrelated
+  homepage/media content as part of this scoped documentation publication.
+  Canonical publication.json and task state record the distinction between
+  the successful repository push and the separate deployment failure.
+
+
+### 2026-11-11 — repair moved movie URL and verify publication
+
+- User authorizes fixing the broken movie link, committing/pushing, and checking
+  passing build and live publication. Pull origin/main first: already up to date.
+  Update exactly the player and download paths in index.qmd from movies/ to
+  tutorials/2026/features/, matching the documents manifest and remote asset.
+- Correct asset returns HTTP200, supports byte ranges and has 127350971 bytes;
+  its ETag matches the catalogued SHA256. Existing desktop/mobile playback tests
+  remain unchanged and pass (2 tests, 3.4 seconds). Homepage renders in primary
+  _site; source policy (56 chapters), links (64 pages), exact diff, whitespace and
+  independent source review pass. Preserve all unrelated/local/untracked files.
+- Commit `134d1fa808c00a3340d81aaaf6a8e4bafeee9176` changes only index.qmd
+  (two path replacements), pushed and verified on opalx-manual/main.
+- Build and deploy pass in GitHub run 42988061650. Verify the public homepage
+  contains both corrected URLs and current commit history; the movie plays,
+  closes/pauses and reopens at 1440/390 pixels without JavaScript errors.
+  Six live pages confirm accepted FFA/full-tune/cyclotron/FFT2D5/architecture
+  sections are published and review colours are absent. Canonical publication
+  and audit states now record deployment success. Prior failure entries remain
+  historical. Evidence: /Users/adelmann/git/opalx/output/manual-movie-link-fix-2026-11-11/.
+
+
+### 2026-11-11 — restore FFT2D5 red review markings
+
+- User explicitly requests putting the FFT2D5 red markings back and committing/
+  pushing. The earlier request to include these edits did not authorize removing
+  their highlighting or accepting the six review proposals. D2D5-01–06 return
+  to pending review, applied and published in red. Accepted NEW-06/07 sections
+  and all other accepted feature documentation remain unmarked.
+- Reverse the exact recorded formatting removal in User Guide/Physics field
+  solvers and developer solver architecture. Restore the existing scoped
+  stylesheet, review classes and Mermaid label/ownership colour rules. Preserve
+  all prose, equations, table cells, diagram labels, stable IDs and metadata.
+  Independent normalized AST, exact source and unrelated-file checks pass.
+- Pull first (already up to date), then commit/push only these four files in
+  `a4935c4dfeedc337f46a146ec003634031464753` on opalx-manual/main. Preserve
+  the movie fix, HANDOFF, local review indexes and all unrelated work; maintain
+  REMEMBER locally without committing it.
+- Three primary _site renders, source policy (56 chapters), links (64 pages),
+  whitespace and12 local colour checks pass. Build and deployment succeed in
+  GitHub run42990452295. Twelve public checks confirm all six red findings,
+  Mermaid ownership/cardinality and revised nodes in light/dark themes at
+  1440/390 pixels; unchanged Cartesian and accepted NEW-06/07 text keeps its
+  ordinary colour. No mathematics/JavaScript errors. Screenshots inspected.
+- Canonical decisions, audit report/state and publication record corrected.
+  Evidence: /Users/adelmann/git/opalx/output/fft2d5-restore-red-2026-11-11/.
+
+
+### 2026-11-12 — remove FFT2D5 red review markings locally
+
+- User explicitly requests removing FFT2D5 red markings. Remove scoped include
+  references, review classes and Mermaid red assignments from the three chapters;
+  retain wording, equations, table cells, diagram labels, stable IDs and metadata.
+  Keep the unused stylesheet and all unrelated files. Canonical six findings are
+  accepted/unmarked locally; previous published red version remains historical.
+- Render all three pages in ~/git/opalx-manual/_site. Source pre-render validation,
+  64-page links, whitespace and desktop/mobile ordinary-colour/diagram checks
+  pass. Exact recorded formatting changes preserve technical content.
+- No commit or push requested/performed. Live site retains red until publication.
+  Evidence: /Users/adelmann/git/opalx/output/fft2d5-remove-red-2026-11-12/.

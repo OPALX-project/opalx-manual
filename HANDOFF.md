@@ -145,3 +145,16 @@ their pending-authorization statements.
 - Compact mobile authors via native details (desktop expanded), two-column mobile logos, horizontal compact stable ticker, reduced hero padding/shadow, consistent cards/radius, full-card native links, 44px controls/focus treatment, reduced-motion hover handling. Keep real commit subjects unchanged.
 - Next: render, source/browser/link checks; inspect desktop/mobile/dark screenshots, fix observed issues. No publication authorized.
 - Complete: focused HTML rebuilt; source validator (56 chapters), rendered validator (63 pages), all 22 browser tests and whitespace checks pass. Reviewed 390/768/1440px light/dark screenshots. Fixed generated section-wrapper link selector and dark primary-button contrast; native destination tab behavior respected. Added responsive design tests and README layout notes. No commit/push; no known unresolved design verification failures.
+
+## Docker version-label clarification — 2026-11-02
+
+- User authorizes small manual clarification and direct main push. Verified OPALX PR662 merged as 07a49bb20a3bdf523073911466c99a8c53d1b648.
+- Explain new vs old version labels, distinguish development/release identity from software version, add executable version/revision command. Only getting-started/index.qmd intended for commit.
+- Next: source validation, focused render/diff review, commit/push main and verify remote.
+- Complete: source validator, affected chapter HTML render, 63-page rendered link validator and whitespace checks pass; diff reviewed. Committed only getting-started/index.qmd as 1d4ec3d and pushed directly to main per explicit authorization. Remote main SHA verified. Local task-state update intentionally uncommitted. Pages publication runs separately in CI.
+
+## arXiv paper news — 2026-11-03
+
+- User requests paper announcement in News. Verified https://arxiv.org/abs/2611.00124 title and preprint availability. Add third ticker item after release/movie, keeping three-second rotation and stable panel. Add source link; do not imply journal publication.
+- Preserve pre-existing field-solver, REMEMBER and HANDOFF changes. Next: focused render and news browser checks. No new commit/push authorization.
+- Complete: local front-page HTML rebuilt; source validation, 63-page rendered validator, all five News browser tests (including full three-item cycle and paper URL), and whitespace checks pass. README now lists all three items. No commit/push; unrelated field-solver work preserved.
