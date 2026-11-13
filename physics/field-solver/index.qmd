@@ -413,6 +413,47 @@ is reached; zero leaves it active indefinitely. The solver does not test
 whether the image field is negligible. Choose a finite limit by checking its
 effect on the observables.
 
+### Bunch trains {#physics-bunch-trains}
+
+A bunch in a linac also feels the space charge of the bunches in the
+neighbouring RF buckets. If these bunches are identical copies of the tracked
+bunch, displaced by $ka\,\hat{\mathbf z}$ for $0<|k|\le K$, their potential
+adds to that of the tracked bunch:
+
+$$
+\phi(\mathbf r)=\sum_{|k|\le K}\int G(\mathbf r-ka\,\hat{\mathbf z}-\mathbf r')
+ \,\rho(\mathbf r')\,\mathrm d^3r'
+=\int G_K(\mathbf r-\mathbf r')\,\rho(\mathbf r')\,\mathrm d^3r',
+\qquad
+G_K(\mathbf r)=\sum_{|k|\le K}G(\mathbf r-ka\,\hat{\mathbf z}),
+$$
+
+with $G(\mathbf r)=1/(4\pi\varepsilon_0|\mathbf r|)$. The copies therefore
+enter only the kernel. One Hockney convolution of the tracked charge with
+$G_K$ gives the field of all $2K+1$ bunches on the mesh of the tracked bunch,
+without extending the mesh to the copies. The copy kernels are summed when the
+Green function is built.
+
+In the rest frame of bin $b$, longitudinal distances grow by $\gamma_b$, so the
+copies of that bin are spaced by $\gamma_b a$, as for the
+[shifted-Green](#physics-shifted-green) image shift. The bin field, including
+its copies, is then transformed to the laboratory frame as in the
+[binned mode](#physics-binned-space-charge).
+
+With `TYPE=OPEN`, the copies use the kernel selected by `GREENSF`. With
+`TYPE=P3M`, the mesh kernel of the tracked bunch holds only the long-range part
+of the [force split](#physics-p3m), and the pair sum runs only over tracked
+particles. The copies therefore use the full Coulomb kernel. Point-sampled
+copies, from `GREENSF=STANDARD` or `P3M`, are regularized as
+$1/\sqrt{r^2+h_{\min}^2/4}$ for $r<h_{\min}/2$. This affects the result only
+when the mesh is longer than $a$ along $z$, so that a copy's singularity lies
+inside the mesh.
+
+The model assumes that all bunches of the train have the same charge,
+distribution and velocity at every step. Differences between bunches and the
+motion of the neighbours are not modelled, and the train ends after $K$ copies
+on each side. Like the other self-fields here, the field is quasi-static.
+
 ## Solver formulations {#solver-formulations}
 
 Relate the mathematical problem to the available numerical backends.
@@ -925,6 +966,9 @@ be added.
 - The cathode is an infinite, flat, perfectly conducting plane normal to the
   beam axis. Only one emission source may define it. Image charges receive no
   `P3M` pair term.
+- `REPEATS` treats every neighbouring bunch as an exact copy of the tracked
+  bunch. Differences between bunches are not modelled, and the copies cannot
+  be combined with a cathode plane.
 - With periodic `P3M`, IPPL currently creates one ghost per particle near a
   periodic face and shifts it along every periodic axis. The ghost is the
   correct image only for particles near a corner, so short-range pairs across
