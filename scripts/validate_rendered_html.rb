@@ -70,7 +70,7 @@ if field_solver_html_path.file?
   field_solver_anchors = %w[
     solver-backends solver-none solver-fft solver-open solver-p3m solver-2d5 fieldsolver-parameters
     mesh-pic-cycle boundary-conditions open-periodic-boundaries generic-dirichlet-boundaries
-    periodic-box space-charge-modes monolithic-mode binned-mode explicit-image-charges
+    periodic-box bunch-trains space-charge-modes monolithic-mode binned-mode explicit-image-charges
     shifted-greens-correction compatibility-selection accuracy-cost binning
   ]
   field_solver_anchors.each do |anchor|
@@ -84,6 +84,7 @@ if field_solver_html_path.file?
     "fieldsolver-parameters" => /data-number=["']\d+\.2["']/,
     "generic-dirichlet-boundaries" => /data-number=["']\d+\.4\.2["']/,
     "periodic-box" => /data-number=["']\d+\.4\.3["']/,
+    "bunch-trains" => /data-number=["']\d+\.4\.4["']/,
     "shifted-greens-correction" => /data-number=["']\d+\.5\.4["']/,
     "accuracy-cost" => /data-number=["']\d+\.7["']/,
     "binning" => /data-number=["']\d+\.8["']/
