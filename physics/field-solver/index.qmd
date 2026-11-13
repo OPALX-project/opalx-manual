@@ -925,7 +925,3 @@ be added.
 - The cathode is an infinite, flat, perfectly conducting plane normal to the
   beam axis. Only one emission source may define it. Image charges receive no
   `P3M` pair term.
-- With periodic `P3M`, IPPL currently creates one ghost per particle near a
-  periodic face and shifts it along every periodic axis. The ghost is the
-  correct image only for particles near a corner, so short-range pairs across
-  a single face or edge are missing.
