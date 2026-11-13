@@ -123,6 +123,9 @@ Both choices are forwarded only to the `OPEN` backend. Establish mesh
 convergence for the selected kernel rather than assuming identical finite-grid
 results.
 
+Set [`REPEATS`](#bunch-trains) to add the field of identical neighbouring
+bunches in a bunch train. It also works with `TYPE=P3M` and open boundaries.
+
 ### `P3M` {#solver-p3m}
 
 `P3M` splits the Coulomb interaction at a cutoff radius $r_c$, with
@@ -671,6 +674,7 @@ same `ZEROFACE_MAXSTEPS` convention.
 | Open P3M | `P3M`; all `OPEN` | monolithic or binned | none or shifted Green |
 | Isolated bunch with velocity spread | `OPEN`; all `OPEN` | named `BINS` | none or explicit images |
 | Emission near a grounded plane | `OPEN`; all `OPEN` | named `BINS` | shifted Green recommended for separation from the plane |
+| Bunch in a [train of identical bunches](#bunch-trains) | `OPEN` or `P3M`; all `OPEN` | monolithic or binned | none |
 
 : {tbl-colwidths="[25, 24, 20, 31]"}
 
@@ -693,6 +697,10 @@ shifted-Green correction, and only with open boundaries.
   depend materially on the chosen partition.
 - Compare correction cutoffs and confirm that fields are negligible before
   `ZEROFACE_MAXSTEPS` disables the cathode model.
+- With `REPEATS`, increase the number of copies until the observables no
+  longer change. The copies do not change the cost of a solve, but the time to
+  build the Green function, which is repeated whenever the mesh spacing
+  changes, grows in proportion to `REPEATS`.
 - Start from a maintained regression input with the intended backend. Record
   all mesh, boundary, Green-function, binning, and correction settings with the
   result.
