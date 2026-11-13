@@ -575,12 +575,14 @@ moments such as the emittance and the energy spread.
 
 Each MPI rank stores ghost copies of the particles within $r_c$ of its region
 and sorts local and ghost particles into search cells at least $r_c$ wide. A
-particle visits its own and the 26 adjacent cells, and the fields are
-accumulated with atomic updates. This requires $r_c$ to be at most half the
-rank extent in every direction. A mesh-tied cutoff is reduced to the largest
-value that fits, which raises $\alpha h_{\max}$ above $2/\kappa$; a fixed `RCUT`
-that does not fit is an error. For periodic boundaries, particles within $r_c$
-of the domain boundary are also copied as periodic image ghosts.
+particle visits its own and the 26 adjacent cells. One thread per local
+particle sums its pair fields and stores them once, so the pair term needs no
+atomic updates, with and without binning. The ghosts and search cells require
+$r_c$ to be at most half the rank extent in every direction. A mesh-tied
+cutoff is reduced to the largest value that fits, which raises
+$\alpha h_{\max}$ above $2/\kappa$; a fixed `RCUT` that does not fit is an
+error. For periodic boundaries, particles within $r_c$ of the domain boundary
+are also copied as periodic image ghosts.
 
 With number density $n$, a particle has about $\tfrac{4\pi}{3}r_c^3n$
 neighbours, so the pair work of a rank grows as $\sum n^2$ over its cells
