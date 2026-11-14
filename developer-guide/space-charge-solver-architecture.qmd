@@ -13,8 +13,8 @@ software responsibilities and data flow, not the numerical derivation of the
 solvers. User-facing configuration is documented under
 [Field Solvers](../user-guide/field-solver/index.qmd).
 
-The HTML manual renders the editable Mermaid sources. Each section also links
-to an A3 PDF for a readable full-size or printed view.
+The HTML manual renders the editable Mermaid sources for the current
+implementation. The linked A3 PDFs are September 2026 snapshots.
 
 ## Architecture at a glance {#space-charge-architecture-overview}
 
@@ -91,15 +91,18 @@ classDiagram
 
     namespace Runtime {
         class ParallelTracker:::runtime {
-            +computeSpaceChargeFields()
+            +computeSpaceChargeFields(deferTrackerMoments)
+            deferFFT2D5Moments()
         }
         class SpaceChargeSolveContext:::runtime {
             borrowedTrackingActivity
             stepState
             spatialFrameTransforms
+            stepState.deferTrackerMoments
         }
         class SpaceChargeSolver:::runtime {
             cumulativeWorkCounts
+            +usesFFT2D5() bool
             +solve(context)
         }
         class SpaceChargeAlgorithm:::runtime {
@@ -304,6 +307,44 @@ coordinates. The FFT2D5 path operates on the active containers, solves its
 transverse slices, applies the selected longitudinal model, and then restores
 tracker coordinates. Both return work counts to the stable solver interface.
 
+### FFT2D5 moment updates {#fft2d5-moment-updates}
+
+`ParallelTracker` passes `deferTrackerMoments` in the per-step state when no
+consumer needs the intermediate full statistics. The flag requires
+`SCFIELDUPDATE=MIDPOINT`, exactly one particle container, and an active solve
+above `MINBINEMITTED`. Active emission, spin, global particle processes, or
+boundary-controlled stepping disable it. The tracker combines the eligibility
+flags across MPI ranks with a logical AND, so every rank follows the same
+collective sequence, including ranks with no local particles.
+
+When the flag is set, FFT2D5 computes the global mean longitudinal normalized
+momentum needed for its field scaling instead of full moments inside the solve.
+It restores the particle coordinates and fields on return but leaves the
+moments marked dirty. The tracker also omits the full-moment updates after
+emission and the second integration stage. Required consumers still refresh
+moments; in particular, `ParallelTracker::dumpStats()` updates each active
+container before using its statistics. Without the flag, the solver refreshes
+moments after restoring the tracker frame. Exception recovery also restores
+that frame and refreshes moments.
+
+The factory enables compact symmetric moment reductions for FFT2D5 containers.
+`DistributionMoments` retains the two-pass calculation around the global means,
+but reduces the 21 independent entries of each of the centred and raw
+six-dimensional second-moment matrices. Together with the energy-spread and
+three rest-frame temperature sums, this uses 46 accumulators instead of 76.
+The diagnostic definitions are unchanged. FFT2D5 also skips unused legacy
+beam-parameter reductions; other solver selections retain their original
+reduction sequence.
+
+For eligible tracking steps, `NoOpTransformPolicy` avoids entering and leaving
+an element frame when its callback is known to do nothing. The checks are
+specific to field, monitor and aperture callbacks: ordinary drifts and markers
+have no field callback to evaluate, only monitors need the monitor callback,
+and the aperture check uses the element's deletion flag. Unknown field types
+retain their callbacks. Active callbacks still run with their existing frame
+transformations; this does not fuse or remove physical coordinate operations.
+These decisions are automatic and add no input settings.
+
 [Download the full-size solver-flow PDF]({{< meta documents-base-url >}}/reports/2026/design/2026-09-07-opalx-space-charge-solver-flow.pdf)
 
 ::: {.content-visible when-format="html"}
@@ -336,7 +377,7 @@ flowchart TB
         T(["ParallelTracker<br/>computeSpaceChargeFields()"])
         G{"Total particles &gt; MINBINEMITTED?"}
         Skip(["Return before calling solver"])
-        C("Build step state, frame transforms<br/>and container activity")
+        C("Build step state, frame transforms<br/>and container activity<br/>Pass MPI-agreed FFT2D5 moment-update policy")
         Dispatch("SpaceChargeSolver.solve(context)<br/>Validate activity and dispatch")
         Algorithm{"Configured algorithm"}
 
@@ -444,7 +485,7 @@ flowchart TB
         Circular25("Line-density gradient<br/>Cylindrical-pipe longitudinal model")
         Plates25("Line-density gradient<br/>Parallel-plates longitudinal model")
         Gather25("Gather transverse laboratory E<br/>Construct B from the mean longitudinal velocity<br/>Apply the longitudinal closure<br/>Rotate fields out of the local path basis")
-        Finish25("Restore active R/P and tracker-axis E/B<br/>Refresh active-container moments")
+        Finish25("Restore active R/P and tracker-axis E/B<br/>Refresh moments unless deferred to tracker")
 
         Start25 --> Init25
         Init25 --> Frame25
