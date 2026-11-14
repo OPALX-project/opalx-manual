@@ -353,6 +353,14 @@ Positions are metres and file momenta are absolute $\beta\gamma$ values.
 Source offsets are added after reading. `T0 > 0` delays the complete file sample
 to one tracker step.
 
+With several MPI ranks, each rank reads and stores only its own records. The
+ranks split the data part of the file into equal byte ranges, count the data
+lines in their range, and exchange the counts. Each rank then parses only its
+contiguous block of the selected records. No rank holds the whole file, so
+host and device memory per rank scale with that rank's share of the particles,
+and the file is read about twice in total, split over the ranks. Every rank
+opens `FNAME`, so the file must be on a file system that all ranks can read.
+
 {{< pagebreak >}}
 
 ### `EMITTEDFROMFILE` {#emittedfromfile}

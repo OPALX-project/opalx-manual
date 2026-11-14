@@ -123,6 +123,9 @@ Both choices are forwarded only to the `OPEN` backend. Establish mesh
 convergence for the selected kernel rather than assuming identical finite-grid
 results.
 
+Set [`REPEATS`](#bunch-trains) to add the field of identical neighbouring
+bunches in a bunch train. It also works with `TYPE=P3M` and open boundaries.
+
 ### `P3M` {#solver-p3m}
 
 `P3M` splits the Coulomb interaction at a cutoff radius $r_c$, with
@@ -353,6 +356,8 @@ solver types other than `FFT2D5`.
 | `GREENSF` | `INTEGRATED` | `INTEGRATED`, `STANDARD` | [Green-function discretization for `TYPE=OPEN`; otherwise ineffective.]{#ug-18-10} |
 | `RCUT` | unset | positive length | Fixed `P3M` cutoff in metres; excludes `RCUT_CELLS`. Leave unset for every other type. |
 | `RCUT_CELLS` | `2` | positive number | `P3M` cutoff in units of the largest mesh spacing, used unless `RCUT` is set. Leave unset for every other type. |
+| `REPEATS` | `0` | non-negative integer | Number of identical [neighbouring bunches](#bunch-trains) on each side of the tracked bunch. `0` disables them. Needs `TYPE=OPEN` or `TYPE=P3M` with all `BCFFT*=OPEN`. |
+| `REPEAT_SPACING` | `0` | positive length | Laboratory-frame distance in metres between neighbouring bunches. Required when `REPEATS` is positive; ignored otherwise. |
 | `PERIODICBOX` | `0` | non-negative length | Edge length in metres of a [fixed periodic cube](#periodic-box). `0` lets the periodic domain follow the particles. Needs all `BCFFT*=PERIODIC` and `BINS=NONE`. |
 | `BBOXINCR` | `2.0` | percent | Adds this fraction of the particle span to each side of the moving mesh. |
 | `PIPEMODE` | `OPEN` | `OPEN`, `CIRCULAR`, `PLATES`, `NONE` | Local longitudinal-field model for `TYPE=FFT2D5`; transverse slices remain open. |
@@ -486,6 +491,45 @@ FSBox: FIELDSOLVER, TYPE=P3M,
 - Use it with `TYPE=FFT` or `TYPE=P3M`. OPALX rejects a negative value, any
   `BCFFT*` value other than `PERIODIC`, and a named `BINS`.
 - ORB load balancing (`OPTION, REPARTFREQ`) remains available.
+
+### Bunch trains {#bunch-trains}
+
+In a linac every RF bucket can hold a bunch, and the neighbouring bunches add
+to the space-charge field of the tracked one. `REPEATS=K` adds the field of
+$K$ identical bunches on each side of the tracked bunch. `REPEAT_SPACING=a` is
+their distance in metres along the $z$ axis of the
+[space-charge solve frame](../../physics/overview/index.qmd#sec.opalt.space-charge-coordinate-system);
+for bunches in adjacent RF buckets, $a=\beta c/f_\mathrm{RF}$.
+
+```opal
+FSTrain: FIELDSOLVER, TYPE=OPEN,
+    NX=32, NY=32, NZ=64,
+    PARFFTX=TRUE, PARFFTY=TRUE, PARFFTZ=TRUE,
+    BCFFTX=OPEN, BCFFTY=OPEN, BCFFTZ=OPEN,
+    REPEATS=8, REPEAT_SPACING=0.0542;
+```
+
+- The neighbouring bunches are shifted copies in the Green function,
+  $G_K(\mathbf r)=\sum_{|k|\le K}G(\mathbf r-ka\,\hat{\mathbf z})$, so one
+  solve gives the field of all $2K+1$ bunches on the mesh of the tracked one.
+  The [physics manual](../../physics/field-solver/index.qmd#physics-bunch-trains)
+  gives the derivation.
+- Every copy has the same charge distribution and velocity as the tracked
+  bunch and moves with it. The copies are not tracked, and their field is
+  evaluated only at the tracked particles.
+- In the [binned rest-frame mode](#binned-mode), the spacing is stretched with
+  the mesh: the solve for bin $b$ uses $\gamma_b a$.
+- With `TYPE=OPEN`, the copies use the `GREENSF` kernel. With `TYPE=P3M`, they
+  use the full Coulomb kernel, because they receive no short-range
+  particle-particle correction.
+- If the mesh is longer than $a$ along $z$, the singularity of a copy falls
+  inside the mesh. The point-sampled kernels (`GREENSF=STANDARD` and the
+  `P3M` copies) are regularized there; use `TYPE=OPEN` with the default
+  `GREENSF=INTEGRATED` for such meshes.
+- OPALX rejects a negative or non-integer `REPEATS`, a missing or non-positive
+  `REPEAT_SPACING`, any `BCFFT*` value other than `OPEN`, and other solver
+  types. Cathode-plane corrections (`ZEROFACE_R0Z`, `SHIFTED_GREENS_FUNCTION`)
+  are also rejected, because the image solve does not include the copies.
 
 ## Space-charge modes {#space-charge-modes}
 
@@ -630,6 +674,7 @@ same `ZEROFACE_MAXSTEPS` convention.
 | Open P3M | `P3M`; all `OPEN` | monolithic or binned | none or shifted Green |
 | Isolated bunch with velocity spread | `OPEN`; all `OPEN` | named `BINS` | none or explicit images |
 | Emission near a grounded plane | `OPEN`; all `OPEN` | named `BINS` | shifted Green recommended for separation from the plane |
+| Bunch in a [train of identical bunches](#bunch-trains) | `OPEN` or `P3M`; all `OPEN` | monolithic or binned | none |
 
 : {tbl-colwidths="[25, 24, 20, 31]"}
 
@@ -652,6 +697,10 @@ shifted-Green correction, and only with open boundaries.
   depend materially on the chosen partition.
 - Compare correction cutoffs and confirm that fields are negligible before
   `ZEROFACE_MAXSTEPS` disables the cathode model.
+- With `REPEATS`, increase the number of copies until the observables no
+  longer change. The copies do not change the cost of a solve, but the time to
+  build the Green function, which is repeated whenever the mesh spacing
+  changes, grows in proportion to `REPEATS`.
 - Start from a maintained regression input with the intended backend. Record
   all mesh, boundary, Green-function, binning, and correction settings with the
   result.
