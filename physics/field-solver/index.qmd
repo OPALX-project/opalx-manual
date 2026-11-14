@@ -971,7 +971,3 @@ be added.
 - `REPEATS` treats every neighbouring bunch as an exact copy of the tracked
   bunch. Differences between bunches are not modelled, and the copies cannot
   be combined with a cathode plane.
-- With periodic `P3M`, IPPL currently creates one ghost per particle near a
-  periodic face and shifts it along every periodic axis. The ghost is the
-  correct image only for particles near a corner, so short-range pairs across
-  a single face or edge are missing.
