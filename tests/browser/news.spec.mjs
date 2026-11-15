@@ -6,8 +6,9 @@ for (const width of [1440, 390]) {
     await page.goto('/index.html');
     await page.getByRole('button', { name: 'Pause news', exact: true }).click();
     await page.getByRole('button', { name: 'Next news item' }).click();
-    const strip = page.locator('.news-slide').nth(1);
-    await expect(page.locator('.news-slide').first()).toContainText('OPALX 1.0.0 released 1.11.2026');
+    await page.getByRole('button', { name: 'Next news item' }).click();
+    const strip = page.locator('.news-slide').nth(2);
+    await expect(page.locator('.news-slide').first()).toContainText('OPALX 1.1.0 released 15.11.2026');
     await expect(strip).toBeVisible();
     expect(await page.evaluate(() => {
       const logos = document.querySelector('.institution-grid');
@@ -60,24 +61,25 @@ test('News ticker and manual changes are side by side on desktop and stack on mo
   }
 });
 
-test('release-first ticker repeats every three seconds, supports pause and keeps history visible', async ({ page }) => {
+test('release-first ticker cycles all four items every three seconds, with pause and history visible', async ({ page }) => {
   await page.clock.install();
   await page.goto('/index.html');
   const slides = page.locator('.news-slide');
+  await expect(slides).toHaveCount(4);
   await expect(slides.nth(0)).toBeVisible();
-  await expect(slides.nth(0)).toContainText('OPALX 1.0.0 released 1.11.2026');
+  await expect(slides.nth(0)).toContainText('OPALX 1.1.0 released 15.11.2026');
+  await expect(slides.nth(0)).toContainText('New FFA and cyclotron capabilities, faster space-charge calculations, bunch-train support, and temperature diagnostics.');
+  await expect(slides.nth(0).getByRole('link', { name: 'Read the release notes' })).toHaveAttribute('href', 'https://github.com/OPALX-project/OPALX/releases/tag/OPALX-1.1.0');
   await page.locator('.news-ticker').hover();
-  await page.clock.fastForward(3100);
-  await expect(slides.nth(1)).toBeVisible();
-  await expect(slides.nth(0)).not.toBeVisible();
-  await expect(page.locator('#latest-changes-list')).toBeVisible();
-  await page.clock.fastForward(3100);
-  await expect(slides.nth(2)).toBeVisible();
-  await expect(slides.nth(2)).toContainText('The OPALX paper is on arXiv');
-  await expect(slides.nth(2).getByRole('link', { name: 'Read the paper' })).toHaveAttribute('href', 'https://arxiv.org/abs/2611.00124');
-  await expect(page.locator('[data-news-position]')).toHaveText('3 / 3');
-  await page.clock.fastForward(3100);
-  await expect(slides.nth(0)).toBeVisible();
+  for (let i = 1; i <= 4; i++) {
+    await page.clock.fastForward(3100);
+    await expect(slides.nth(i % 4)).toBeVisible();
+    await expect(page.locator('[data-news-position]')).toHaveText(`${i % 4 + 1} / 4`);
+    await expect(page.locator('#latest-changes-list')).toBeVisible();
+  }
+  await expect(slides.nth(1)).toContainText('OPALX 1.0.0 released 1.11.2026');
+  await expect(slides.nth(2)).toContainText('PSI MuE4');
+  await expect(slides.nth(3).getByRole('link', { name: 'Read the paper', includeHidden: true })).toHaveAttribute('href', 'https://arxiv.org/abs/2611.00124');
   await page.getByRole('button', { name: 'Pause news', exact: true }).click();
   await page.clock.fastForward(10000);
   await expect(slides.nth(0)).toBeVisible();
@@ -93,13 +95,12 @@ test('news panel retains movie dimensions throughout rotation at desktop and mob
     await page.goto('/index.html');
     const panel = page.locator('.news-slides');
     const release = await panel.boundingBox();
-    await page.clock.fastForward(3100);
-    await expect(page.locator('.news-slide').nth(1)).toBeVisible();
-    const movie = await panel.boundingBox();
-    expect(Math.abs(release.height - movie.height)).toBeLessThan(1);
-    expect(Math.abs(release.width - movie.width)).toBeLessThan(1);
-    await page.clock.fastForward(3100);
-    const repeated = await panel.boundingBox();
-    expect(Math.abs(repeated.height - movie.height)).toBeLessThan(1);
+    for (let i = 1; i <= 4; i++) {
+      await page.clock.fastForward(3100);
+      await expect(page.locator('.news-slide').nth(i % 4)).toBeVisible();
+      const bounds = await panel.boundingBox();
+      expect(Math.abs(release.height - bounds.height)).toBeLessThan(1);
+      expect(Math.abs(release.width - bounds.width)).toBeLessThan(1);
+    }
   }
 });
