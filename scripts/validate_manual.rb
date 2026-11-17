@@ -797,7 +797,8 @@ if ENV["DOCUMENTS_CHECKOUT"] && !ENV["DOCUMENTS_CHECKOUT"].empty?
 
   ROOT.glob("**/*.qmd").each do |path|
     path.read.scan(/\{\{<\s*meta\s+documents-(?:media-)?base-url\s*>\}\}\/([^\s\)\"']+)/).flatten.each do |destination|
-      errors += error("document link target does not exist: #{destination}") unless (checkout / destination).file?
+      asset_path = destination.split(/[?#]/, 2).first
+      errors += error("document link target does not exist: #{destination}") unless (checkout / asset_path).file?
     end
   end
 end

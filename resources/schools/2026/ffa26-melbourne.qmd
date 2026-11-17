@@ -17,7 +17,7 @@ number-sections: false
 
 ## Course material
 
-[Download the FFA26 School Melbourne course ZIP]({{< meta documents-media-base-url >}}/tutorials/2026/ffa/2026-11-17-ffa26-melbourne.zip)
+[Download the FFA26 School Melbourne course ZIP]({{< meta documents-media-base-url >}}/tutorials/2026/ffa/2026-11-17-ffa26-melbourne.zip?download=1)
 
 Extract the ZIP into a directory of your choice. It contains the notebook,
 Python helpers and OPALX input files in the layout used by the notebook:
