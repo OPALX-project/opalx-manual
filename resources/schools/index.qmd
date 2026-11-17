@@ -1,0 +1,28 @@
+---
+title: "OPALX School Archive"
+description: "Searchable archive of unnumbered OPALX school and workshop pages."
+audience: user
+status: current
+last-reviewed: "2026-11-17"
+number-sections: false
+---
+
+::: {.feature-opalx}
+
+[Return to the manual's Schools catalog](../schools.html)
+
+School detail pages are grouped by year and rendered separately from the
+numbered manual. Use the archive search to find course descriptions and
+preparation instructions.
+
+## 2026
+
+::: {.table-responsive .school-catalog-table}
+
+| School | Location | Material |
+|---|---|---|
+| [FFA26 School Melbourne](2026/ffa26-melbourne.qmd){.text-nowrap} | Melbourne, Australia | Course ZIP: notebook, Python helpers and native inputs |
+
+:::
+
+:::

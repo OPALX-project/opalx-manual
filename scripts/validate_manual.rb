@@ -50,7 +50,9 @@ if chapters.include?("user-guide/structures/index.qmd")
 end
 report_pages = [ROOT / "resources/reports/index.qmd"] +
                ROOT.glob("resources/reports/[0-9][0-9][0-9][0-9]/*.qmd")
-substantive_pages = (chapters.map { |relative| ROOT / relative } + report_pages).uniq
+school_pages = [ROOT / "resources/schools/index.qmd"] +
+               ROOT.glob("resources/schools/[0-9][0-9][0-9][0-9]/*.qmd")
+substantive_pages = (chapters.map { |relative| ROOT / relative } + report_pages + school_pages).uniq
 
 chapters.each do |relative|
   path = ROOT / relative
@@ -794,7 +796,7 @@ if ENV["DOCUMENTS_CHECKOUT"] && !ENV["DOCUMENTS_CHECKOUT"].empty?
   abort "error: DOCUMENTS_CHECKOUT is not a directory: #{checkout}" unless checkout.directory?
 
   ROOT.glob("**/*.qmd").each do |path|
-    path.read.scan(/\{\{<\s*meta\s+documents-base-url\s*>\}\}\/([^\s\)\"']+)/).flatten.each do |destination|
+    path.read.scan(/\{\{<\s*meta\s+documents-(?:media-)?base-url\s*>\}\}\/([^\s\)\"']+)/).flatten.each do |destination|
       errors += error("document link target does not exist: #{destination}") unless (checkout / destination).file?
     end
   end

@@ -1,0 +1,143 @@
+---
+title: "FFA26 School Melbourne"
+description: "Prepare for the Melbourne FFA26 School and explore three scaling FFA rings with OPALX and its native closed-orbit finder."
+audience: user
+status: current
+last-reviewed: "2026-11-17"
+number-sections: false
+---
+
+::: {.feature-opalx}
+
+[Return to the Schools catalog](../../schools.html)
+
+**Location:** Melbourne, Australia\
+**Year:** 2026\
+**Topic:** Scaling fixed-field alternating-gradient (FFA) rings with OPALX
+
+## Course material
+
+[Download the FFA26 School Melbourne course ZIP]({{< meta documents-media-base-url >}}/tutorials/2026/ffa/2026-11-17-ffa26-melbourne.zip)
+
+Extract the ZIP into a directory of your choice. It contains the notebook,
+Python helpers and OPALX input files in the layout used by the notebook:
+
+```text
+opalx/
+  FFA26_OPALX.ipynb
+  pyfiles/
+    school.py
+    check_constants.py
+    execute_notebook.py
+    test_school.py
+  school-16-cell/school-16-cell.in
+  school-55deg-d-off/school-55deg-d-off.in
+  school-fourfold-3MeV/school-fourfold-3MeV.in
+  school-16-cell-probe/school-16-cell-probe.in
+  school-16-cell-probe/particles.dat
+  school-16-cell-sc/school-16-cell.in
+```
+
+Keep this structure intact. The probe input's particle distribution is included;
+generated JSON, tracking results, caches and build files are excluded.
+
+## Prepare before the school
+
+The notebook runs **OPALX in Docker** and **Python/Jupyter locally**. Install
+Docker Desktop on macOS or Windows, or Docker Engine on Linux. Windows users
+should use Ubuntu with Docker Desktop's WSL 2 integration and run the commands
+in the Ubuntu terminal. Follow the manual's
+[Docker setup instructions](../../../getting-started/index.html#run-with-docker)
+for platform details. A local OPALX build,
+compiler, or MPI installation is not required.
+
+Start Docker, check that it runs, and download the CPU image:
+
+```bash
+docker run --rm hello-world
+docker pull ghcr.io/opalx-project/opalx:cpu
+```
+
+Use Python 3.10 or newer and create a virtual environment:
+
+```bash
+python3 -m venv "$HOME/.venv-ffa26"
+source "$HOME/.venv-ffa26/bin/activate"
+python -m pip install --upgrade pip
+python -m pip install numpy pandas matplotlib h5py jupyterlab ipykernel
+```
+
+Change to the `opalx` directory inside the extracted course directory,
+replacing the example path with its actual location, and open the notebook:
+
+```bash
+cd /path/to/extracted-course/opalx
+python -m jupyterlab FFA26_OPALX.ipynb
+```
+
+Leave the setup cell in Docker mode:
+
+```python
+BACKEND = "docker"
+IMAGE = "ghcr.io/opalx-project/opalx:cpu"
+EXECUTABLE = None
+```
+
+Use the organisers' image reference in `IMAGE` when supplied. The setup cell
+checks Docker and the local image, displays the architecture and OPALX
+revision, and fixes the image for the session. It stops if Docker or the image
+is unavailable; it never substitutes a local executable. No launcher script
+or executable environment variable is needed.
+
+Before arriving, run the setup cell and, if possible, complete the first
+16-cell ring lesson. For help, retain your operating system, the displayed
+image identity, and the complete error message or native `run.log`.
+
+## Work through the three rings
+
+Each lesson follows the same progression: inspect the input, predict the
+behavior, calculate the closed orbit and full tunes, track small displacements,
+and interpret the field, orbit, and oscillation plots.
+
+::: {.table-responsive}
+
+| Machine | Energy | Main comparison | Radial tune | Vertical tune |
+|---|---:|---|---:|---:|
+| Original 16-cell F/D ring | 12 MeV | Reference ring and scalloping | 3.41066 | 3.39111 |
+| 55-degree spiral, D off | 12 MeV | Changed spiral faces and vertical focusing | 3.11774 | 1.18921 |
+| Fourfold ring | 3 MeV | Unequal F/D pairs and superperiod sampling | 3.44739 | 3.43885 |
+
+:::
+
+These rounded tunes are orientation checks for the unchanged inputs. Native
+`COF` computes the closed state and full linear tunes, including the integer
+part; Python reads and plots those results rather than estimating tunes
+externally. The reference circle used to place magnets is not the closed orbit.
+Each input supplies its own validated numerical settings.
+
+All three core single-particle lessons have completed closed-orbit and tracking
+runs on the Mac's native CPU build and the Docker ARM64 image, with full tunes
+agreeing within `2e-9`. The fourfold section plots can alias the apparent
+oscillation: read the full tune from COF rather than counting the slow plotted
+wave. The optional probe input and its particle distribution are also included
+in the ZIP.
+
+The notebook writes each experiment into a fresh directory under `opalx/runs/`.
+Its newly generated `orbit.json` supplies the closed state for tracking;
+standalone JSON snapshots are not loaded. Keep generated results local and
+restart the kernel before beginning a fresh session.
+
+## Optional native execution
+
+For an existing OPALX executable with native scaling-FFA COF and full-tune
+support, explicitly change the setup cell:
+
+```python
+BACKEND = "native"
+EXECUTABLE = "/absolute/path/to/opalx"
+```
+
+The notebook checks the chosen executable and reports its version and revision.
+Docker remains the default for the school.
+
+:::

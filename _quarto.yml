@@ -95,6 +95,7 @@ book:
         - resources/publications.qmd
         - resources/presentations-reports.qmd
         - resources/regression-tests.qmd
+        - resources/schools.qmd
 
 number-sections: true
 number-depth: 3
