@@ -1,0 +1,35 @@
+---
+title: "Schools"
+description: "Year-sorted catalog of OPALX schools, workshop notebooks, and preparation material."
+audience: user
+status: current
+last-reviewed: "2026-11-17"
+---
+
+::: {.feature-opalx}
+
+Find OPALX school and workshop material here, grouped by year. Each entry opens
+an unnumbered page with preparation instructions, a course outline, and links
+to the source material. Individual schools stay outside the numbered manual,
+following the [Presentations and Reports](presentations-reports.qmd) catalog.
+
+## 2026 {#schools-2026 .unnumbered}
+
+::: {.table-responsive .school-catalog-table}
+
+| School | Location | Material |
+|---|---|---|
+| [FFA26 School Melbourne](schools/2026/ffa26-melbourne.html){.text-nowrap} | Melbourne, Australia | Course ZIP: notebook, Python helpers and native inputs |
+
+:::
+
+## Add an entry
+
+Create a summary under `resources/schools/YYYY/` and add it to this catalog and
+the [school archive](schools/index.html), newest first when event dates are
+known. Keep individual school pages out of the book chapters in `_quarto.yml`.
+Link course repositories through metadata. Original binary documents and large
+course bundles belong in `opalx-documents`, as described in the
+[Documentation Workflow](../developer-guide/documentation-workflow.qmd).
+
+:::

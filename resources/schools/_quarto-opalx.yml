@@ -1,0 +1,8 @@
+website:
+  site-url: "https://opalx-project.github.io/opalx-manual/resources/schools/"
+
+documents-base-url: "https://github.com/OPALX-project/opalx-documents/blob/main"
+manual-repository-url: "https://github.com/OPALX-project/opalx-manual"
+deployment-profile: "opalx"
+
+documents-media-base-url: "https://media.githubusercontent.com/media/OPALX-project/opalx-documents/main"

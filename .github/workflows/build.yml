@@ -74,6 +74,9 @@ jobs:
       - name: Render unnumbered report archive
         run: quarto render resources/reports --profile "${QUARTO_PROFILE}" --to html
 
+      - name: Render unnumbered school archive
+        run: quarto render resources/schools --profile "${QUARTO_PROFILE}" --to html
+
       - name: Install TinyTeX
         if: env.BUILD_PDF == 'true'
         uses: r-lib/actions/setup-tinytex@v2

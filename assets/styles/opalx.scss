@@ -462,3 +462,8 @@ html[data-opal-documentation-version="both"] .feature-opalx::before {
 .doc-card > section { display: flex; flex-direction: column; flex: 1; }
 
 a.news-watch:hover { color: white; background: #0b5665; }
+
+// Keep school catalog columns readable inside the mobile scroll container.
+.school-catalog-table table {
+  min-width: 38rem;
+}

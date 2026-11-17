@@ -16,6 +16,7 @@ Render or preview the organization configuration with:
 ```sh
 quarto render --profile opalx --to html
 quarto render resources/reports --profile opalx --to html
+quarto render resources/schools --profile opalx --to html
 quarto preview --profile opalx
 ```
 
@@ -88,3 +89,13 @@ logos retain two columns on phones. News keeps a stable compact horizontal layou
 beside the three-row manual history on desktop. Controls have 44 px touch targets,
 documentation cards use native full-card links, and the hero heading remains
 1.5 times the News heading size at each breakpoint.
+
+## Schools
+
+`resources/schools.qmd` is the numbered Schools catalog. Individual schools live
+under `resources/schools/YYYY/` in a separate Quarto archive, following the
+Presentations and Reports pattern. Add entries to both the catalog and the
+archive's `index.qmd`; do not add individual schools to the book chapters.
+The build workflow renders this archive separately into `_site/resources/schools/`.
+Course repository links use page/project metadata; binary documents and large
+bundles belong in `opalx-documents`.
