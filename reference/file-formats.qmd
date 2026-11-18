@@ -247,8 +247,8 @@ applicability restrictions.
 
 The section frame is distinct from the orbit-local bunch frame used by
 `TRACK.INITIALORBIT`: the latter is centred at the solved launch and aligned
-with its momentum. The JSON format is experimental and has no schema-version
-field. It is a diagnostic export, not a checkpoint or an import interface for
+with its momentum. The JSON format has no schema-version field. It is a
+diagnostic export, not a checkpoint or an import interface for
 `INITIALORBIT`; handover uses the named result held in memory. Iteration details
 and return timing are available in the solver's console report.
 

@@ -1,6 +1,6 @@
 ---
 title: "Tracking"
-description: "Configure TRACK and the experimental static-ring COF command in OPALX, or retained legacy OPAL tracking."
+description: "Configure TRACK and the static-ring COF command in OPALX, or retained legacy OPAL tracking."
 audience: user
 status: current
 last-reviewed: "2026-09-10"
@@ -336,7 +336,7 @@ tracking communication object.
 :::
 
 ::: {.feature-opalx}
-## Closed-orbit command (experimental) {#opalx-cof-command}
+## Closed-orbit command {#opalx-cof-command}
 
 `COF` finds a four-dimensional, fixed-energy orbit of a **static magnetic RING**.
 It is separate from `TRACK`; it emits no particles, runs no collective physics,

@@ -458,11 +458,11 @@ finite-difference floor.
 for the `sandbox/map-2` study. The bundle preserves the original directory
 layout and includes Python helpers and tests; inputs and result data are excluded.
 
-## Fixed-section return-map service (experimental)
+## Fixed-section return-map service {#fixed-section-return-map-service-experimental}
 
-The `OneTurnMap` C++ service is the first building block for the general RING
-closed-orbit finder. The experimental [COF input command](../user-guide/tracking.qmd#opalx-cof-command)
-now uses it; it does not replace the segmented transfer-map calculator described above.
+The `OneTurnMap` C++ service provides the fixed-section return map for the
+RING closed-orbit finder. The [COF input command](../user-guide/tracking.qmd#opalx-cof-command)
+uses it; it does not replace the segmented transfer-map calculator described above.
 
 Its state is $v=(x,p_x,y,p_y)$ on a fixed local $z=0$ section. Positions are in
 metres and momenta are mechanical $p/(mc)$, not slopes. Given fixed total
