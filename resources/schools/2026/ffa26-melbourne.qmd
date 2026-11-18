@@ -3,7 +3,7 @@ title: "FFA26 School Melbourne"
 description: "Prepare for the Melbourne FFA26 School and explore three scaling FFA rings with OPALX and its native closed-orbit finder."
 audience: user
 status: current
-last-reviewed: "2026-11-17"
+last-reviewed: "2026-11-19"
 number-sections: false
 ---
 
@@ -33,13 +33,10 @@ opalx/
   school-16-cell/school-16-cell.in
   school-55deg-d-off/school-55deg-d-off.in
   school-fourfold-3MeV/school-fourfold-3MeV.in
-  school-16-cell-probe/school-16-cell-probe.in
-  school-16-cell-probe/particles.dat
-  school-16-cell-sc/school-16-cell.in
 ```
 
-Keep this structure intact. The probe input's particle distribution is included;
-generated JSON, tracking results, caches and build files are excluded.
+Keep this structure intact. Generated JSON, tracking results, caches and build
+files are excluded.
 
 ## Prepare before the school
 
@@ -119,8 +116,7 @@ All three core single-particle lessons have completed closed-orbit and tracking
 runs on the Mac's native CPU build and the Docker ARM64 image, with full tunes
 agreeing within `2e-9`. The fourfold section plots can alias the apparent
 oscillation: read the full tune from COF rather than counting the slow plotted
-wave. The optional probe input and its particle distribution are also included
-in the ZIP.
+wave.
 
 The notebook writes each experiment into a fresh directory under `opalx/runs/`.
 Its newly generated `orbit.json` supplies the closed state for tracking;
