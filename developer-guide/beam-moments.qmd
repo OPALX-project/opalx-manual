@@ -218,17 +218,18 @@ flowchart TB
 
 ## Classes {#beam-moment-classes}
 
-The diagram shows the moment types and the code around them. The solvers and
-elements that call `compute()` share one box, and so do the output writers,
-which only declare their requests. Dashed arrows are call-time dependencies; the
-filled diamond means that a `BeamMoments` value holds the `Request` of the
-groups it contains. Writers never call `compute()`; `ParallelTracker` passes them
-the values.
+The diagram shows the moment types and the code around them. Green boxes are the
+types and the function in `opalx::moments`; blue boxes are the code that
+requests or reads moments. The solvers and elements that call `compute()` share
+one box, and so do the output writers, which only declare their requests;
+[Requests during a tracking step](#beam-moment-tracker) lists the groups each of
+them reads. Dashed arrows are call-time dependencies; the filled diamond means
+that a `BeamMoments` value holds the `Request` of the groups it contains.
+Writers never call `compute()`; `ParallelTracker` passes them the values.
 
 ```{mermaid}
 %%| label: fig-beam-moments-classes
 %%| fig-cap: "Beam-moment types, their callers, and the writers that declare requests."
-%%| column: page
 ---
 title: OPALX Beam Moments - class diagram
 config:
@@ -247,47 +248,44 @@ classDiagram
     accDescr: Request, BeamMoments and compute in opalx::moments, with the tracker, the solvers and elements that request moments, and the output writers that declare their requests.
 
     direction TB
-    namespace opalx_moments {
-        class Request:::moments {
-            set of Moment groups: Bounds, MeanPosition,
-            MeanMomentum, Spread, Polarization
-            +contains(Request) bool
-            +without(Request) Request
-            +empty() bool
-            +operator|(Request) Request
-        }
-        class BeamMoments:::moments {
-            +available() Request
-            +count() size_t
-            +minR() maxR() meanR() meanP()
-            +covariance(i, j) rmsR() rmsP()
-            +normalizedEmittance()
-            +restFrameTemperature()
-            +meanPolarization()
-            -require(Request) throws if missing
-        }
-        class compute:::moments {
-            <<function>>
-            +compute(containers, Request) BeamMoments
-        }
+    class Request:::moments {
+        bitset of Moment groups
+        +contains(Request) bool
+        +without(Request) Request
+        +empty() bool
+        +operator|(Request) Request
+    }
+    class BeamMoments:::moments {
+        +available() Request
+        +count() size_t
+        +minR() maxR() meanR() meanP()
+        +covariance(i, j) rmsR() rmsP()
+        +normalizedEmittance()
+        +restFrameTemperature()
+        +meanPolarization()
+        -require(Request) throws
+    }
+    class compute:::moments {
+        <<function>>
+        +compute(containers, Request)
     }
     class ParallelTracker:::runtime {
         -outputMomentsDue() Request
         -momentsOfContainers()
     }
-    class Callers["solvers and elements"]:::pic {
+    class Callers["solvers and elements"]:::runtime {
         <<callers>>
-        CartesianDomainUpdater: Bounds
-        FFT2D5Algorithm: MeanMomentum
-        Probe: Bounds
+        CartesianDomainUpdater
+        FFT2D5Algorithm
+        Probe
     }
     class DataSink:::runtime {
         +requiredMoments()$ Request
     }
     class Writers["output writers"]:::runtime {
         <<declare requiredMoments>>
-        StatWriter: all groups, Polarization with spin
-        H5PartWrapperForPT: no Polarization
+        StatWriter
+        H5PartWrapperForPT
     }
     class ParticleContainer:::bunch {
         R, P, Pol, M
@@ -305,7 +303,6 @@ classDiagram
     classDef moments fill:#F5FAF8,stroke:#5D8678,color:#205C4A
     classDef runtime fill:#F7F9FD,stroke:#607B9C,color:#244A76
     classDef bunch fill:#FAFAF8,stroke:#788270,color:#485340
-    classDef pic fill:#F5FAF8,stroke:#5D8678,color:#205C4A
 ```
 
 ## Adding a consumer or a moment group {#beam-moment-extending}
