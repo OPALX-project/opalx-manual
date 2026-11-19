@@ -3,7 +3,7 @@ title: "Overview"
 description: "Relativistic equations of motion, split-step integration, frame handling, and tracker structure."
 audience: physics
 status: current
-last-reviewed: "2026-10-23"
+last-reviewed: "2026-11-19"
 ---
 
 
@@ -342,8 +342,6 @@ classDiagram
   }
 
   class PartBunch {
-    +updateAllParticleMoments()
-    +calcBeamParameters()
     +incrementT()
     +getParticleContainer(i)
   }
@@ -383,7 +381,10 @@ classDiagram
 The main point is that `ParallelTracker` orchestrates the full step, while
 `BorisPusher` only provides the local momentum and position update kernel.
 Field assembly, coordinate-frame changes, emission, and reference-particle
-updates are handled outside the pusher in the tracker loop itself.
+updates are handled outside the pusher in the tracker loop itself. Beam
+moments are not stored on the bunch; the tracker, the solvers and the output
+request them when needed, as described in
+[Beam Moments](../../developer-guide/beam-moments.qmd).
 
 ## Positioning of Elements {#sec.opalt.positioning-of-elements}
 

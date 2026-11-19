@@ -3,13 +3,15 @@ title: "Architecture"
 description: "How parsing, object registration, tracking, IPPL, and Kokkos fit together."
 audience: developer
 status: current
-last-reviewed: "2026-09-05"
+last-reviewed: "2026-11-19"
 ---
 
 OPALX keeps the statement-driven OPAL object model at its boundary while using
 IPPL and Kokkos for distributed, performance-portable particle and field work.
 The [Space-Charge Solver Architecture](space-charge-solver-architecture.qmd)
-chapter expands the solver-specific ownership and execution flow.
+chapter expands the solver-specific ownership and execution flow, and
+[Beam Moments](beam-moments.qmd) explains how the tracker, the solvers and the
+output writers request beam moments.
 
 ```{mermaid}
 flowchart LR

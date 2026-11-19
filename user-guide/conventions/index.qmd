@@ -3,7 +3,7 @@ title: "Conventions"
 description: "Units, symbols, coordinate conventions, and common accelerator-code conversions used by OPALX."
 audience: user
 status: current
-last-reviewed: "2026-07-23"
+last-reviewed: "2026-11-19"
 ---
 
 {{< include ../../includes/user-guide-audit.qmd >}}
@@ -144,8 +144,7 @@ $$
 \rho_i=\frac{C_{r_i\widetilde p_i}}{\sigma_{r_i}\sigma_{\widetilde p_i}}.
 $$
 
-The correlation is undefined if either spread is zero; the current output
-calculation does not guard this division, so such entries can be non-finite.
+The correlation is undefined if either spread is zero; OPALX then writes zero.
 For an empty container, the writer outputs zero for the means, RMS spreads,
 correlations, and emittances listed below.
 

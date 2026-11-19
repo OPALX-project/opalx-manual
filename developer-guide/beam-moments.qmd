@@ -1,0 +1,365 @@
+---
+title: "Beam Moments"
+description: "How OPALX computes beam moments on request: moment groups, the compute() call, the requests of one tracking step, and how to add a consumer or a moment group."
+audience: developer
+status: current
+last-reviewed: "2026-11-19"
+toc-depth: 2
+---
+
+OPALX does not store beam moments on `PartBunch` or `ParticleContainer`. Code
+that needs the bounds, a mean or a spread of a beam asks
+`opalx::moments::compute()` for the moment groups it reads, at the point where
+it reads them, and gets a `BeamMoments` value back. The value describes the
+particles at the time of the call; nothing is cached between calls. The
+implementation is in `opalx/src/Moments/`.
+
+This chapter describes the software structure. The definitions of the reported
+quantities (population moments, normalized and geometric emittance, rest-frame
+temperatures) are in
+[Bunch moments and RMS emittance](../user-guide/conventions/index.qmd#bunch-moments-emittance).
+
+## Moment groups and requests {#beam-moment-requests}
+
+A request is a set of `Moment` groups, declared in `Moments/MomentRequest.h`. A
+group is computed completely or not at all.
+
+| Group | `BeamMoments` accessors | Pass | Also computes |
+|---|---|---|---|
+| `Bounds` | `minR()`, `maxR()` | first order | |
+| `MeanPosition` | `meanR()` | first order | |
+| `MeanMomentum` | `meanP()`, `meanGamma()`, `meanGammaZ()`, `meanKineticEnergy()` | first order | |
+| `Spread` | `covariance(i, j)`, `rmsR()`, `rmsP()`, `correlationRP()`, `normalizedEmittance()`, `geometricEmittance()`, `stdKineticEnergy()`, `restFrameTemperature()` | second order | `MeanPosition`, `MeanMomentum` |
+| `Polarization` | `meanPolarization()`, `rmsPolarization()`, `meanPolarizationMagnitude()` | polarization | |
+
+`count()`, the global number of particles, is always available. A single
+`Moment` converts to a `Request`; requests combine with `|` and `|=` and offer
+`contains()`, `without()` and `empty()`. `opalx::moments::allMoments` names
+every group.
+
+```cpp
+#include "Moments/BeamMoments.h"
+
+using opalx::moments::Moment;
+
+const auto m = opalx::moments::compute(*pc, Moment::MeanPosition | Moment::Spread);
+const auto halfWidth = k * m.rmsR();
+const auto lower     = m.meanR() - halfWidth;  // m.minR() would throw: Bounds not requested
+```
+
+## What `compute()` does {#beam-moment-compute}
+
+`compute(containers, request)` takes one container or a span of containers and
+computes the requested groups over their union. It first adds the dependencies
+(`withDependencies()` in `Moments/MomentComputation.cpp`: `Spread` adds both
+means, because the second-order pass is centred on them) and then runs only the
+passes these groups need:
+
+| Pass | Runs for | Reads | MPI reduction |
+|---|---|---|---|
+| first order | `Bounds`, `MeanPosition`, `MeanMomentum` | `R` only for positions or bounds; `P` and the mass only for momenta | sum of 8 doubles ($\mathbf R$, $\mathbf P$, $\gamma$, kinetic energy) if a mean is requested; min of 6 doubles ($\min\mathbf R$, $-\max\mathbf R$) if bounds are requested |
+| second order | `Spread` | `R`, `P`, mass | one sum of 25 doubles: the 21 entries of the symmetric 6x6 covariance, the kinetic-energy variance and three rest-frame temperature sums |
+| polarization | `Polarization`, if every container has spin | `Pol` | sum of 6 doubles |
+
+Each pass runs one Kokkos reduction per container, joins the containers on the
+host and then calls one allreduce per MPI operator, so passing several
+containers adds no MPI messages. The second-order pass is centred on the global
+means of the first pass. The rest-frame temperature boosts each momentum into
+the frame where the mean momentum vanishes; over several containers this boost
+is not mass-weighted, so the temperature is meant for one species.
+
+The reductions are chunked: on host backends (Serial, OpenMP) a work item sums
+32 contiguous particles, on devices it strides over the particles. A pass sums
+the same quantities whatever else was requested, so a mean comes out bitwise the
+same whether it was requested alone or together with `Spread`. A `Polarization`
+request on a container without spin skips the pass, and `available()` then does
+not contain `Polarization`. The call is timed by the IPPL timer
+`computeMoments`.
+
+```{mermaid}
+%%| label: fig-beam-moments-compute
+%%| fig-cap: "One compute() call: dependencies, the passes the request needs, and the returned value."
+---
+title: OPALX Beam Moments - one compute() call
+config:
+  theme: base
+  htmlLabels: true
+  fontFamily: Helvetica, Arial, sans-serif
+  themeVariables:
+    fontFamily: Helvetica, Arial, sans-serif
+    lineColor: "#526277"
+  flowchart:
+    curve: linear
+    wrappingWidth: 400
+    nodeSpacing: 20
+    rankSpacing: 30
+    padding: 12
+---
+flowchart TB
+    accTitle: One compute() call
+    accDescr: compute() adds dependencies, runs the first-order, second-order and polarization passes only if requested, and returns a BeamMoments value.
+
+    subgraph callRow[" "]
+        direction LR
+        A["compute(containers, request)<br/>collective on ippl::Comm"] --> B["withDependencies(request)<br/>Spread adds both means"]
+    end
+    callRow --> passes
+    subgraph passes["passes, only if requested"]
+        direction LR
+        P1["first order: Bounds and means<br/>allreduce sum (8) and min (6)"] --> P2["second order: Spread<br/>centred on the means<br/>one allreduce (25)"] --> P3["polarization<br/>if every container has spin<br/>one allreduce (6)"]
+    end
+    passes --> resultRow
+    subgraph resultRow[" "]
+        direction LR
+        K["BeamMoments<br/>available() = groups computed"] --> L["caller reads meanP(), rmsR(), ...<br/>a missing group throws"]
+    end
+    classDef caller fill:#E7EFFA,stroke:#607B9C,color:#1E293B;
+    classDef pass fill:#FFFFFF,stroke:#5D8678,color:#1E293B;
+    class A,B,K,L caller;
+    class P1,P2,P3 pass;
+    style passes fill:#F5FAF8,stroke:#9CBFB3,color:#205C4A,stroke-dasharray:5 4;
+    style callRow fill:none,stroke:none;
+    style resultRow fill:none,stroke:none;
+    linkStyle default stroke:#526277,stroke-width:1.2px;
+```
+
+## Requests during a tracking step {#beam-moment-tracker}
+
+Each consumer asks where it needs a value, in the frame the particles are in at
+that point. Unless a class is named, the callers are `ParallelTracker` methods.
+
+| Caller | Request | When |
+|---|---|---|
+| `makeSpaceChargeFrameTransforms()` | `MeanMomentum` of the primary container | every space-charge field update; the [solve frame](../physics/overview/index.qmd#sec.opalt.space-charge-coordinate-system) follows the mean momentum |
+| `CartesianDomainUpdater::` `computeBounds()` | `Bounds` of the solved containers | CartesianPIC3D domain update |
+| FFT2D5 `scatterContainer()` and `gatherContainer()` | `MeanMomentum` of the container | every FFT2D5 solve, for the boost into the beam frame |
+| `forEachElementInBunchFrame()` | `Bounds` per container | element lookup in `computeExternalFields()` and `applyElementApertures()`, only without spatial candidates or with cyclotron sectors |
+| outlier box after the second integration stage | `MeanPosition` and `Spread`, plus the output groups due in this step | `BOUNDPDESTROY > 0`, for active nonempty containers |
+| `dumpStats()` | the output groups due in this step | steps with stat, phase-space or step-log output |
+
+`ParallelTracker::outputMomentsDue()` returns the output groups of a step. A stat
+record needs `StatWriter::requiredMoments(hasSpin)`: every group, with
+`Polarization` only for containers with spin. A phase-space dump with HDF5 needs
+`H5PartWrapperForPT::requiredMoments`, and the step log needs `MeanMomentum`.
+`DataSink::requiredMoments()` unites the writer requests. On steps without
+output the request is empty, so such steps compute only what the solver, the
+element lookup and the outlier box ask for.
+
+The outlier box adds the output groups to its own request and keeps the result
+in `stepMoments`. `momentsOfContainers()` reuses `stepMoments[i]` if its
+`available()` contains the output request, and calls `compute()` otherwise. If
+the outlier box deletes particles, `stepMoments` is cleared, because those
+values describe the particle set before the deletion.
+
+Startup uses the same call. `TrackRun` prints the beam summary with
+`PartBunch::printedMoments`. `ParallelTracker` sets the reference pose of a
+nonempty container from `MeanPosition | MeanMomentum`, and
+`computeInitialBounds()` requests `Bounds` over all containers.
+`Probe::doPreCheck()` requests `Bounds`.
+
+```{mermaid}
+%%| label: fig-beam-moments-step
+%%| fig-cap: "Moment requests inside one ParallelTracker step."
+---
+title: OPALX Beam Moments - requests in one ParallelTracker step
+config:
+  theme: base
+  htmlLabels: true
+  fontFamily: Helvetica, Arial, sans-serif
+  themeVariables:
+    fontFamily: Helvetica, Arial, sans-serif
+    lineColor: "#526277"
+    edgeLabelBackground: "#FFFFFF"
+  flowchart:
+    curve: linear
+    wrappingWidth: 400
+    nodeSpacing: 20
+    rankSpacing: 28
+    padding: 10
+---
+flowchart TB
+    accTitle: Moment requests in one tracking step
+    accDescr: The space-charge frame, the solvers, the element lookup, the outlier box and the outputs each request the moment groups they read; the outputs reuse the outlier-box value when it covers their request.
+
+    subgraph solve["1. space charge"]
+        direction LR
+        F1["makeSpaceChargeFrameTransforms()<br/>compute(primary, MeanMomentum)"] --> SOL{"solver"}
+        SOL -- CartesianPIC3D --> CB["computeBounds()<br/>compute(containers, Bounds)"]
+        SOL -- FFT2D5 --> FF["scatter and gather<br/>compute(pc, MeanMomentum) each"]
+    end
+    subgraph fields["2. external fields"]
+        direction LR
+        EX["computeExternalFields()<br/>compute(pc, Bounds) for the element lookup"] --> T2["timeIntegration2()"] --> AP["applyElementApertures()<br/>same Bounds request"]
+    end
+    subgraph box["3. outlier box"]
+        direction LR
+        R["BOUNDPDESTROY > 0:<br/>stepMoments[i] = compute(pc, MeanPosition<br/>| Spread | outputMomentsDue())"] --> M["markParticlesOutside()<br/>meanR ± k rmsR"] --> DEL["particles deleted:<br/>stepMoments cleared"]
+    end
+    subgraph out["4. output"]
+        direction LR
+        DS["dumpStats()"] --> MO["momentsOfContainers()<br/>reuse stepMoments[i] if it covers<br/>outputMomentsDue(), else compute"] --> W["StatWriter, H5PartWrapperForPT<br/>and step log read their groups"]
+    end
+    solve --> fields --> box --> out
+
+    classDef tracker fill:#FFFFFF,stroke:#607B9C,color:#1E293B;
+    classDef decision fill:#E7EFFA,stroke:#607B9C,color:#1E293B;
+    classDef solver fill:#FFFFFF,stroke:#5D8678,color:#1E293B;
+    classDef fft fill:#FFFFFF,stroke:#8A759F,color:#1E293B;
+    class F1,EX,T2,AP,R,M,DEL,DS,MO,W tracker;
+    class SOL decision;
+    class CB solver;
+    class FF fft;
+    style solve fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
+    style fields fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
+    style box fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
+    style out fill:#F7F9FD,stroke:#A9BDD7,color:#244A76,stroke-dasharray:5 4;
+    linkStyle default stroke:#526277,stroke-width:1.2px;
+```
+
+## Classes {#beam-moment-classes}
+
+The diagram shows the moment types and the code around them. Green boxes are the
+types and the function in `opalx::moments`; blue boxes are the code that
+requests or reads moments. The solvers and elements that call `compute()` share
+one box, and so do the output writers, which only declare their requests;
+[Requests during a tracking step](#beam-moment-tracker) lists the groups each of
+them reads. Dashed arrows are call-time dependencies; the filled diamond means
+that a `BeamMoments` value holds the `Request` of the groups it contains.
+Writers never call `compute()`; `ParallelTracker` passes them the values.
+
+```{mermaid}
+%%| label: fig-beam-moments-classes
+%%| fig-cap: "Beam-moment types, their callers, and the writers that declare requests."
+---
+title: OPALX Beam Moments - class diagram
+config:
+  theme: base
+  htmlLabels: true
+  fontFamily: Helvetica, Arial, sans-serif
+  themeVariables:
+    fontFamily: Helvetica, Arial, sans-serif
+    primaryColor: "#FFFFFF"
+    primaryTextColor: "#334155"
+    primaryBorderColor: "#526277"
+    lineColor: "#526277"
+---
+classDiagram
+    accTitle: Beam-moment class diagram
+    accDescr: Request, BeamMoments and compute in opalx::moments, with the tracker, the solvers and elements that request moments, and the output writers that declare their requests.
+
+    direction TB
+    class Request:::moments {
+        bitset of Moment groups
+        +contains(Request) bool
+        +without(Request) Request
+        +empty() bool
+        +operator|(Request) Request
+    }
+    class BeamMoments:::moments {
+        +available() Request
+        +count() size_t
+        +minR() maxR() meanR() meanP()
+        +covariance(i, j) rmsR() rmsP()
+        +normalizedEmittance()
+        +restFrameTemperature()
+        +meanPolarization()
+        -require(Request) throws
+    }
+    class compute:::moments {
+        <<function>>
+        +compute(containers, Request)
+    }
+    class ParallelTracker:::runtime {
+        -outputMomentsDue() Request
+        -momentsOfContainers()
+    }
+    class Callers["solvers and elements"]:::runtime {
+        <<callers>>
+        CartesianDomainUpdater
+        FFT2D5Algorithm
+        Probe
+    }
+    class DataSink:::runtime {
+        +requiredMoments()$ Request
+    }
+    class Writers["output writers"]:::runtime {
+        <<declare requiredMoments>>
+        StatWriter
+        H5PartWrapperForPT
+    }
+    class ParticleContainer:::bunch {
+        R, P, Pol, M
+    }
+
+    ParallelTracker ..> compute : step and startup
+    Callers ..> compute : own requests
+    ParallelTracker ..> DataSink : passes values
+    DataSink ..> Writers : unites requests
+    Writers ..> BeamMoments : read
+    compute ..> ParticleContainer : reads
+    compute --> BeamMoments : returns
+    BeamMoments *-- Request : available
+
+    classDef moments fill:#F5FAF8,stroke:#5D8678,color:#205C4A
+    classDef runtime fill:#F7F9FD,stroke:#607B9C,color:#244A76
+    classDef bunch fill:#FAFAF8,stroke:#788270,color:#485340
+```
+
+## Adding a consumer or a moment group {#beam-moment-extending}
+
+- **A new consumer** (solver, element, diagnostic) calls
+  `opalx::moments::compute(containers, request)` where it needs the value and
+  reads only the groups it requested. One value can serve several reads inside
+  one function, but it must not be kept across code that changes the
+  particles.
+- **A writer that the tracker feeds** declares its groups as a static
+  `requiredMoments` request and is added to `DataSink::requiredMoments()`. The outlier-box request and the reuse in
+  `momentsOfContainers()` then cover it without new tracker code.
+- **Several beams at once:** pass all containers in one call. Each pass still
+  costs one allreduce per MPI operator.
+- **A new moment group:** add a bit to `Moment` (three of the eight bits are
+  free) and, if the statistics output reads it, to `allMoments`. Add its
+  dependencies to `withDependencies()`, its sums to an existing pass that reads
+  the same arrays or to a new pass with its own allreduce, and accessors that
+  call `require()`. Callers that do not request the group do not pay for it.
+  Extend `TestBeamMoments` with a host reference for the new quantities.
+
+Rules for every caller:
+
+- `compute()` is collective over `ippl::Comm`. Every rank calls it with the same
+  containers and request, also ranks without local particles. A condition around
+  a call must have the same value on every rank, for example
+  `getTotalNum() > 0`, never `getLocalNum() > 0`.
+- All containers of one call must be in the same coordinate frame. The result
+  is in that frame.
+- A value describes the particle set at the time of the call. After particles
+  are deleted, emitted or moved, request again.
+- An accessor of a group that `available()` does not contain throws
+  `OpalException`.
+- Degenerate sets give finite values. An empty set gives zero means and spreads,
+  and `Bounds` give a zero-size box at the origin. A vanishing spread gives a
+  correlation of zero, and `geometricEmittance()` is zero when
+  $\langle\gamma\rangle = 1$.
+
+## Tests {#beam-moment-tests}
+
+`unit_tests/Moments/TestBeamMoments.cpp` compares all groups with a host
+reference. It also checks:
+
+- the request contract (dependencies and throwing accessors);
+- that the writer requests match what `compute()` provides;
+- that shared sums do not depend on the request;
+- the kinetic energy with a reference mass and with per-particle masses;
+- empty containers, a single particle and zero extent;
+- several containers against one concatenated container;
+- polarization only when every container has spin;
+- the rest-frame temperature of a boosted anisotropic set.
+
+CTest runs the test on one rank. Run the multi-rank cases by hand, for example
+from the source directory with the `build_serial` tree of
+[Build, Test, and CI](build-test-ci.qmd):
+
+```bash
+mpirun -np 2 build_serial/unit_tests/Moments/TestBeamMoments
+mpirun -np 4 build_serial/unit_tests/Moments/TestBeamMoments
+```

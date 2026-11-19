@@ -3,7 +3,7 @@ title: "Adding Features"
 description: "Integrate commands, elements, physics, tests, and documentation coherently."
 audience: developer
 status: experimental
-last-reviewed: "2026-07-22"
+last-reviewed: "2026-11-19"
 ---
 
 ## Parser-visible commands and elements
@@ -19,6 +19,15 @@ last-reviewed: "2026-07-22"
 Document the governing equations, units, coordinate frame, numerical method,
 step ordering, and known approximations. Add a manufactured solution,
 convergence study, or benchmark that makes failures observable.
+
+## Beam statistics
+
+Request the moment groups a feature reads from `opalx::moments::compute()` at
+the point where it reads them, and do not keep the value across code that
+changes the particles. A new output writer that the tracker feeds declares its
+`requiredMoments` and is added to `DataSink::requiredMoments()`.
+[Beam Moments](beam-moments.qmd) lists the groups, the rules and how to add a
+group.
 
 ## Performance portability
 
