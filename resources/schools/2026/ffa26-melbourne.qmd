@@ -3,7 +3,7 @@ title: "FFA26 School Melbourne"
 description: "Prepare for the Melbourne FFA26 School and explore three scaling FFA rings with OPALX and its native closed-orbit finder."
 audience: user
 status: current
-last-reviewed: "2026-11-19"
+last-reviewed: "2026-11-21"
 number-sections: false
 ---
 
@@ -19,12 +19,13 @@ number-sections: false
 
 [Download the FFA26 School Melbourne course ZIP]({{< meta documents-media-base-url >}}/tutorials/2026/ffa/2026-11-17-ffa26-melbourne.zip?download=1)
 
-Extract the ZIP into a directory of your choice. It contains the notebook,
-Python helpers and OPALX input files in the layout used by the notebook:
+Extract the ZIP into a directory of your choice. It contains two notebooks,
+Python helpers and OPALX input files in the following layout:
 
 ```text
 opalx/
   FFA26_OPALX.ipynb
+  FFA26_play_with_scaling_ffa.ipynb
   pyfiles/
     school.py
     check_constants.py
@@ -40,7 +41,8 @@ files are excluded.
 
 ## Prepare before the school
 
-The notebook runs **OPALX in Docker** and **Python/Jupyter locally**. Install
+The main notebook, `FFA26_OPALX.ipynb`, runs **OPALX in Docker** and
+**Python/Jupyter locally**. Install
 Docker Desktop on macOS or Windows, or Docker Engine on Linux. Windows users
 should use Ubuntu with Docker Desktop's WSL 2 integration and run the commands
 in the Ubuntu terminal. Follow the manual's
